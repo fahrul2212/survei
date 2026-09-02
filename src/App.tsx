@@ -1752,28 +1752,27 @@ function AdminPortal({ session }: { session: Session }) {
             </article>
           </section>
 
-          <section className="admin-table">
-            <div className="admin-table__head">
+          <section className="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50/50 p-4 sm:flex-row sm:items-center sm:justify-between md:p-5">
               <div>
-                <p className="eyebrow">Company status</p>
-                <h3>{current?.reporting_year ?? "No active year"}</h3>
+                <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">Company status</p>
+                <h3 className="text-lg font-bold text-slate-900">{current?.reporting_year ?? "No active year"}</h3>
               </div>
-              <div className="table-toolbar">
-                <input
-                  type="search"
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                <SearchField
                   placeholder="Search company or email…"
                   value={dashSearch}
                   onChange={(e) => setDashSearch(e.target.value)}
-                  className="dashboard-search"
+                  className="w-full sm:w-[220px]"
                 />
-                <button className="button button--secondary toolbar-button" onClick={() => setView("data")}>
+                <Button variant="secondary" onClick={() => setView("data")}>
                   Export data
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* Status Filter Tabs */}
-            <div className="table-filters">
+            <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 p-4">
               {[
                 ["all", `All (${currentRows.length})`],
                 ["submitted", `Submitted (${submitted})`],
@@ -1784,52 +1783,73 @@ function AdminPortal({ session }: { session: Session }) {
                   key={key}
                   type="button"
                   onClick={() => setDashStatusFilter(key)}
-                  className={dashStatusFilter === key ? "filter-pill filter-pill--active" : "filter-pill"}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                    dashStatusFilter === key
+                      ? "bg-slate-800 text-white shadow-sm"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+                  }`}
                 >
                   {label}
                 </button>
               ))}
             </div>
 
-            <div className="table-scroll">
-              <table className="responsive-table">
-                <thead>
+            <div className="w-full overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-600">
+                <thead className="hidden border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500 md:table-header-group">
                   <tr>
-                    <th>Company</th>
-                    <th>Contact</th>
-                    <th>Progress</th>
-                    <th>Status</th>
-                    <th>Action</th>
+                    <th className="p-4 font-semibold">Company</th>
+                    <th className="p-4 font-semibold">Contact</th>
+                    <th className="p-4 font-semibold">Progress</th>
+                    <th className="p-4 font-semibold">Status</th>
+                    <th className="p-4 font-semibold">Action</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100">
                   {filteredDashboardRows.map((r) => (
-                    <tr key={`${r.organization_id}-${r.survey_version_id}`}>
-                      <td data-label="Company"><strong>{r.organization_name}</strong></td>
-                      <td data-label="Contact">{r.contact_email ?? "Not set"}</td>
-                      <td data-label="Progress">
-                        <div className="table-progress">
-                          <span><i style={{ width: `${r.completion_percent}%` }} /></span>
-                          {r.completion_percent}%
+                    <tr key={`${r.organization_id}-${r.survey_version_id}`} className="flex flex-col p-4 transition-colors hover:bg-slate-50/50 md:table-row md:p-0">
+                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
+                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Company</span>
+                        <strong className="font-semibold text-slate-900">{r.organization_name}</strong>
+                      </td>
+                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
+                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Contact</span>
+                        <span className="text-slate-600">{r.contact_email ?? "Not set"}</span>
+                      </td>
+                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
+                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Progress</span>
+                        <div className="flex items-center gap-3 text-[13px] font-semibold text-slate-900">
+                          <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-100">
+                            <div className="h-full bg-slate-900 transition-all duration-500" style={{ width: `${r.completion_percent}%` }} />
+                          </div>
+                          <span className="w-9">{r.completion_percent}%</span>
                         </div>
                       </td>
-                      <td data-label="Status">
-                        <span className={`table-status ${r.status === "submitted" ? "table-status--submitted" : r.status === "not_started" ? "table-status--not-started" : ""}`}>
+                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
+                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Status</span>
+                        <span className={`inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                          r.status === "submitted" ? "bg-emerald-100 text-emerald-700" :
+                          r.status === "not_started" ? "bg-slate-100 text-slate-500" :
+                          "bg-blue-100 text-blue-700"
+                        }`}>
                           {r.status.replace("_", " ")}
                         </span>
                       </td>
-                      <td data-label="Action">
+                      <td className="flex flex-col border-t border-slate-100 pt-3 md:table-cell md:border-0 md:p-4 md:pt-4 md:align-middle">
+                        <span className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Action</span>
                         {r.status === "submitted" && (
-                          <button className="table-action" onClick={() => setReopenTarget(r)}>
+                          <Button size="small" variant="secondary" onClick={() => setReopenTarget(r)}>
                             Reopen
-                          </button>
+                          </Button>
                         )}
                       </td>
                     </tr>
                   ))}
                   {filteredDashboardRows.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="empty-row">No companies matching the filter.</td>
+                      <td colSpan={5} className="p-8 text-center text-slate-500">
+                        No companies matching the filter.
+                      </td>
                     </tr>
                   )}
                 </tbody>

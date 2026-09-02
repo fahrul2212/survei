@@ -143,13 +143,13 @@ export function AuditLogView({ orgs }: { orgs: Organization[] }) {
         </div>
       </section>
 
-      <section className="admin-table">
-        <div className="admin-table__head">
+      <section className="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50/50 p-4 sm:flex-row sm:items-center sm:justify-between md:p-5">
           <div>
-            <p className="eyebrow">Recent activity</p>
-            <h3>{activeFilters ? `Filtered events (${activeFilters})` : "All events"}</h3>
+            <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">Recent activity</p>
+            <h3 className="text-lg font-bold text-slate-900">{activeFilters ? `Filtered events (${activeFilters})` : "All events"}</h3>
           </div>
-          {loading && <span className="loading-inline" role="status">Loading…</span>}
+          {loading && <span className="text-sm font-medium text-slate-500" role="status">Loading…</span>}
         </div>
 
         {events.length === 0 && !loading ? (
@@ -159,39 +159,51 @@ export function AuditLogView({ orgs }: { orgs: Organization[] }) {
             description={notice ? "Refresh after the database issue has been resolved." : "Try changing the filters or check back after new activity."}
           />
         ) : (
-          <div className="table-scroll">
-            <table className="responsive-table responsive-table--audit">
-              <thead>
+          <div className="w-full overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-600">
+              <thead className="hidden border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500 md:table-header-group">
                 <tr>
-                  <th>Time</th>
-                  <th>Actor</th>
-                  <th>Event</th>
-                  <th>Entity</th>
-                  <th>Company</th>
-                  <th>Details</th>
+                  <th className="p-4 font-semibold">Time</th>
+                  <th className="p-4 font-semibold">Actor</th>
+                  <th className="p-4 font-semibold">Event</th>
+                  <th className="p-4 font-semibold">Entity</th>
+                  <th className="p-4 font-semibold">Company</th>
+                  <th className="p-4 font-semibold">Details</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {events.map((event) => {
                   const details = Object.keys(event.details).length > 0 ? JSON.stringify(event.details) : "No details";
                   return (
-                    <tr key={event.id}>
-                      <td data-label="Time" className="audit-time">{formatDateTime(event.occurred_at)}</td>
-                      <td data-label="Actor"><TruncatedText className="audit-actor" children={event.actor_email} /></td>
-                      <td data-label="Event">
-                        <span className={`audit-badge audit-badge--${event.event_type.split(".")[0]}`}>
+                    <tr key={event.id} className="flex flex-col p-4 transition-colors hover:bg-slate-50/50 md:table-row md:p-0">
+                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
+                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Time</span>
+                        <span className="font-mono text-[11px] font-medium text-slate-500">{formatDateTime(event.occurred_at)}</span>
+                      </td>
+                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
+                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Actor</span>
+                        <TruncatedText className="font-medium text-slate-900" children={event.actor_email} />
+                      </td>
+                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
+                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Event</span>
+                        <span className="inline-flex w-fit rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
                           {eventLabel(event.event_type)}
                         </span>
                       </td>
-                      <td data-label="Entity" className="audit-entity">
-                        <code>{event.entity_type}</code>
-                        <small>#{event.entity_id}</small>
+                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
+                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Entity</span>
+                        <div className="flex flex-col gap-0.5">
+                          <code className="text-xs text-slate-700">{event.entity_type}</code>
+                          <small className="font-mono text-[10px] text-slate-400">#{event.entity_id}</small>
+                        </div>
                       </td>
-                      <td data-label="Company">
-                        <TruncatedText children={event.organization_name ?? "System"} />
+                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
+                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Company</span>
+                        <TruncatedText className="font-medium text-slate-700" children={event.organization_name ?? "System"} />
                       </td>
-                      <td data-label="Details" className="audit-details">
-                        <TruncatedText className="font-mono text-xs" children={details} />
+                      <td className="mb-2 flex flex-col border-t border-slate-100 pt-3 md:table-cell md:border-0 md:p-4 md:pt-4 md:align-middle">
+                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Details</span>
+                        <TruncatedText className="font-mono text-[10px] text-slate-500" children={details} />
                       </td>
                     </tr>
                   );
@@ -202,8 +214,8 @@ export function AuditLogView({ orgs }: { orgs: Organization[] }) {
         )}
 
         {hasMore && events.length > 0 && (
-          <div className="catalog-pager">
-            <Button disabled={loading} onClick={() => void load(page + 1)}>
+          <div className="flex items-center justify-center border-t border-slate-200 bg-slate-50 p-4">
+            <Button disabled={loading} variant="secondary" onClick={() => void load(page + 1)}>
               {loading ? "Loading…" : "Load more"}
             </Button>
           </div>
