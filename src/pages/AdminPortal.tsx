@@ -48,9 +48,10 @@ import {
 } from "../components/ui";
 import { AuditLogView } from "../components/admin/AuditLogView";
 import { CompanyDirectory, type CompanyStatusFilter } from "../components/admin/CompanyDirectory";
-import { AdminDashboard } from "../components/admin/AdminDashboard";
 import { SurveyWorkspaceHeader } from "../components/admin/SurveyWorkspaceHeader";
+import { AdminDashboard } from "../components/admin/AdminDashboard";
 import { SurveyBuilder } from "../components/admin/SurveyBuilder";
+import { AdminCompanies } from "../components/admin/AdminCompanies";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -137,26 +138,11 @@ export function AdminPortal({ session }: { session: Session }) {
   const [dashStatusFilter, setDashStatusFilter] = useState<string>("all");
   const [qSearch, setQSearch] = useState("");
   const [qSectionFilter, setQSectionFilter] = useState("");
-  const [orgSearch, setOrgSearch] = useState("");
-  const [orgStatusFilter, setOrgStatusFilter] = useState<CompanyStatusFilter>("all");
-  const [orgPage, setOrgPage] = useState(0);
-
   // Reopen modal
   const [reopenTarget, setReopenTarget] = useState<ProgressRow | null>(null);
   const [reopenReason, setReopenReason] = useState("");
 
-  // Survey builder sub-views
-  const [addOrgModalOpen, setAddOrgModalOpen] = useState(false);
-  const [newOrgName, setNewOrgName] = useState("");
-  const [newOrgSlug, setNewOrgSlug] = useState("");
-  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
-  const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
-  const [editOrgForm, setEditOrgForm] = useState({ name: "", contactEmail: "", externalReference: "" });
-  const [membersModalOrg, setMembersModalOrg] = useState<Organization | null>(null);
-  const [orgMembersCache, setOrgMembersCache] = useState<Record<number, MemberRow[]>>({});
-  const [membersBusy, setMembersBusy] = useState(false);
-
-  // Data / export
+  // Company management (Modals & Edit)
   const [exports, setExports] = useState<ExportRow[]>([]);
   const [exportFormat, setExportFormat] = useState<"flat" | "pivot">("flat");
   const [exportPage, setExportPage] = useState(0);
@@ -258,152 +244,6 @@ export function AdminPortal({ session }: { session: Session }) {
     });
   }, [qSearch, qSectionFilter, questions]);
 
-  const filteredOrgs = useMemo(() => {
-    return orgs.filter((o) => {
-      const matchesSearch =
-        !orgSearch ||
-        o.name.toLowerCase().includes(orgSearch.toLowerCase()) ||
-        o.slug.toLowerCase().includes(orgSearch.toLowerCase()) ||
-        (o.contact_email && o.contact_email.toLowerCase().includes(orgSearch.toLowerCase())) ||
-        (o.external_reference && o.external_reference.toLowerCase().includes(orgSearch.toLowerCase()));
-      const matchesStatus =
-        orgStatusFilter === "all" ||
-        (orgStatusFilter === "active" && o.is_active) ||
-        (orgStatusFilter === "inactive" && !o.is_active);
-      return matchesSearch && matchesStatus;
-    });
-  }, [orgSearch, orgStatusFilter, orgs]);
-
-  const totalOrgPages = Math.max(1, Math.ceil(filteredOrgs.length / ORG_PAGE_SIZE));
-  const paginatedOrgs = useMemo(() => {
-    return filteredOrgs.slice(orgPage * ORG_PAGE_SIZE, (orgPage + 1) * ORG_PAGE_SIZE);
-  }, [filteredOrgs, orgPage]);
-
-  // ── Company management actions ────────────────────────────────────────────
-
-  async function invite(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!supabase) return;
-    const f = new FormData(e.currentTarget);
-    setBusy(true);
-    const r = await supabase.functions.invoke("admin-invite-company", {
-      body: {
-        companyName: f.get("companyName"),
-        companySlug: f.get("companySlug"),
-        fullName: f.get("fullName"),
-        email: f.get("email"),
-        externalReference: f.get("externalReference"),
-        redirectTo: location.origin,
-      },
-    });
-    setBusy(false);
-    if (r.error || r.data?.error) {
-      return setNotice({ kind: "error", message: r.data?.error ?? r.error?.message ?? "Invitation failed" });
-    }
-    setNotice({ kind: "success", message: r.data.invited ? "Company created and invitation sent." : "Existing user linked." });
-    setAddOrgModalOpen(false);
-    await load(true, selected ?? undefined);
-  }
-
-  function beginEditOrg(o: Organization) {
-    setEditingOrg(o);
-    setEditOrgForm({
-      name: o.name,
-      contactEmail: o.contact_email ?? "",
-      externalReference: o.external_reference ?? "",
-    });
-  }
-
-  async function saveOrg(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!supabase || !editingOrg) return;
-    setBusy(true);
-    setNotice(null);
-    try {
-      const r = await supabase.rpc("update_organization", {
-        target_organization_id: editingOrg.id,
-        new_name: editOrgForm.name,
-        new_contact_email: editOrgForm.contactEmail || null,
-        new_external_reference: editOrgForm.externalReference || null,
-      });
-      if (r.error) throw r.error;
-      setEditingOrg(null);
-      await load(true, selected ?? undefined);
-      setNotice({ kind: "success", message: "Company details updated." });
-    } catch (e) {
-      setNotice({ kind: "error", message: e instanceof Error ? e.message : "Unable to update company" });
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function toggleActive(o: Organization) {
-    if (!supabase) return;
-    const r = await supabase.from("organizations").update({ is_active: !o.is_active }).eq("id", o.id);
-    if (r.error) return setNotice({ kind: "error", message: r.error.message });
-    await load(true, selected ?? undefined);
-  }
-
-  async function openMembersModal(o: Organization) {
-    setMembersModalOrg(o);
-    if (orgMembersCache[o.id]) return;
-    if (!supabase) return;
-    setMembersBusy(true);
-    try {
-      const r = await supabase.rpc("get_organization_members", { target_organization_id: o.id });
-      if (r.error) throw r.error;
-      setOrgMembersCache((prev) => ({ ...prev, [o.id]: (r.data ?? []) as MemberRow[] }));
-    } catch (e) {
-      setNotice({ kind: "error", message: e instanceof Error ? e.message : "Unable to load members" });
-    } finally {
-      setMembersBusy(false);
-    }
-  }
-
-  async function removeMember(orgId: number, userId: string, email: string) {
-    if (!supabase) return;
-    setMembersBusy(true);
-    try {
-      const r = await supabase.rpc("remove_organization_member", {
-        target_organization_id: orgId,
-        target_user_id: userId,
-      });
-      if (r.error) throw r.error;
-      setOrgMembersCache((prev) => ({
-        ...prev,
-        [orgId]: (prev[orgId] ?? []).filter((m) => m.user_id !== userId),
-      }));
-      setNotice({ kind: "success", message: `${email} removed.` });
-    } catch (e) {
-      setNotice({ kind: "error", message: e instanceof Error ? e.message : "Unable to remove member" });
-    } finally {
-      setMembersBusy(false);
-    }
-  }
-
-  async function changeMemberRole(orgId: number, userId: string, newRole: string) {
-    if (!supabase) return;
-    setMembersBusy(true);
-    try {
-      const r = await supabase.rpc("update_member_role", {
-        target_organization_id: orgId,
-        target_user_id: userId,
-        new_role: newRole,
-      });
-      if (r.error) throw r.error;
-      setOrgMembersCache((prev) => ({
-        ...prev,
-        [orgId]: (prev[orgId] ?? []).map((m) =>
-          m.user_id === userId ? { ...m, role: newRole as MemberRow["role"] } : m,
-        ),
-      }));
-    } catch (e) {
-      setNotice({ kind: "error", message: e instanceof Error ? e.message : "Unable to update role" });
-    } finally {
-      setMembersBusy(false);
-    }
-  }
-
   // ── Admin submission actions ──────────────────────────────────────────────
 
   async function executeReopen() {
@@ -502,202 +342,6 @@ export function AdminPortal({ session }: { session: Session }) {
     <Shell admin view={view} setView={setView} items={navItems} user={session.user} name="STICA Administration">
       <NoticeBar notice={notice} clear={() => setNotice(null)} />
 
-      {/* ── Add company modal dialog ── */}
-      {addOrgModalOpen && (
-        <div
-          className="dialog-backdrop"
-          role="presentation"
-          onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) setAddOrgModalOpen(false); }}
-        >
-          <section className="confirm-dialog confirm-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="add-org-title">
-            <p className="eyebrow eyebrow--red">New registration</p>
-            <h2 id="add-org-title">Add Company &amp; Send Invitation</h2>
-            <p>Register a participating company and invite their administrator via email.</p>
-            <form onSubmit={invite} className="dialog-form">
-              <div className="form-grid">
-                <label>
-                  Company name
-                  <input
-                    name="companyName"
-                    value={newOrgName}
-                    onChange={(e) => {
-                      setNewOrgName(e.target.value);
-                      if (!slugManuallyEdited) {
-                        setNewOrgSlug(slugify(e.target.value));
-                      }
-                    }}
-                    placeholder="e.g. Nordic Weave AB"
-                    required
-                  />
-                </label>
-                <label>
-                  Company code / slug
-                  <input
-                    name="companySlug"
-                    value={newOrgSlug}
-                    onChange={(e) => {
-                      setNewOrgSlug(e.target.value);
-                      setSlugManuallyEdited(true);
-                    }}
-                    pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-                    placeholder="e.g. nordic-weave-ab"
-                    required
-                  />
-                </label>
-              </div>
-              <div className="form-grid">
-                <label>
-                  Administrator name
-                  <input name="fullName" placeholder="e.g. Anna Lindberg" required />
-                </label>
-                <label>
-                  Administrator email
-                  <input name="email" type="email" placeholder="e.g. anna@nordicweave.com" required />
-                </label>
-              </div>
-              <label>
-                External reference
-                <input name="externalReference" placeholder="Optional, e.g. STICA-2026-057" />
-              </label>
-              <div className="confirm-dialog__actions">
-                <button type="button" className="button button--secondary" onClick={() => setAddOrgModalOpen(false)} disabled={busy}>
-                  Cancel
-                </button>
-                <button type="submit" className="button button--primary" disabled={busy} aria-busy={busy}>
-                  {busy ? "Sending invitation…" : <><Send size={16} aria-hidden="true" /> Send invitation</>}
-                </button>
-              </div>
-            </form>
-          </section>
-        </div>
-      )}
-
-      {/* ── Edit org dialog ── */}
-      {editingOrg && (
-        <div
-          className="dialog-backdrop"
-          role="presentation"
-          onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) setEditingOrg(null); }}
-        >
-          <section className="confirm-dialog confirm-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="edit-org-title">
-            <p className="eyebrow eyebrow--red">Edit company</p>
-            <h2 id="edit-org-title">{editingOrg.name}</h2>
-            <form onSubmit={saveOrg} className="dialog-form">
-              <label>
-                Company name
-                <input
-                  value={editOrgForm.name}
-                  onChange={(e) => setEditOrgForm((f) => ({ ...f, name: e.target.value }))}
-                  required
-                />
-              </label>
-              <label>
-                Contact email
-                <input
-                  type="email"
-                  value={editOrgForm.contactEmail}
-                  onChange={(e) => setEditOrgForm((f) => ({ ...f, contactEmail: e.target.value }))}
-                  placeholder="Optional"
-                />
-              </label>
-              <label>
-                External reference
-                <input
-                  value={editOrgForm.externalReference}
-                  onChange={(e) => setEditOrgForm((f) => ({ ...f, externalReference: e.target.value }))}
-                  placeholder="Optional, e.g. STICA-2026-057"
-                />
-              </label>
-              <div className="confirm-dialog__actions">
-                <button type="button" className="button button--secondary" onClick={() => setEditingOrg(null)} disabled={busy}>Cancel</button>
-                <button type="submit" className="button button--primary" disabled={busy} aria-busy={busy}>
-                  {busy ? "Saving…" : "Save changes"}
-                </button>
-              </div>
-            </form>
-          </section>
-        </div>
-      )}
-
-      {/* ── Manage members modal dialog ── */}
-      {membersModalOrg && (
-        <div
-          className="dialog-backdrop"
-          role="presentation"
-          onMouseDown={(e) => { if (e.target === e.currentTarget && !membersBusy) setMembersModalOrg(null); }}
-        >
-          <section className="confirm-dialog confirm-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="members-modal-title">
-            <p className="eyebrow eyebrow--red">Team management</p>
-            <h2 id="members-modal-title">Members of {membersModalOrg.name}</h2>
-            <p>Users who have access to this company's reporting workspace.</p>
-            
-            <div className="members-modal-body">
-              {membersBusy && !orgMembersCache[membersModalOrg.id] ? (
-                <p className="members-empty members-empty--loading">Loading members…</p>
-              ) : (orgMembersCache[membersModalOrg.id] ?? []).length === 0 ? (
-                <div className="members-empty">
-                  <p>No linked users for this company.</p>
-                </div>
-              ) : (
-                <div className="table-scroll members-table-scroll">
-                  <table className="members-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Joined</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(orgMembersCache[membersModalOrg.id] ?? []).map((m) => (
-                        <tr key={m.user_id}>
-                          <td><strong>{m.full_name}</strong></td>
-                          <td><small>{m.email}</small></td>
-                          <td>
-                            <select
-                              value={m.role}
-                              disabled={membersBusy}
-                              onChange={(e) => void changeMemberRole(membersModalOrg.id, m.user_id, e.target.value)}
-                              className="member-role-select"
-                            >
-                              <option value="member">Member</option>
-                              <option value="company_admin">Company admin</option>
-                            </select>
-                          </td>
-                          <td><small>{formatDate(m.created_at)}</small></td>
-                          <td>
-                            <button
-                              type="button"
-                              className="danger-link"
-                              disabled={membersBusy}
-                              onClick={() => void removeMember(membersModalOrg.id, m.user_id, m.email)}
-                            >
-                              Remove
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-
-            <div className="confirm-dialog__actions">
-              <button
-                type="button"
-                className="button button--secondary"
-                onClick={() => setMembersModalOrg(null)}
-              >
-                Close
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
-
       {/* ── Reopen dialog ── */}
       {reopenTarget && (
         <div
@@ -738,6 +382,7 @@ export function AdminPortal({ session }: { session: Session }) {
         </div>
       )}
 
+      {/* ══════════════════════════ DASHBOARD ════════════════════════════════ */}
       {view === "dashboard" && (
         <AdminDashboard
           versions={versions}
@@ -772,77 +417,16 @@ export function AdminPortal({ session }: { session: Session }) {
 
       {/* ══════════════════════════ COMPANIES ════════════════════════════════ */}
       {view === "companies" && (
-        <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
-          <PageHeader
-            eyebrow="Participation"
-            title="Companies"
-            description="Manage organizations, members, and secure access."
-            actions={(
-              <Button
-                icon={Plus}
-                variant="primary"
-                onClick={() => {
-                  setAddOrgModalOpen(true);
-                  setNewOrgName("");
-                  setNewOrgSlug("");
-                  setSlugManuallyEdited(false);
-                }}
-              >
-                Add company
-              </Button>
-            )}
-          />
-
-          <section className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
-            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total registered</span>
-              <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
-                {orgs.length}
-              </strong>
-            </article>
-            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active companies</span>
-              <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
-                {orgs.filter((o) => o.is_active).length}
-              </strong>
-            </article>
-            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Archived</span>
-              <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
-                {orgs.filter((o) => !o.is_active).length}
-              </strong>
-            </article>
-            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Reporting in {current?.reporting_year ?? "2026"}</span>
-              <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
-                {currentRows.filter((r) => r.status !== "not_started").length}
-              </strong>
-            </article>
-          </section>
-
-          <CompanyDirectory
-            organizations={paginatedOrgs}
-            totalOrganizations={orgs.length}
-            totalActive={orgs.filter((organization) => organization.is_active).length}
-            statusFilter={orgStatusFilter}
-            search={orgSearch}
-            page={orgPage}
-            totalPages={totalOrgPages}
-            filteredCount={filteredOrgs.length}
-            onSearch={(value) => {
-              setOrgSearch(value);
-              setOrgPage(0);
-            }}
-            onStatusFilter={(filter) => {
-              setOrgStatusFilter(filter);
-              setOrgPage(0);
-            }}
-            onPage={setOrgPage}
-            onEdit={beginEditOrg}
-            onMembers={(organization) => void openMembersModal(organization)}
-            onToggleActive={(organization) => void toggleActive(organization)}
-          />
-        </div>
+        <AdminCompanies
+          orgs={orgs}
+          current={current}
+          currentRows={currentRows}
+          selected={selected}
+          busy={busy}
+          setBusy={setBusy}
+          setNotice={setNotice}
+          load={load}
+        />
       )}
 
       {/* ══════════════════════════ DATA ═════════════════════════════════════ */}
