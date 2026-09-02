@@ -202,7 +202,7 @@ export function AdminCompanies({
     <>
 {/* ══════════════════════════ COMPANIES ════════════════════════════════ */}
       
-        <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
+        <div className="mx-auto w-full max-w-[1400px] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
           <PageHeader
             eyebrow="Participation"
             title="Companies"
@@ -224,25 +224,25 @@ export function AdminCompanies({
           />
 
           <section className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
-            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 md:p-5">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total registered</span>
               <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
                 {orgs.length}
               </strong>
             </article>
-            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 md:p-5">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active companies</span>
               <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
                 {orgs.filter((o) => o.is_active).length}
               </strong>
             </article>
-            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 md:p-5">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Archived</span>
               <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
                 {orgs.filter((o) => !o.is_active).length}
               </strong>
             </article>
-            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 md:p-5">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Reporting in {current?.reporting_year ?? "2026"}</span>
               <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
                 {currentRows.filter((r) => r.status !== "not_started").length}
@@ -276,11 +276,11 @@ export function AdminCompanies({
       {/* ── Add company modal dialog ── */}
       {addOrgModalOpen && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4"
           role="presentation"
           onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) setAddOrgModalOpen(false); }}
         >
-          <section className="w-full max-w-2xl animate-[rise_0.2s_ease_both] overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl md:p-8" role="dialog" aria-modal="true" aria-labelledby="add-org-title">
+          <section className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-xl md:p-8" role="dialog" aria-modal="true" aria-labelledby="add-org-title">
             <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#d91f17]">New registration</p>
             <h2 id="add-org-title" className="mb-3 text-2xl font-bold tracking-tight text-slate-900">Add Company &amp; Send Invitation</h2>
             <p className="text-[15px] leading-relaxed text-slate-600">Register a participating company and invite their administrator via email.</p>
@@ -346,11 +346,11 @@ export function AdminCompanies({
       {/* ── Edit org dialog ── */}
       {editingOrg && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4"
           role="presentation"
           onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) setEditingOrg(null); }}
         >
-          <section className="w-full max-w-2xl animate-[rise_0.2s_ease_both] overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl md:p-8" role="dialog" aria-modal="true" aria-labelledby="edit-org-title">
+          <section className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-xl md:p-8" role="dialog" aria-modal="true" aria-labelledby="edit-org-title">
             <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#d91f17]">Edit company</p>
             <h2 id="edit-org-title" className="mb-3 text-2xl font-bold tracking-tight text-slate-900">{editingOrg.name}</h2>
             <form onSubmit={saveOrg} className="mt-6 flex flex-col gap-5">
@@ -393,11 +393,11 @@ export function AdminCompanies({
       {/* ── Manage members modal dialog ── */}
       {membersModalOrg && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4"
           role="presentation"
           onMouseDown={(e) => { if (e.target === e.currentTarget && !membersBusy) setMembersModalOrg(null); }}
         >
-          <section className="w-full max-w-2xl animate-[rise_0.2s_ease_both] overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl md:p-8" role="dialog" aria-modal="true" aria-labelledby="members-modal-title">
+          <section className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-xl md:p-8" role="dialog" aria-modal="true" aria-labelledby="members-modal-title">
             <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#d91f17]">Team management</p>
             <h2 id="members-modal-title" className="mb-3 text-2xl font-bold tracking-tight text-slate-900">Members of {membersModalOrg.name}</h2>
             <p className="text-[15px] leading-relaxed text-slate-600">Users who have access to this company's reporting workspace.</p>

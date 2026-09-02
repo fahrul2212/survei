@@ -101,7 +101,7 @@ export function Report({
     <div className="grid min-h-[calc(100vh-64px)] grid-cols-1 bg-slate-50 md:grid-cols-[320px_minmax(0,1fr)] lg:grid-cols-[350px_minmax(0,1fr)]">
       {/* Submit confirmation dialog */}
       {confirmSubmit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm" role="presentation" onMouseDown={() => setConfirmSubmit(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4" role="presentation" onMouseDown={() => setConfirmSubmit(false)}>
           <section className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl sm:p-8" role="alertdialog" aria-modal="true" aria-labelledby="submit-modal-title" onMouseDown={(e) => e.stopPropagation()}>
             <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#d91f17]">Final submission</p>
             <h2 id="submit-modal-title" className="mb-4 text-2xl font-bold text-slate-900">Submit {version.reporting_year} Report?</h2>
@@ -182,9 +182,9 @@ export function Report({
               return (
                 <button
                   key={q.id}
-                  className={`relative grid aspect-square w-full place-items-center rounded-lg border-[1.5px] text-sm font-bold transition-all hover:-translate-y-0.5 hover:shadow-sm ${
+                  className={`relative grid aspect-square w-full place-items-center rounded-lg border-[1.5px] text-sm font-bold transition-colors ${
                     isActive
-                      ? "z-10 scale-105 border-[#d91f17] bg-[#d91f17] text-white shadow-md shadow-red-500/20"
+                      ? "z-10 border-[#d91f17] bg-[#d91f17] text-white"
                       : isQAnswered
                       ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300"
                       : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"

@@ -42,7 +42,7 @@ export function AdminDashboard({
   const notStarted = currentRows.filter((r) => r.status === "not_started").length;
 
   return (
-    <PageContainer className="animate-[rise_0.4s_ease_both]">
+    <PageContainer>
       <PageHeader
         eyebrow="Platform administration"
         title="Reporting progress"

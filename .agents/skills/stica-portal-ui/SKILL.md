@@ -5,13 +5,21 @@ description: "Review or change the STICA reporting portal interface while preser
 
 # STICA Portal UI
 
-Keep the portal calm, operational, and easy for non-technical administrators. Preserve the STICA red, white, slate, and obsidian palette; do not introduce generic gradients or decorative dashboard elements.
+Keep the portal calm, operational, and easy for non-technical administrators. Preserve the STICA red, white, slate, and obsidian palette.
+
+## Visual language
+
+- Use opaque surfaces. Do not add glassmorphism, backdrop blur, translucent cards, glow, decorative gradients, or ambient ornaments.
+- Build hierarchy with typography, spacing, alignment, borders, and restrained color. Shadows are reserved for temporary overlays such as dialogs and drawers; ordinary cards and lists should stay flat.
+- Avoid hover elevation, scale, and decorative entrance animation. Hover and selected states should use predictable color or border changes.
+- Prefer structured rows for operational lists. Keep year, status, title, and action in stable columns; do not center an entire data row.
+- STICA red identifies the primary action, current focus, or important requirement. Do not use it as general decoration.
 
 ## Component boundaries
 
 - Put reusable controls, page headers, empty states, search fields, and truncation behavior in `src/components`.
 - Keep database access out of presentational components. Feature components may load their own data only when they own the full workflow, such as the audit log.
-- Use Tailwind utilities for component-local layout and state. Put cross-cutting legacy overrides in `src/styles/refinements.css` while migrating away from `src/styles.css` incrementally.
+- Use Tailwind utilities for component-local layout and state. Keep `src/styles.css` limited to Tailwind imports, theme tokens, and base element rules; do not add component selectors or a new override stylesheet.
 - Use Lucide icons. Do not use emoji or text glyphs as interface icons.
 
 ## UX invariants
@@ -21,6 +29,7 @@ Keep the portal calm, operational, and easy for non-technical administrators. Pr
 - A page has one primary action. Disabled destructive or publish actions must look neutral and explain why they are disabled.
 - Empty states need an icon, a short title, one useful sentence, and at most one primary action. Hide irrelevant search or filter controls when no data exists.
 - Keep field labels explicit. Use icons as reinforcement, not as the only label for unfamiliar actions.
+- A survey preview must exercise the same reusable input controls and conditional visibility rules as the company workflow. It should be interactive, clearly marked as unsaved, and navigable by question and section.
 - Preserve native scrolling and visible keyboard focus. Respect `prefers-reduced-motion`.
 
 ## Responsive QA

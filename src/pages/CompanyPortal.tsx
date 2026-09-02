@@ -197,7 +197,7 @@ export function CompanyPortal({ session }: { session: Session }) {
 
       {/* ── Overview ── */}
       {view === "overview" && (
-        <PageContainer className="animate-[rise_0.4s_ease_both]">
+        <PageContainer>
           <PageHeader
             eyebrow="Company climate action programme"
             title={org.name}
@@ -223,7 +223,7 @@ export function CompanyPortal({ session }: { session: Session }) {
                   <StatusBadge status={submission.status} inverse />
                   <h2 className="mb-3 text-3xl font-extrabold tracking-tight md:text-4xl">{version.name}</h2>
                   <p className="max-w-xl text-white/90">Review the responses carried forward from your last verified report, update anything that changed, then submit when the report is complete.</p>
-                  <button className="mt-6 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-black hover:shadow-md" onClick={() => setView("report")}>
+                  <button className="mt-6 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-black" onClick={() => setView("report")}>
                     {submission.status === "submitted" ? "View submission" : "Continue reporting"}
                     <ArrowRight size={16} aria-hidden="true" />
                   </button>
@@ -298,7 +298,7 @@ export function CompanyPortal({ session }: { session: Session }) {
 
       {/* ── History ── */}
       {view === "history" && (
-        <PageContainer className="animate-[rise_0.4s_ease_both]">
+        <PageContainer>
           <PageHeader eyebrow="Reporting archive" title="Previous years" description="Review and reference historical submissions and validated transition plans." />
           <div className="grid overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             {versions.map((v) => {

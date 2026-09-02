@@ -14,9 +14,9 @@ export type ReportingStatus = "not_started" | "draft" | "reopened" | "submitted"
 
 const buttonVariants: Record<ButtonVariant, string> = {
   primary:
-    "border-transparent bg-[#d91f17] text-white shadow-sm hover:bg-[#b81711] disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none",
+    "border-transparent bg-[#d91f17] text-white hover:bg-[#b81711] disabled:bg-slate-300 disabled:text-slate-500",
   secondary:
-    "border-slate-300 bg-white text-slate-900 shadow-sm hover:border-slate-400 hover:bg-slate-50 disabled:bg-slate-100",
+    "border-slate-300 bg-white text-slate-900 hover:border-slate-400 hover:bg-slate-50 disabled:bg-slate-100",
   danger:
     "border-red-200 bg-red-50 text-red-700 hover:border-red-300 hover:bg-red-100",
   ghost:
@@ -121,7 +121,7 @@ export function StatusBadge({ status, inverse = false }: { status: ReportingStat
   return (
     <span className={cn(
       "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em]",
-      inverse ? "border-white/35 bg-white/10 text-white" : statusClasses[status],
+      inverse ? "border-white/60 bg-transparent text-white" : statusClasses[status],
     )}>
       <span aria-hidden="true" className={cn("size-1.5 rounded-full", inverse ? "bg-white" : status === "submitted" || status === "published" ? "bg-emerald-500" : status === "reopened" ? "bg-amber-500" : status === "draft" ? "bg-blue-500" : "bg-slate-400")} />
       {statusLabels[status]}

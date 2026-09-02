@@ -348,7 +348,7 @@ export function AdminPortal({ session }: { session: Session }) {
       {/* ── Reopen dialog ── */}
       {reopenTarget && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-slate-950/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4"
           role="presentation"
           onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) setReopenTarget(null); }}
         >
@@ -435,7 +435,7 @@ export function AdminPortal({ session }: { session: Session }) {
 
       {/* ══════════════════════════ DATA ═════════════════════════════════════ */}
       {view === "data" && (
-        <PageContainer className="animate-[rise_0.4s_ease_both]">
+        <PageContainer>
           <PageHeader eyebrow="Portable reporting data" title="Import & export" description="Move historical responses into STICA and export clean datasets for analysis." />
 
           <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">

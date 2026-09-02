@@ -53,7 +53,7 @@ export function AccountSettings({ session }: { session: Session }) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
+    <div className="mx-auto w-full max-w-[1400px] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
       <div className="mb-10 flex flex-col items-start gap-3">
         <div>
           <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#d91f17]">Your profile</p>

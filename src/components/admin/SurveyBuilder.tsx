@@ -1,8 +1,8 @@
-import { useState, useMemo, FormEvent, useCallback } from "react";
-import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown, Edit3, GripVertical, Plus, Settings, Trash2, ClipboardPlus, RotateCcw, Search } from "lucide-react";
-import { Button, NoticeBar, PageHeader, EmptyState, SearchField, type Notice } from "../ui";
+import { useState, useMemo, FormEvent } from "react";
+import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown, Plus, ClipboardPlus } from "lucide-react";
+import { Button, NoticeBar, PageHeader, EmptyState, SearchField, StatusBadge, type Notice } from "../ui";
 import { SurveyWorkspaceHeader } from "./SurveyWorkspaceHeader";
-import { QuestionField } from "../question-field";
+import { SurveyPreview } from "./SurveyPreview";
 import { supabase } from "../../lib/supabase";
 import { surveyDisplayTitle, slugify, valueAsText, type SurveyVersion, type SurveyQuestion, type QuestionType } from "../../lib/portal";
 
@@ -102,6 +102,10 @@ export function SurveyBuilder({
       return matchesSearch && matchesSection;
     });
   }, [questions, qSearch, qSectionFilter]);
+
+  const questionSections = useMemo(() => {
+    return Array.from(new Map(questions.map((question) => [question.sectionKey, question.sectionTitle])).entries());
+  }, [questions]);
 
 // ── Survey builder actions ────────────────────────────────────────────────
 
@@ -299,30 +303,35 @@ export function SurveyBuilder({
                   </Button>
                 )}
               />
-              <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <section className="overflow-hidden rounded-xl border border-slate-300 bg-white">
                 <div className="flex flex-col gap-2 border-b border-slate-200 bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between md:p-6">
                   <div>
                     <p className="mb-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">Reporting cycles</p>
                     <h3 className="text-lg font-bold text-slate-900">{versions.length} reporting years</h3>
                   </div>
-                  <span>Choose a year to open its workspace</span>
+                  <span className="text-sm text-slate-600">Choose a year to open its workspace</span>
                 </div>
                 <div className="flex flex-col divide-y divide-slate-100">
                   {versions.map((v) => (
                     <button
                       key={v.id}
+                      type="button"
+                      className="grid w-full grid-cols-[4rem_minmax(0,1fr)] items-center gap-x-4 gap-y-2 px-5 py-4 text-left transition-colors hover:bg-slate-50 focus-visible:z-10 sm:grid-cols-[5rem_minmax(0,1fr)_auto] md:px-6"
                       onClick={() => void openVersion(v)}
                       disabled={busy}
                       aria-busy={busy && selected === v.id}
                     >
-                      <span>{v.reporting_year}</span>
-                      <div>
-                        <strong>{surveyDisplayTitle(v.name)}</strong>
-                        <small>
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${v.status === "published" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>{v.status}</span>
-                        </small>
-                      </div>
-                      <em>{busy && selected === v.id ? "Opening…" : <>Open workspace <ArrowRight size={15} aria-hidden="true" /></>}</em>
+                      <span className="text-lg font-bold tabular-nums text-slate-900">{v.reporting_year}</span>
+                      <span className="min-w-0">
+                        <strong className="block truncate text-sm font-bold text-slate-900" title={surveyDisplayTitle(v.name)}>{surveyDisplayTitle(v.name)}</strong>
+                        <small className="mt-1 block text-xs font-medium text-slate-500">Annual reporting workspace</small>
+                      </span>
+                      <span className="col-span-2 flex items-center justify-between gap-4 pl-20 sm:col-span-1 sm:justify-end sm:pl-0">
+                        <StatusBadge status={v.status} />
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                          {busy && selected === v.id ? "Opening…" : <>Open <ArrowRight size={15} aria-hidden="true" /></>}
+                        </span>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -435,58 +444,42 @@ export function SurveyBuilder({
 
               {/* Preview mode */}
               {previewMode ? (
-                  <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                  <div className="flex flex-col gap-2 border-b border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 sm:flex-row sm:items-center">
-                    <strong className="w-fit rounded-md bg-amber-200 px-2 py-1 text-[11px] font-extrabold uppercase tracking-wider text-amber-900">Simulator preview</strong>
-                    <span>This interactive view mimics what participating companies see. Responses are not saved.</span>
-                  </div>
-                  <div className="divide-y divide-slate-100">
-                    {questions.map((q, i) => (
-                        <div key={q.id} className="flex flex-col gap-3 p-5 md:p-6">
-                        <div className="flex flex-wrap items-center gap-2 text-xs">
-                          <span className="grid size-7 place-items-center rounded-full bg-slate-900 text-xs font-bold text-white">{i + 1}</span>
-                          <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-bold text-slate-600">{q.stableKey}</code>
-                          <span className="font-bold uppercase tracking-wider text-slate-500">{q.sectionTitle}</span>
-                          {q.required && <em className="not-italic font-bold uppercase tracking-wider text-[#d91f17]">Required</em>}
-                          {carry[q.id] && <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-700"><RotateCcw size={13} aria-hidden="true" /> Carried from {carry[q.id]}</span>}
-                        </div>
-                        <p className="text-base font-bold leading-6 text-slate-900">{q.prompt}</p>
-                        {q.helpText && <p className="text-sm leading-6 text-slate-600">{q.helpText}</p>}
-                        {q.visibilityRule.questionKey && (
-                          <p className="w-fit rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                            Visible when <code>{q.visibilityRule.questionKey}</code> {q.visibilityRule.operator} {String(q.visibilityRule.value ?? "")}
-                          </p>
-                        )}
-                        {["single_choice", "multiple_choice", "yes_no"].includes(q.type) && (
-                          <div className="flex flex-wrap gap-2">
-                            {(q.type === "yes_no" ? ["Yes", "No"] : q.options).map((opt) => (
-                              <span key={opt} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700">{opt}</span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </section>
+                <SurveyPreview questions={questions} carry={carry} />
               ) : (
-                <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <section className="overflow-hidden rounded-xl border border-slate-300 bg-white">
                   <div className="flex flex-col">
-                    <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50 p-5 sm:flex-row sm:items-end sm:justify-between md:p-6">
+                    <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between md:p-6">
                       <div className="min-w-0">
-                        <div>
-                          <p className="mb-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">Question library</p>
-                          <h3 className="text-lg font-bold text-slate-900">{questions.length} questions</h3>
-                        </div>
-                        {questions.length > 0 && (
+                        <p className="mb-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">Question library</p>
+                        <h3 className="text-lg font-bold text-slate-900">{questions.length} questions</h3>
+                      </div>
+                      {questions.length > 0 && (
+                        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                          <label className="sr-only" htmlFor="question-section-filter">Filter questions by section</label>
+                          <select
+                            id="question-section-filter"
+                            value={qSectionFilter}
+                            onChange={(event) => {
+                              setQSectionFilter(event.target.value);
+                              setQuestionPage(0);
+                            }}
+                            className="min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100 sm:w-56"
+                          >
+                            <option value="">All sections</option>
+                            {questionSections.map(([key, title]) => <option key={key} value={key}>{title}</option>)}
+                          </select>
                           <SearchField
                             aria-label="Search survey questions"
                             placeholder="Search questions"
                             value={qSearch}
-                            onChange={(event) => setQSearch(event.target.value)}
-                            className="w-full sm:w-72"
+                            onChange={(event) => {
+                              setQSearch(event.target.value);
+                              setQuestionPage(0);
+                            }}
+                            className="w-full sm:w-64"
                           />
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                     {openingVersion === selectedVersion.id ? (
@@ -785,11 +778,11 @@ export function SurveyBuilder({
 {/* ── Confirm delete question dialog ── */}
       {pendingDelete && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4"
           role="presentation"
           onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) setPendingDelete(null); }}
         >
-          <section className="w-full max-w-lg animate-[rise_0.2s_ease_both] overflow-hidden rounded-2xl bg-white p-6 text-left shadow-xl md:p-8" role="alertdialog" aria-modal="true" aria-labelledby="delete-question-title">
+          <section className="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-xl md:p-8" role="alertdialog" aria-modal="true" aria-labelledby="delete-question-title">
             <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#d91f17]">Delete draft question</p>
             <h2 id="delete-question-title" className="mb-3 text-2xl font-bold tracking-tight text-slate-900">Remove {pendingDelete.stableKey}?</h2>
             <p className="text-[15px] leading-relaxed text-slate-600">This removes the question only from the {selectedVersion?.reporting_year} draft. Published years and historical answers remain unchanged.</p>

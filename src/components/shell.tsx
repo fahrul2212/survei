@@ -125,7 +125,7 @@ export function Shell({
               type="button"
               className={`flex min-h-[44px] w-full items-center justify-between rounded-lg px-3.5 transition-all ${
                 isActive 
-                  ? "bg-[#d91f17] text-white shadow-md" 
+                  ? "bg-[#d91f17] text-white"
                   : "text-slate-300 hover:bg-slate-800 hover:text-white"
               }`}
               onClick={() => navigate(id)}
@@ -137,7 +137,7 @@ export function Shell({
               </span>
               {meta && (
                 <small className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                  isActive ? "bg-white/20 text-white" : "bg-slate-800 text-slate-400"
+                  isActive ? "bg-red-800 text-white" : "bg-slate-800 text-slate-400"
                 }`}>
                   {meta}
                 </small>
@@ -171,7 +171,7 @@ export function Shell({
       {/* ── Mobile drawer overlay ────────────────────────────────── */}
       {drawerOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/50 lg:hidden"
           aria-hidden="true"
           onClick={() => setDrawerOpen(false)}
         />
@@ -185,7 +185,7 @@ export function Shell({
 
       {/* ── Main workspace ──────────────────────────────────────── */}
       <div className="flex min-h-dvh min-w-0 flex-col">
-        <header className="sticky top-0 z-25 flex min-h-[64px] items-center gap-3 border-b border-slate-200 bg-white/95 px-4 text-[13px] font-medium backdrop-blur-md md:px-6 lg:px-10">
+        <header className="sticky top-0 z-25 flex min-h-[64px] items-center gap-3 border-b border-slate-200 bg-white px-4 text-[13px] font-medium md:px-6 lg:px-10">
           {/* Hamburger — mobile only */}
           <button
             type="button"
