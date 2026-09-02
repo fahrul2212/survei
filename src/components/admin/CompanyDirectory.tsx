@@ -42,8 +42,8 @@ export function CompanyDirectory({
   ];
 
   return (
-    <section className="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50/50 p-4 sm:flex-row sm:items-center sm:justify-between md:p-5">
+    <section className="mb-8 overflow-hidden rounded-xl border border-slate-300 bg-white">
+      <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between md:p-5">
         <div>
           <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">Directory</p>
           <h3 className="text-lg font-bold text-slate-900">Company directory</h3>
@@ -65,7 +65,7 @@ export function CompanyDirectory({
             onClick={() => onStatusFilter(key)}
             className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
               statusFilter === key
-                ? "bg-slate-800 text-white shadow-sm"
+                ? "bg-slate-800 text-white"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
             }`}
             aria-pressed={statusFilter === key}
@@ -82,23 +82,24 @@ export function CompanyDirectory({
           description="Try another search term or status filter."
         />
       ) : (
-        <div className="w-full overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="hidden border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500 md:table-header-group">
-              <tr>
-                <th className="p-4 font-semibold">Company</th>
-                <th className="p-4 font-semibold">Contact &amp; reference</th>
-                <th className="p-4 font-semibold">Status</th>
-                <th className="p-4 font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {organizations.map((org) => (
-                <tr key={org.id} className="flex flex-col p-4 transition-colors hover:bg-slate-50/50 md:table-row md:p-0">
-                  <td className="mb-3 flex flex-col md:mb-0 md:p-4 md:align-middle">
-                    <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Company</span>
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-slate-500 shadow-sm">
+        <div className="text-sm text-slate-600" role="table" aria-label="Company directory">
+          <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_7rem_17rem] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 lg:grid" role="row">
+            <span role="columnheader">Company</span>
+            <span role="columnheader">Contact &amp; reference</span>
+            <span role="columnheader">Status</span>
+            <span role="columnheader">Actions</span>
+          </div>
+          <div className="divide-y divide-slate-100" role="rowgroup">
+            {organizations.map((org) => (
+              <article
+                key={org.id}
+                className="grid min-w-0 gap-5 p-4 transition-colors hover:bg-slate-50 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_7rem_17rem] lg:items-center lg:gap-4 lg:px-5 lg:py-4"
+                role="row"
+              >
+                  <div className="min-w-0" role="cell">
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 lg:hidden">Company</span>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
                         {org.name.slice(0, 2).toUpperCase()}
                       </span>
                       <div className="min-w-0">
@@ -106,24 +107,25 @@ export function CompanyDirectory({
                         <TruncatedText className="mt-0.5 font-mono text-xs text-slate-500" children={org.slug} />
                       </div>
                     </div>
-                  </td>
-                  <td className="mb-3 flex flex-col md:mb-0 md:p-4 md:align-middle">
-                    <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Contact &amp; reference</span>
+                  </div>
+                  <div className="min-w-0" role="cell">
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 lg:hidden">Contact &amp; reference</span>
                     <div className="grid min-w-0 gap-0.5">
                       <TruncatedText className="font-medium text-slate-900" children={org.contact_email ?? "No contact email"} />
                       <TruncatedText className="text-xs text-slate-500" children={org.external_reference ? `Ref: ${org.external_reference}` : "No external reference"} />
                     </div>
-                  </td>
-                  <td className="mb-4 flex flex-col md:mb-0 md:p-4 md:align-middle">
-                    <span className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Status</span>
+                  </div>
+                  <div className="min-w-0" role="cell">
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 lg:hidden">Status</span>
                     <span className={`inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${
                       org.is_active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
                     }`}>
                       {org.is_active ? "Active" : "Archived"}
                     </span>
-                  </td>
-                  <td className="flex flex-col border-t border-slate-100 pt-3 md:table-cell md:border-0 md:p-4 md:pt-4 md:align-middle">
-                    <div className="flex flex-wrap items-center gap-2">
+                  </div>
+                  <div className="min-w-0 border-t border-slate-100 pt-4 sm:border-0 sm:pt-0" role="cell">
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 lg:hidden">Actions</span>
+                    <div className="flex flex-wrap items-center gap-1.5 lg:flex-nowrap">
                       <Button icon={Pencil} size="small" variant="ghost" onClick={() => onEdit(org)} title="Edit company details">
                         Edit
                       </Button>
@@ -140,11 +142,10 @@ export function CompanyDirectory({
                         {org.is_active ? "Archive" : "Reactivate"}
                       </Button>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+              </article>
+            ))}
+          </div>
         </div>
       )}
 
