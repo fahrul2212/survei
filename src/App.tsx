@@ -93,6 +93,65 @@ async function allExports(filters: { year?: number; company?: string; question?:
   return result;
 }
 
+// ── Icons ─────────────────────────────────────────────────────────────────────
+
+function NavIcon({ name }: { name: string }) {
+  switch (name) {
+    case "dashboard":
+    case "overview":
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" />
+        </svg>
+      );
+    case "report":
+    case "surveys":
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="16" x2="8" y1="13" y2="13" /><line x1="16" x2="8" y1="17" y2="17" /><line x1="10" x2="8" y1="9" y2="9" />
+        </svg>
+      );
+    case "history":
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+        </svg>
+      );
+    case "companies":
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" /><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" /><path d="M10 6h4" /><path d="M10 10h4" /><path d="M10 14h4" /><path d="M10 18h4" />
+        </svg>
+      );
+    case "data":
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" />
+        </svg>
+      );
+    case "analytics":
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" />
+        </svg>
+      );
+    case "audit":
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+        </svg>
+      );
+    case "account":
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 // ── Shared components ─────────────────────────────────────────────────────────
 
 function Logo({ inverse = false }: { inverse?: boolean }) {
@@ -147,6 +206,7 @@ function Login() {
   const [reset, setReset] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -175,7 +235,7 @@ function Login() {
         <Logo inverse />
         <div className="story-copy">
           <h1>Annual climate reporting.</h1>
-          <p>Submit your Climate Transition Plan securely — pre-filled from last year's data.</p>
+          <p>Submit your Climate Transition Plan securely — pre-filled from last year's verified data.</p>
         </div>
         <div className="orbit"><span /><span /><span /></div>
         <p className="story-footer">The Scandinavian Textile Initiative for Climate Action</p>
@@ -186,24 +246,53 @@ function Login() {
           <h2>{reset ? "Reset password" : "Welcome back"}</h2>
           <p className="muted">
             {reset
-              ? "We will send a secure reset link."
+              ? "We will send a secure reset link to your email."
               : "Use the account included in your STICA invitation."}
           </p>
           <form onSubmit={submit}>
             <label>
               Work email
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <input
+                type="email"
+                value={email}
+                placeholder="name@company.com"
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </label>
             {!reset && (
               <label>
                 Password
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showPw ? "text" : "password"}
+                    value={password}
+                    placeholder="Enter your password"
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(!showPw)}
+                    style={{
+                      position: "absolute",
+                      right: "12px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: "var(--text-muted)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {showPw ? "Hide" : "Show"}
+                  </button>
+                </div>
               </label>
             )}
             {error && <p className="form-error">{error}</p>}
             {message && <p className="form-success">{message}</p>}
             <button className="button button--primary" disabled={busy}>
-              {busy ? "Please wait…" : reset ? "Send reset link" : "Sign in"}
+              {busy ? "Please wait…" : reset ? "Send reset link" : "Sign in to portal"}
             </button>
           </form>
           <button className="text-button login-switch" onClick={() => setReset(!reset)}>
@@ -243,14 +332,17 @@ function Shell({
         <nav>
           {items.map(([id, label, meta]) => (
             <button key={id} className={view === id ? "active" : ""} onClick={() => setView(id)}>
-              <span>{label}</span>
+              <span style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <NavIcon name={id} />
+                {label}
+              </span>
               {meta && <small>{meta}</small>}
             </button>
           ))}
         </nav>
         <div className="sidebar-bottom">
           <a href="https://sustainablefashionacademy.org/stica/" target="_blank" rel="noreferrer">
-            STICA guidance
+            STICA guidance ↗
           </a>
           <button className="logout" onClick={() => void supabase?.auth.signOut()}>
             Sign out
@@ -259,8 +351,9 @@ function Shell({
       </aside>
       <div className="workspace">
         <header className="topbar">
-          <div>
-            <span className="status-dot" /> Secure reporting data connected
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <span className="status-dot" />
+            <span style={{ color: "var(--text-secondary)" }}>Secure reporting portal connected</span>
           </div>
           <div className="profile-chip" aria-label={`${name}, ${user.email ?? ""}`} title={user.email ?? name}>
             <span className="profile-avatar" aria-hidden="true">
@@ -301,11 +394,12 @@ function QuestionField({
         {["Yes", "No"].map((v) => (
           <button
             key={v}
+            type="button"
             disabled={disabled}
             className={value === v ? "selected" : ""}
             onClick={() => { change(v); save(v); }}
           >
-            {v}
+            {v === "Yes" ? "✓ " : "✕ "} {v}
           </button>
         ))}
       </div>
@@ -319,8 +413,8 @@ function QuestionField({
         value={valueAsText(value)}
         onChange={(e) => { change(e.target.value); save(e.target.value); }}
       >
-        <option value="">Select an answer</option>
-        {question.options.map((v) => <option key={v}>{v}</option>)}
+        <option value="">Select an option…</option>
+        {question.options.map((v) => <option key={v} value={v}>{v}</option>)}
       </select>
     );
   }
@@ -353,6 +447,7 @@ function QuestionField({
       <textarea
         rows={6}
         disabled={disabled}
+        placeholder="Enter your detailed response…"
         value={valueAsText(value)}
         onChange={(e) => change(e.target.value)}
         onBlur={(e) => save(e.target.value)}
@@ -364,6 +459,7 @@ function QuestionField({
     <input
       disabled={disabled}
       type={question.type === "number" ? "number" : question.type === "date" ? "date" : "text"}
+      placeholder={question.type === "number" ? "e.g. 1000" : "Enter answer…"}
       value={valueAsText(value)}
       onChange={(e) => change(
         question.type === "number" && e.target.value ? Number(e.target.value) : e.target.value,
@@ -399,6 +495,8 @@ function Report({
   const visible = questions.filter((q) => evaluateVisibility(q, questions, answers));
   const [activeId, setActiveId] = useState(visible[0]?.id ?? 0);
   const [saving, setSaving] = useState(false);
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
+  const [selectedSection, setSelectedSection] = useState<string>("all");
   const [paletteOpen, setPaletteOpen] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(min-width: 1181px)").matches,
   );
@@ -407,6 +505,19 @@ function Report({
   const index = visible.indexOf(active);
   const readOnly = submission.status === "submitted";
   const answered = visible.filter((q) => isAnswered(answers[q.id])).length;
+
+  const sectionKeys = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const q of visible) {
+      map.set(q.sectionKey, q.sectionTitle);
+    }
+    return Array.from(map.entries());
+  }, [visible]);
+
+  const filteredVisible = useMemo(() => {
+    if (selectedSection === "all") return visible;
+    return visible.filter((q) => q.sectionKey === selectedSection);
+  }, [selectedSection, visible]);
 
   useEffect(() => {
     if (active && !visible.some((q) => q.id === activeId)) setActiveId(active.id);
@@ -420,11 +531,26 @@ function Report({
     return () => media.removeEventListener("change", sync);
   }, []);
 
+  // Keyboard navigation
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        if (index < visible.length - 1) {
+          void commit(answers[active.id] ?? null);
+          setActiveId(visible[index + 1].id);
+        }
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [active, answers, index, visible]);
+
   if (!active) {
     return (
-      <div className="empty-state">
+      <div className="empty-state page">
         <h2>No visible questions</h2>
-        <button onClick={back}>Back</button>
+        <button className="button button--secondary" onClick={back}>Back to overview</button>
       </div>
     );
   }
@@ -438,6 +564,37 @@ function Report({
 
   return (
     <div className="report-layout">
+      {/* Submit confirmation dialog */}
+      {confirmSubmit && (
+        <div className="dialog-backdrop" role="presentation" onMouseDown={() => setConfirmSubmit(false)}>
+          <section className="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="submit-modal-title">
+            <p className="eyebrow eyebrow--red">Final submission</p>
+            <h2 id="submit-modal-title">Submit {version.reporting_year} Report?</h2>
+            <p>
+              You have completed <strong>{answered} of {visible.length}</strong> questions ({Math.round((answered / visible.length) * 100)}%).
+            </p>
+            <div className="confirm-dialog__question" style={{ margin: "16px 0" }}>
+              <span>Once submitted, your report is locked for review. An administrator must reopen it if any revisions are needed.</span>
+            </div>
+            <div className="confirm-dialog__actions">
+              <button type="button" className="button button--secondary" onClick={() => setConfirmSubmit(false)}>
+                Continue editing
+              </button>
+              <button
+                type="button"
+                className="button button--primary"
+                onClick={async () => {
+                  setConfirmSubmit(false);
+                  await submit();
+                }}
+              >
+                Confirm &amp; submit report
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
       <aside className="report-outline">
         <button className="back-link" onClick={back}>Back to overview</button>
         <p className="eyebrow">Annual report {version.reporting_year}</p>
@@ -446,8 +603,33 @@ function Report({
           <span>
             <i style={{ width: `${visible.length ? (answered / visible.length) * 100 : 0}%` }} />
           </span>
-          <small>{answered} of {visible.length} visible questions answered</small>
+          <small>{answered} of {visible.length} visible questions answered ({visible.length ? Math.round((answered / visible.length) * 100) : 0}%)</small>
         </div>
+
+        {/* Section Filter */}
+        {sectionKeys.length > 1 && (
+          <div style={{ marginBottom: "14px" }}>
+            <select
+              value={selectedSection}
+              onChange={(e) => setSelectedSection(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px 12px",
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--line)",
+                fontSize: "12px",
+                fontWeight: 600,
+                background: "var(--surface-subtle)",
+              }}
+            >
+              <option value="all">All sections ({visible.length})</option>
+              {sectionKeys.map(([k, t]) => (
+                <option key={k} value={k}>{t} ({visible.filter((q) => q.sectionKey === k).length})</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <details
           className="palette-panel"
           open={paletteOpen}
@@ -459,32 +641,40 @@ function Report({
           </summary>
           <div className="palette-legend" aria-label="Question status legend">
             <span><i className="legend-dot legend-dot--answered" />Answered</span>
-            <span><i className="legend-dot" />Not answered</span>
+            <span><i className="legend-dot" />Unanswered</span>
             <span><i className="legend-dot legend-dot--active" />Current</span>
           </div>
           <div className="question-index" role="navigation" aria-label="Question navigator" tabIndex={0}>
-            {visible.map((q, i) => (
-              <button
-                key={q.id}
-                className={`${q.id === active.id ? "active " : ""}${isAnswered(answers[q.id]) ? "answered" : "unanswered"}`}
-                aria-label={`Question ${i + 1}, ${isAnswered(answers[q.id]) ? "answered" : "not answered"}: ${q.prompt}`}
-                title={`${i + 1}. ${q.prompt}`}
-                onClick={() => setActiveId(q.id)}
-              >
-                <span>{i + 1}</span>
-                <div>
-                  <strong>{q.stableKey}</strong>
-                  <small>{q.sectionTitle}</small>
-                </div>
-              </button>
-            ))}
+            {filteredVisible.map((q) => {
+              const overallIdx = visible.indexOf(q);
+              return (
+                <button
+                  key={q.id}
+                  className={`${q.id === active.id ? "active " : ""}${isAnswered(answers[q.id]) ? "answered" : "unanswered"}`}
+                  aria-label={`Question ${overallIdx + 1}, ${isAnswered(answers[q.id]) ? "answered" : "not answered"}: ${q.prompt}`}
+                  title={`${overallIdx + 1}. ${q.prompt}`}
+                  onClick={() => setActiveId(q.id)}
+                >
+                  <span>{overallIdx + 1}</span>
+                  <div>
+                    <strong>{q.stableKey}</strong>
+                    <small>{q.sectionTitle}</small>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </details>
-        {(readOnly || saving) && (
-          <p className="autosave" aria-live="polite">
-            {readOnly ? "Submitted — read only" : "Saving securely…"}
-          </p>
-        )}
+
+        <p className="autosave" aria-live="polite">
+          {readOnly ? (
+            "🔒 Submitted (Read only)"
+          ) : saving ? (
+            "⏳ Saving securely…"
+          ) : (
+            "✓ All changes saved securely"
+          )}
+        </p>
       </aside>
 
       <section className="question-stage">
@@ -498,8 +688,8 @@ function Report({
           {active.helpText && <p className="question-help">{active.helpText}</p>}
           {active.carryForwardEnabled && isAnswered(answers[active.id]) && !readOnly && (
             <div className="previous-answer">
-              <span>Review carried-forward response</span>
-              <p>Confirm this remains accurate, or update it below.</p>
+              <span>✓ Prefilled from previous verified report</span>
+              <p>Please review and confirm this response remains accurate, or update it below.</p>
             </div>
           )}
           <label className="answer-label">
@@ -518,7 +708,7 @@ function Report({
               disabled={index === 0}
               onClick={() => setActiveId(visible[index - 1].id)}
             >
-              Previous
+              ← Previous
             </button>
             {index < visible.length - 1 ? (
               <button
@@ -528,15 +718,15 @@ function Report({
                   setActiveId(visible[index + 1].id);
                 }}
               >
-                Save &amp; next
+                Save &amp; next →
               </button>
             ) : readOnly ? (
               <button className="button button--secondary" onClick={() => print()}>
-                Print / save PDF
+                🖨️ Print / save PDF
               </button>
             ) : (
-              <button className="button button--primary" onClick={() => void submit()}>
-                Review &amp; submit
+              <button className="button button--primary" onClick={() => setConfirmSubmit(true)}>
+                Review &amp; submit report ✓
               </button>
             )}
           </div>
@@ -592,7 +782,7 @@ function AccountSettings({ session }: { session: Session }) {
     const { error } = await supabase.auth.updateUser({ password });
     setPwBusy(false);
     if (error) return setPwNotice({ kind: "error", message: error.message });
-    setPwNotice({ kind: "success", message: "Password updated. Please sign in again if prompted." });
+    setPwNotice({ kind: "success", message: "Password updated successfully." });
     setPassword("");
     setConfirm("");
   }
@@ -617,14 +807,14 @@ function AccountSettings({ session }: { session: Session }) {
             Full name
             <input
               value={name}
-              placeholder={nameLoaded ? "Your name" : "Loading…"}
+              placeholder={nameLoaded ? "Your full name" : "Loading…"}
               disabled={!nameLoaded || nameBusy}
               onChange={(e) => setName(e.target.value)}
               required
             />
           </label>
           <button className="button button--primary" disabled={!nameLoaded || nameBusy}>
-            {nameBusy ? "Saving…" : "Save name"}
+            {nameBusy ? "Saving…" : "Save display name"}
           </button>
         </form>
 
@@ -635,11 +825,11 @@ function AccountSettings({ session }: { session: Session }) {
           )}
           <label>
             New password
-            <input type="password" value={password} minLength={8} onChange={(e) => setPassword(e.target.value)} required />
+            <input type="password" value={password} minLength={8} placeholder="Min. 8 characters" onChange={(e) => setPassword(e.target.value)} required />
           </label>
           <label>
             Confirm password
-            <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+            <input type="password" value={confirm} placeholder="Repeat new password" onChange={(e) => setConfirm(e.target.value)} required />
           </label>
           <button className="button button--primary" disabled={pwBusy}>
             {pwBusy ? "Saving…" : "Change password"}
@@ -759,7 +949,6 @@ function CompanyPortal({ session }: { session: Session }) {
     if (!supabase || !submission) return;
     const missing = visible.filter((q) => q.required && !isAnswered(answers[q.id]));
     if (missing.length) return setNotice({ kind: "error", message: `${missing.length} required response(s) are missing.` });
-    if (!confirm("Submit this report? An administrator must reopen it for later changes.")) return;
     const r = await supabase.rpc("submit_submission", { target_submission_id: submission.id });
     if (r.error) return setNotice({ kind: "error", message: r.error.message });
     setNotice({ kind: "success", message: "Report submitted successfully." });
@@ -788,7 +977,7 @@ function CompanyPortal({ session }: { session: Session }) {
           <Logo />
           <h1>Account awaiting company access</h1>
           <p>Ask a STICA administrator to link this account to a participating company.</p>
-          <button onClick={() => void supabase?.auth.signOut()}>Sign out</button>
+          <button className="button button--secondary" onClick={() => void supabase?.auth.signOut()}>Sign out</button>
         </section>
       </main>
     );
@@ -845,12 +1034,12 @@ function CompanyPortal({ session }: { session: Session }) {
               <section className="hero-report">
                 <div className="hero-copy">
                   <span className={`status-badge ${submission.status === "submitted" ? "status-badge--done" : ""}`}>
-                    {submission.status}
+                    ● {submission.status.replace("_", " ")}
                   </span>
                   <h2>{version.name}</h2>
                   <p>Approved persistent question mappings preserve reliable prior-year responses for review.</p>
                   <button className="button button--ink" onClick={() => setView("report")}>
-                    {submission.status === "submitted" ? "View submission" : "Continue reporting"}
+                    {submission.status === "submitted" ? "View submission →" : "Continue reporting →"}
                   </button>
                 </div>
                 <div className="progress-art">
@@ -863,7 +1052,7 @@ function CompanyPortal({ session }: { session: Session }) {
                       <span>complete</span>
                     </div>
                   </div>
-                  <p>{answered} of {visible.length} visible responses</p>
+                  <p>{answered} of {visible.length} responses completed</p>
                 </div>
               </section>
 
@@ -880,7 +1069,7 @@ function CompanyPortal({ session }: { session: Session }) {
                     {sections.map((s) => (
                       <button key={s.key} onClick={() => setView("report")}>
                         <span className="section-check">
-                          {s.answered === s.total ? "OK" : Math.round((s.answered / s.total) * 100)}
+                          {s.answered === s.total ? "✓" : `${Math.round((s.answered / s.total) * 100)}%`}
                         </span>
                         <span>
                           <strong>{s.title}</strong>
@@ -895,10 +1084,15 @@ function CompanyPortal({ session }: { session: Session }) {
                 </div>
 
                 <aside className="info-card">
-                  <p className="eyebrow">Baseline</p>
-                  <strong>{questions.filter((q) => q.carryForwardEnabled && isAnswered(answers[q.id])).length}</strong>
-                  <h3>responses ready to review</h3>
-                  <p>Only unchanged or administrator-mapped questions are carried forward.</p>
+                  <div>
+                    <p className="eyebrow">Baseline data</p>
+                    <strong>{questions.filter((q) => q.carryForwardEnabled && isAnswered(answers[q.id])).length}</strong>
+                    <h3>responses prefilled</h3>
+                    <p>Verified responses from prior reporting cycles are automatically carried forward for your review.</p>
+                  </div>
+                  <button className="button button--secondary" onClick={() => setView("report")} style={{ marginTop: "18px", alignSelf: "start" }}>
+                    Review responses →
+                  </button>
                 </aside>
               </section>
             </>
@@ -918,6 +1112,7 @@ function CompanyPortal({ session }: { session: Session }) {
             <div>
               <p className="eyebrow eyebrow--red">Reporting archive</p>
               <h1>Previous years</h1>
+              <p>Review and reference historical submissions and validated transition plans.</p>
             </div>
           </div>
           <div className="history-list">
@@ -928,10 +1123,10 @@ function CompanyPortal({ session }: { session: Session }) {
                   <span>{v.reporting_year}</span>
                   <div>
                     <h3>{v.name}</h3>
-                    <p>{s.submitted_at ? `Submitted ${formatDate(s.submitted_at)}` : `Saved ${formatDate(s.updated_at)}`}</p>
+                    <p>{s.submitted_at ? `Submitted ${formatDate(s.submitted_at)}` : `Last saved ${formatDate(s.updated_at)}`}</p>
                   </div>
-                  <strong>{s.status}</strong>
-                  <button onClick={() => void open(v)}>View report</button>
+                  <strong>● {s.status}</strong>
+                  <button onClick={() => void open(v)}>View report →</button>
                 </article>
               ) : null;
             })}
@@ -1095,6 +1290,17 @@ function AdminPortal({ session }: { session: Session }) {
   const [selected, setSelected] = useState<number | null>(null);
   const [carry, setCarry] = useState<Record<number, string>>({});
 
+  // Filters & Search
+  const [dashSearch, setDashSearch] = useState("");
+  const [dashStatusFilter, setDashStatusFilter] = useState<string>("all");
+  const [qSearch, setQSearch] = useState("");
+  const [qSectionFilter, setQSectionFilter] = useState("");
+  const [orgSearch, setOrgSearch] = useState("");
+
+  // Reopen modal
+  const [reopenTarget, setReopenTarget] = useState<ProgressRow | null>(null);
+  const [reopenReason, setReopenReason] = useState("");
+
   // Survey builder sub-views
   const [surveyView, setSurveyView] = useState<"overview" | "create-year" | "workspace" | "question">("overview");
   const [form, setForm] = useState<QForm>(EMPTY_Q);
@@ -1121,6 +1327,7 @@ function AdminPortal({ session }: { session: Session }) {
   const [year, setYear] = useState("");
   const [company, setCompany] = useState("");
   const [question, setQuestion] = useState("");
+  const [importFileName, setImportFileName] = useState("");
 
   // Global state
   const [notice, setNotice] = useState<Notice>(null);
@@ -1181,10 +1388,50 @@ function AdminPortal({ session }: { session: Session }) {
   const selectedVersion = versions.find((v) => v.id === selected);
   const current = versions.find((v) => v.status === "published") ?? versions[0];
   const currentRows = current ? rows.filter((r) => r.survey_version_id === current.id) : [];
+  
+  const filteredDashboardRows = useMemo(() => {
+    return currentRows.filter((r) => {
+      const matchesSearch =
+        !dashSearch ||
+        r.organization_name.toLowerCase().includes(dashSearch.toLowerCase()) ||
+        (r.contact_email && r.contact_email.toLowerCase().includes(dashSearch.toLowerCase()));
+      const matchesStatus =
+        dashStatusFilter === "all" ||
+        (dashStatusFilter === "submitted" && r.status === "submitted") ||
+        (dashStatusFilter === "in_progress" && (r.status === "draft" || r.status === "reopened")) ||
+        (dashStatusFilter === "not_started" && r.status === "not_started");
+      return matchesSearch && matchesStatus;
+    });
+  }, [currentRows, dashSearch, dashStatusFilter]);
+
   const submitted = currentRows.filter((r) => r.status === "submitted").length;
   const inProgress = currentRows.filter((r) => r.status === "draft" || r.status === "reopened").length;
+  const notStarted = currentRows.filter((r) => r.status === "not_started").length;
   const years = [...new Set(rows.map((r) => r.reporting_year))].sort((a, b) => b - a);
   const visibleExports = exports.slice(exportPage * EXPORT_PAGE_SIZE, (exportPage + 1) * EXPORT_PAGE_SIZE);
+
+  const filteredQuestions = useMemo(() => {
+    return questions.filter((q) => {
+      const matchesSearch =
+        !qSearch ||
+        q.stableKey.toLowerCase().includes(qSearch.toLowerCase()) ||
+        q.prompt.toLowerCase().includes(qSearch.toLowerCase()) ||
+        q.sectionTitle.toLowerCase().includes(qSearch.toLowerCase());
+      const matchesSection = !qSectionFilter || q.sectionKey === qSectionFilter;
+      return matchesSearch && matchesSection;
+    });
+  }, [qSearch, qSectionFilter, questions]);
+
+  const filteredOrgs = useMemo(() => {
+    return orgs.filter((o) => {
+      return (
+        !orgSearch ||
+        o.name.toLowerCase().includes(orgSearch.toLowerCase()) ||
+        o.slug.toLowerCase().includes(orgSearch.toLowerCase()) ||
+        (o.contact_email && o.contact_email.toLowerCase().includes(orgSearch.toLowerCase()))
+      );
+    });
+  }, [orgSearch, orgs]);
 
   // ── Survey builder actions ────────────────────────────────────────────────
 
@@ -1308,7 +1555,7 @@ function AdminPortal({ session }: { session: Session }) {
       if (r.error) throw r.error;
       await loadQuestions(selectedVersion.id);
       setPendingDelete(null);
-      setNotice({ kind: "success", message: `${q.stableKey} removed from the draft. Published years remain unchanged.` });
+      setNotice({ kind: "success", message: `${q.stableKey} removed from the draft.` });
     } catch (e) {
       setNotice({ kind: "error", message: e instanceof Error ? e.message : "Unable to delete question" });
     } finally {
@@ -1334,7 +1581,7 @@ function AdminPortal({ session }: { session: Session }) {
   }
 
   async function publishYear() {
-    if (!supabase || !selectedVersion || !window.confirm(`Publish ${selectedVersion.name}?`)) return;
+    if (!supabase || !selectedVersion) return;
     setBusy(true);
     setNotice(null);
     try {
@@ -1350,7 +1597,7 @@ function AdminPortal({ session }: { session: Session }) {
   }
 
   async function closeYear() {
-    if (!supabase || !selectedVersion || !window.confirm(`Close ${selectedVersion.name}? This will hide it from company users.`)) return;
+    if (!supabase || !selectedVersion) return;
     setBusy(true);
     setNotice(null);
     try {
@@ -1448,7 +1695,7 @@ function AdminPortal({ session }: { session: Session }) {
   }
 
   async function removeMember(orgId: number, userId: string, email: string) {
-    if (!supabase || !window.confirm(`Remove ${email} from this company?`)) return;
+    if (!supabase) return;
     setMembersBusy(true);
     try {
       const r = await supabase.rpc("remove_organization_member", {
@@ -1493,13 +1740,22 @@ function AdminPortal({ session }: { session: Session }) {
 
   // ── Admin submission actions ──────────────────────────────────────────────
 
-  async function reopen(r: ProgressRow) {
-    if (!supabase || !r.submission_id) return;
-    const reason = window.prompt("Reason for reopening:");
-    if (!reason) return;
-    const x = await supabase.rpc("reopen_submission", { target_submission_id: r.submission_id, reason });
-    if (x.error) return setNotice({ kind: "error", message: x.error.message });
-    await load(true, selected ?? undefined);
+  async function executeReopen() {
+    if (!supabase || !reopenTarget || !reopenTarget.submission_id || !reopenReason.trim()) return;
+    setBusy(true);
+    const x = await supabase.rpc("reopen_submission", {
+      target_submission_id: reopenTarget.submission_id,
+      reason: reopenReason.trim(),
+    });
+    setBusy(false);
+    if (x.error) {
+      setNotice({ kind: "error", message: x.error.message });
+    } else {
+      setNotice({ kind: "success", message: `Reopened report for ${reopenTarget.organization_name}.` });
+      setReopenTarget(null);
+      setReopenReason("");
+      await load(true, selected ?? undefined);
+    }
   }
 
   // ── Export actions ────────────────────────────────────────────────────────
@@ -1554,6 +1810,7 @@ function AdminPortal({ session }: { session: Session }) {
       if (r.error) throw r.error;
       setNotice({ kind: "success", message: `${r.data} historical rows imported.` });
       e.currentTarget.reset();
+      setImportFileName("");
       await load(true, selected ?? undefined);
     } catch (x) {
       setNotice({ kind: "error", message: x instanceof Error ? x.message : "Import failed" });
@@ -1579,7 +1836,47 @@ function AdminPortal({ session }: { session: Session }) {
     <Shell admin view={view} setView={setView} items={navItems} user={session.user} name="STICA Administration">
       <NoticeBar notice={notice} clear={() => setNotice(null)} />
 
-      {/* ── Confirm delete dialog ── */}
+      {/* ── Reopen dialog ── */}
+      {reopenTarget && (
+        <div
+          className="dialog-backdrop"
+          role="presentation"
+          onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) setReopenTarget(null); }}
+        >
+          <section className="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="reopen-title">
+            <p className="eyebrow eyebrow--red">Reopen submission</p>
+            <h2 id="reopen-title">Reopen for {reopenTarget.organization_name}?</h2>
+            <p>This allows the company to edit and resubmit their responses for reporting year {reopenTarget.reporting_year}.</p>
+            <div className="dialog-form">
+              <label>
+                Reason for reopening (logged to audit trail)
+                <textarea
+                  rows={3}
+                  value={reopenReason}
+                  placeholder="e.g. Correction requested for Scope 3 emissions data"
+                  onChange={(e) => setReopenReason(e.target.value)}
+                  required
+                />
+              </label>
+              <div className="confirm-dialog__actions">
+                <button type="button" className="button button--secondary" onClick={() => setReopenTarget(null)} disabled={busy}>
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="button button--primary"
+                  onClick={() => void executeReopen()}
+                  disabled={busy || !reopenReason.trim()}
+                >
+                  {busy ? "Reopening…" : "Confirm & reopen"}
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* ── Confirm delete question dialog ── */}
       {pendingDelete && (
         <div
           className="dialog-backdrop"
@@ -1661,7 +1958,7 @@ function AdminPortal({ session }: { session: Session }) {
               <p>{current?.name ?? "Create a reporting year to begin."}</p>
             </div>
             <button className="button button--primary" onClick={() => setView("surveys")}>
-              Manage survey years
+              Manage survey years →
             </button>
           </div>
 
@@ -1680,7 +1977,7 @@ function AdminPortal({ session }: { session: Session }) {
             </article>
             <article>
               <span>Not started</span>
-              <strong>{currentRows.filter((r) => r.status === "not_started").length}</strong>
+              <strong>{notStarted}</strong>
             </article>
           </section>
 
@@ -1690,8 +1987,54 @@ function AdminPortal({ session }: { session: Session }) {
                 <p className="eyebrow">Company status</p>
                 <h3>{current?.reporting_year ?? "No active year"}</h3>
               </div>
-              <button onClick={() => setView("data")}>Export</button>
+              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <input
+                  type="search"
+                  placeholder="Search company or email…"
+                  value={dashSearch}
+                  onChange={(e) => setDashSearch(e.target.value)}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: "var(--radius-sm)",
+                    border: "1px solid var(--line)",
+                    fontSize: "13px",
+                    width: "220px",
+                  }}
+                />
+                <button className="button button--secondary" onClick={() => setView("data")} style={{ minHeight: "36px", padding: "0 14px" }}>
+                  Export data
+                </button>
+              </div>
             </div>
+
+            {/* Status Filter Tabs */}
+            <div style={{ display: "flex", gap: "8px", padding: "12px 24px", background: "var(--surface-subtle)", borderBottom: "1px solid var(--line)" }}>
+              {[
+                ["all", `All (${currentRows.length})`],
+                ["submitted", `Submitted (${submitted})`],
+                ["in_progress", `In Progress (${inProgress})`],
+                ["not_started", `Not Started (${notStarted})`],
+              ].map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setDashStatusFilter(key)}
+                  style={{
+                    padding: "4px 12px",
+                    borderRadius: "var(--radius-full)",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    border: dashStatusFilter === key ? "1px solid var(--ink)" : "1px solid transparent",
+                    background: dashStatusFilter === key ? "var(--ink)" : "transparent",
+                    color: dashStatusFilter === key ? "white" : "var(--text-secondary)",
+                    transition: "all var(--transition-fast)",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <div className="table-scroll">
               <table className="responsive-table">
                 <thead>
@@ -1704,7 +2047,7 @@ function AdminPortal({ session }: { session: Session }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentRows.map((r) => (
+                  {filteredDashboardRows.map((r) => (
                     <tr key={`${r.organization_id}-${r.survey_version_id}`}>
                       <td data-label="Company"><strong>{r.organization_name}</strong></td>
                       <td data-label="Contact">{r.contact_email ?? "Not set"}</td>
@@ -1714,14 +2057,25 @@ function AdminPortal({ session }: { session: Session }) {
                           {r.completion_percent}%
                         </div>
                       </td>
-                      <td data-label="Status">{r.status.replace("_", " ")}</td>
+                      <td data-label="Status">
+                        <span className={`table-status ${r.status === "submitted" ? "table-status--submitted" : r.status === "not_started" ? "table-status--not-started" : ""}`}>
+                          {r.status.replace("_", " ")}
+                        </span>
+                      </td>
                       <td data-label="Action">
                         {r.status === "submitted" && (
-                          <button className="table-action" onClick={() => void reopen(r)}>Reopen</button>
+                          <button className="table-action" onClick={() => setReopenTarget(r)}>
+                            Reopen
+                          </button>
                         )}
                       </td>
                     </tr>
                   ))}
+                  {filteredDashboardRows.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="empty-row">No companies matching the filter.</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1742,13 +2096,13 @@ function AdminPortal({ session }: { session: Session }) {
                   <h1>Survey builder</h1>
                   <p>Select a reporting year to manage its questions, carry-forward mappings, and publication status.</p>
                 </div>
-                <button className="button button--primary" onClick={beginCreateYear}>New reporting year</button>
+                <button className="button button--primary" onClick={beginCreateYear}>+ New reporting year</button>
               </div>
               <section className="survey-year-overview">
                 <div className="panel-heading">
                   <div>
-                    <p className="eyebrow">Reporting years</p>
-                    <h3>{versions.length} years</h3>
+                    <p className="eyebrow">Reporting cycles</p>
+                    <h3>{versions.length} reporting years</h3>
                   </div>
                   <span>Choose a year to open its workspace</span>
                 </div>
@@ -1767,7 +2121,7 @@ function AdminPortal({ session }: { session: Session }) {
                           <span className={`status-chip status-chip--${v.status}`}>{v.status}</span>
                         </small>
                       </div>
-                      <em>{busy && selected === v.id ? "Opening…" : "Open workspace"}</em>
+                      <em>{busy && selected === v.id ? "Opening…" : "Open workspace →"}</em>
                     </button>
                   ))}
                 </div>
@@ -1791,7 +2145,7 @@ function AdminPortal({ session }: { session: Session }) {
               <form className="panel-form builder-create-page" onSubmit={createYear}>
                 <div className="form-guidance" role="note">
                   <strong>Draft first, publish when ready</strong>
-                  <span>Creating a year does not make it visible to companies until you publish it.</span>
+                  <span>Creating a year creates an editable draft. It will not be visible to companies until you publish it.</span>
                 </div>
                 <div className="form-grid">
                   <label>
@@ -1817,7 +2171,7 @@ function AdminPortal({ session }: { session: Session }) {
                   <label>Closes<input name="closes" type="datetime-local" /></label>
                 </div>
                 <label>
-                  Clone from
+                  Clone from existing year
                   <select name="clone">
                     <option value="">Start empty</option>
                     {versions.map((v) => (
@@ -1828,7 +2182,7 @@ function AdminPortal({ session }: { session: Session }) {
                 <div className="builder-form-actions">
                   <button type="button" className="button button--secondary" onClick={() => setSurveyView("overview")} disabled={busy}>Cancel</button>
                   <button className="button button--ink" disabled={busy} aria-busy={busy}>
-                    {busy ? "Creating draft…" : "Create draft"}
+                    {busy ? "Creating draft…" : "Create draft cycle"}
                   </button>
                 </div>
               </form>
@@ -1855,14 +2209,14 @@ function AdminPortal({ session }: { session: Session }) {
                     className={`button button--secondary ${previewMode ? "button--active" : ""}`}
                     onClick={() => setPreviewMode((p) => !p)}
                   >
-                    {previewMode ? "Exit preview" : "Preview survey"}
+                    {previewMode ? "Exit preview mode" : "👁️ Preview survey"}
                   </button>
                   {selectedVersion.status === "draft" && (
                     <button
                       className="button button--secondary"
                       onClick={() => { setForm(EMPTY_Q); setSurveyView("question"); }}
                     >
-                      Add question
+                      + Add question
                     </button>
                   )}
                   {selectedVersion.status === "draft" && (
@@ -1889,16 +2243,16 @@ function AdminPortal({ session }: { session: Session }) {
               {selectedVersion.status !== "draft" && (
                 <div className="builder-lock-note" role="note">
                   <div>
-                    <strong>This reporting year is {selectedVersion.status === "published" ? "published (read-only)" : "closed"}</strong>
+                    <strong>This reporting year is {selectedVersion.status === "published" ? "published (active)" : "closed (archived)"}</strong>
                     <span>
                       {selectedVersion.status === "published"
-                        ? "Published questions are locked to preserve persistent IDs and audit history. To correct wording, create a new draft."
-                        : "Closed years are archived. Data is preserved and available for export."}
+                        ? "Published questions are locked to preserve stable IDs and longitudinal integrity. To modify question structure, create a new draft year."
+                        : "Closed reporting years are preserved for historical reporting and audit."}
                     </span>
                   </div>
                   {selectedVersion.status === "published" && (
                     <button type="button" className="button button--secondary" onClick={beginCreateYear}>
-                      Create corrected draft
+                      Create new draft year
                     </button>
                   )}
                 </div>
@@ -1908,8 +2262,8 @@ function AdminPortal({ session }: { session: Session }) {
               {previewMode ? (
                 <section className="preview-panel">
                   <div className="preview-banner">
-                    <strong>Preview mode</strong>
-                    <span>This is how companies will see the questions. Answers are not saved.</span>
+                    <strong>Simulator preview</strong>
+                    <span>This interactive view mimics what participating companies see. Responses are not saved.</span>
                   </div>
                   <div className="preview-list">
                     {questions.map((q, i) => (
@@ -1919,7 +2273,7 @@ function AdminPortal({ session }: { session: Session }) {
                           <code>{q.stableKey}</code>
                           <span className="preview-item__section">{q.sectionTitle}</span>
                           {q.required && <em className="preview-item__required">Required</em>}
-                          {carry[q.id] && <span className="preview-item__carry">↩ {carry[q.id]}</span>}
+                          {carry[q.id] && <span className="preview-item__carry">↩ Carried from {carry[q.id]}</span>}
                         </div>
                         <p className="preview-item__prompt">{q.prompt}</p>
                         {q.helpText && <p className="preview-item__help">{q.helpText}</p>}
@@ -1943,15 +2297,26 @@ function AdminPortal({ session }: { session: Session }) {
                 <section className="builder-workspace">
                   <div className="question-catalog">
                     <div className="panel-heading">
-                      <div>
-                        <p className="eyebrow">Question library</p>
-                        <h3>{questions.length} questions</h3>
+                      <div style={{ display: "flex", alignItems: "center", gap: "16px", flex: 1 }}>
+                        <div>
+                          <p className="eyebrow">Question library</p>
+                          <h3>{questions.length} questions</h3>
+                        </div>
+                        <input
+                          type="search"
+                          placeholder="Search questions…"
+                          value={qSearch}
+                          onChange={(e) => setQSearch(e.target.value)}
+                          style={{
+                            maxWidth: "240px",
+                            padding: "6px 12px",
+                            borderRadius: "var(--radius-sm)",
+                            border: "1px solid var(--line)",
+                            fontSize: "13px",
+                            marginLeft: "auto",
+                          }}
+                        />
                       </div>
-                      <span>
-                        {selectedVersion.status === "draft" ? "Editable draft" : selectedVersion.status}
-                        {" · "}
-                        Page {questionPage + 1} of {Math.max(1, Math.ceil(questions.length / Q_PAGE_SIZE))}
-                      </span>
                     </div>
 
                     {openingVersion === selectedVersion.id ? (
@@ -1959,21 +2324,21 @@ function AdminPortal({ session }: { session: Session }) {
                         <strong>Loading questions…</strong>
                         <p>Preparing the question workspace.</p>
                       </div>
-                    ) : questions.length === 0 ? (
+                    ) : filteredQuestions.length === 0 ? (
                       <div className="empty-catalog">
-                        <strong>No questions yet</strong>
-                        <p>Add the first question or clone from an existing year.</p>
-                        {selectedVersion.status === "draft" && (
+                        <strong>No questions found</strong>
+                        <p>{questions.length === 0 ? "Add the first question or clone from an existing year." : "No questions match your search filter."}</p>
+                        {selectedVersion.status === "draft" && questions.length === 0 && (
                           <button
                             className="button button--primary"
                             onClick={() => { setForm(EMPTY_Q); setSurveyView("question"); }}
                           >
-                            Add first question
+                            + Add first question
                           </button>
                         )}
                       </div>
                     ) : (
-                      questions.slice(questionPage * Q_PAGE_SIZE, questionPage * Q_PAGE_SIZE + Q_PAGE_SIZE).map((q) => (
+                      filteredQuestions.slice(questionPage * Q_PAGE_SIZE, questionPage * Q_PAGE_SIZE + Q_PAGE_SIZE).map((q) => (
                         <article key={q.id}>
                           <div className="q-order-controls">
                             {selectedVersion.status === "draft" && (
@@ -2014,24 +2379,24 @@ function AdminPortal({ session }: { session: Session }) {
                       ))
                     )}
 
-                    {questions.length > Q_PAGE_SIZE && (
+                    {filteredQuestions.length > Q_PAGE_SIZE && (
                       <div className="catalog-pager">
                         <button
                           type="button"
                           disabled={questionPage === 0}
                           onClick={() => setQuestionPage((p) => Math.max(0, p - 1))}
                         >
-                          Previous
+                          ← Previous
                         </button>
                         <span>
-                          Page {questionPage + 1} of {Math.max(1, Math.ceil(questions.length / Q_PAGE_SIZE))}
+                          Page {questionPage + 1} of {Math.max(1, Math.ceil(filteredQuestions.length / Q_PAGE_SIZE))}
                         </span>
                         <button
                           type="button"
-                          disabled={(questionPage + 1) * Q_PAGE_SIZE >= questions.length}
+                          disabled={(questionPage + 1) * Q_PAGE_SIZE >= filteredQuestions.length}
                           onClick={() => setQuestionPage((p) => p + 1)}
                         >
-                          Next
+                          Next →
                         </button>
                       </div>
                     )}
@@ -2100,33 +2465,33 @@ function AdminPortal({ session }: { session: Session }) {
                   </label>
                 </div>
                 <label>
-                  Question
+                  Question prompt
                   <textarea
                     rows={4}
                     value={form.prompt}
                     onChange={(e) => setForm({ ...form, prompt: e.target.value })}
-                    placeholder="Write the question exactly as companies should see it."
+                    placeholder="Write the question prompt clearly as companies will see it."
                     required
                   />
                 </label>
                 <label>
-                  Help text
+                  Help text / Guidance
                   <textarea
                     value={form.help}
                     onChange={(e) => setForm({ ...form, help: e.target.value })}
-                    placeholder="Optional guidance, definitions, or reporting boundaries."
+                    placeholder="Optional definitions, calculation methodologies, or reporting boundaries."
                   />
                 </label>
                 <div className="form-grid">
                   <label>
-                    Type
+                    Response type
                     <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as QuestionType })}>
                       {["text", "textarea", "number", "yes_no", "single_choice", "multiple_choice", "date"].map((x) => (
-                        <option key={x}>{x.replace("_", " ")}</option>
+                        <option key={x} value={x}>{x.replace("_", " ")}</option>
                       ))}
                     </select>
                   </label>
-                  <label className="checkbox-label">
+                  <label className="checkbox-label" style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "24px" }}>
                     <input
                       type="checkbox"
                       checked={form.required}
@@ -2137,7 +2502,7 @@ function AdminPortal({ session }: { session: Session }) {
                 </div>
                 {["single_choice", "multiple_choice"].includes(form.type) && (
                   <label>
-                    Options, one per line
+                    Options (one per line)
                     <textarea
                       rows={4}
                       value={form.options}
@@ -2146,11 +2511,11 @@ function AdminPortal({ session }: { session: Session }) {
                     />
                   </label>
                 )}
-                <fieldset>
-                  <legend>Carry-forward mapping</legend>
-                  <p className="fieldset-help">Use only when this question intentionally inherits an answer from an approved previous-year question.</p>
+                <fieldset style={{ border: "1px solid var(--line)", borderRadius: "var(--radius-md)", padding: "18px" }}>
+                  <legend style={{ padding: "0 8px", fontWeight: 700, fontSize: "12px", textTransform: "uppercase" }}>Carry-forward mapping</legend>
+                  <p className="fieldset-help">Use when this question inherits validated answers from an approved previous-year question ID.</p>
                   <label>
-                    Approved source question ID
+                    Source question ID
                     <input
                       value={form.carry}
                       onChange={(e) => setForm({ ...form, carry: e.target.value.toUpperCase() })}
@@ -2158,16 +2523,16 @@ function AdminPortal({ session }: { session: Session }) {
                     />
                   </label>
                 </fieldset>
-                <fieldset>
-                  <legend>Conditional visibility</legend>
-                  <p className="fieldset-help">Leave Depends on empty to show this question to every company.</p>
+                <fieldset style={{ border: "1px solid var(--line)", borderRadius: "var(--radius-md)", padding: "18px" }}>
+                  <legend style={{ padding: "0 8px", fontWeight: 700, fontSize: "12px", textTransform: "uppercase" }}>Conditional visibility</legend>
+                  <p className="fieldset-help">Leave Depends on empty to show this question unconditionally.</p>
                   <div className="form-grid">
                     <label>
-                      Depends on
+                      Depends on question ID
                       <input
                         value={form.condition}
                         onChange={(e) => setForm({ ...form, condition: e.target.value.toUpperCase() })}
-                        placeholder="Optional question ID"
+                        placeholder="e.g. GOV-001"
                       />
                     </label>
                     <label>
@@ -2181,7 +2546,7 @@ function AdminPortal({ session }: { session: Session }) {
                     </label>
                   </div>
                   {form.operator !== "is_answered" && (
-                    <label>
+                    <label style={{ marginTop: "12px" }}>
                       Expected value
                       <input
                         value={form.expected}
@@ -2217,6 +2582,7 @@ function AdminPortal({ session }: { session: Session }) {
             <div>
               <p className="eyebrow eyebrow--red">Secure participation</p>
               <h1>Companies</h1>
+              <p>Manage participating organizations, team members, and secure access permissions.</p>
             </div>
           </div>
 
@@ -2224,9 +2590,8 @@ function AdminPortal({ session }: { session: Session }) {
             <form className="panel-form" onSubmit={invite}>
               <h3>Add company &amp; invite</h3>
               <div className="form-guidance" role="note">
-                <strong>Example company entry</strong>
-                <span>Nordic Weave AB · nordic-weave-ab · Anna Lindberg · anna.lindberg@nordicweave.com</span>
-                <small>All fields are required except External reference.</small>
+                <strong>Example entry</strong>
+                <span>Nordic Weave AB · nordic-weave-ab · Anna Lindberg · anna@nordicweave.com</span>
               </div>
               <label>
                 Company name
@@ -2239,10 +2604,9 @@ function AdminPortal({ session }: { session: Session }) {
                   pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
                   required
                   placeholder="e.g. nordic-weave-ab"
-                  aria-describedby="company-slug-help"
                 />
-                <small className="form-help" id="company-slug-help">
-                  Lowercase letters and numbers only; separate words with hyphens.
+                <small className="form-help">
+                  Lowercase letters, numbers, hyphens only.
                 </small>
               </label>
               <label>Contact name<input name="fullName" required placeholder="e.g. Anna Lindberg" /></label>
@@ -2251,25 +2615,44 @@ function AdminPortal({ session }: { session: Session }) {
                 External reference
                 <input name="externalReference" placeholder="Optional, e.g. STICA-2026-057" />
               </label>
-              <button className="button button--primary" disabled={busy}>Send secure invitation</button>
+              <button className="button button--primary" disabled={busy}>
+                {busy ? "Sending invitation…" : "Send secure invitation →"}
+              </button>
             </form>
 
             <div className="company-directory">
               <div className="company-directory__header">
-                <strong>{orgs.length} companies</strong>
-                <small>{orgs.filter((o) => o.is_active).length} active</small>
+                <div>
+                  <strong>{orgs.length} companies</strong>
+                  <span style={{ marginLeft: "10px", color: "var(--text-muted)", fontSize: "13px" }}>
+                    ({orgs.filter((o) => o.is_active).length} active)
+                  </span>
+                </div>
+                <input
+                  type="search"
+                  placeholder="Search company…"
+                  value={orgSearch}
+                  onChange={(e) => setOrgSearch(e.target.value)}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    border: "1px solid var(--line)",
+                    fontSize: "13px",
+                    width: "180px",
+                  }}
+                />
               </div>
-              {orgs.map((o) => (
+              {filteredOrgs.map((o) => (
                 <article key={o.id} className={!o.is_active ? "inactive" : ""}>
                   <div className="company-card__main">
                     <span className="company-avatar">{o.name.slice(0, 2).toUpperCase()}</span>
                     <div>
                       <strong>{o.name}</strong>
-                      <small>{o.contact_email ?? "No email"}</small>
-                      <small className="company-meta">{o.slug}{o.external_reference ? ` · ${o.external_reference}` : ""}</small>
+                      <small>{o.contact_email ?? "No contact email"}</small>
+                      <small className="company-meta">{o.slug}{o.external_reference ? ` · Ref: ${o.external_reference}` : ""}</small>
                     </div>
                     <em className={`company-status ${o.is_active ? "company-status--active" : ""}`}>
-                      {o.is_active ? "Active" : "Archived"}
+                      {o.is_active ? "● Active" : "Archived"}
                     </em>
                   </div>
                   <div className="company-card__actions">
@@ -2277,13 +2660,13 @@ function AdminPortal({ session }: { session: Session }) {
                       className="table-action"
                       onClick={() => beginEditOrg(o)}
                     >
-                      Edit
+                      ✏️ Edit
                     </button>
                     <button
                       className="table-action"
                       onClick={() => void expandMembers(o.id)}
                     >
-                      {expandedOrgId === o.id ? "Hide members" : "Members"}
+                      👥 {expandedOrgId === o.id ? "Hide members" : "Manage members"}
                     </button>
                     <button
                       className={o.is_active ? "danger-link" : "table-action"}
@@ -2299,7 +2682,7 @@ function AdminPortal({ session }: { session: Session }) {
                       {membersBusy && !orgMembersCache[o.id] ? (
                         <p className="members-loading">Loading members…</p>
                       ) : (orgMembersCache[o.id] ?? []).length === 0 ? (
-                        <p className="members-empty">No linked users. Use the invite form to add one.</p>
+                        <p className="members-empty">No linked users. Use the invite form to add team members.</p>
                       ) : (
                         <table className="members-table">
                           <thead>
@@ -2307,14 +2690,14 @@ function AdminPortal({ session }: { session: Session }) {
                               <th>Name</th>
                               <th>Email</th>
                               <th>Role</th>
-                              <th>Since</th>
+                              <th>Joined</th>
                               <th></th>
                             </tr>
                           </thead>
                           <tbody>
                             {(orgMembersCache[o.id] ?? []).map((m) => (
                               <tr key={m.user_id}>
-                                <td>{m.full_name}</td>
+                                <td><strong>{m.full_name}</strong></td>
                                 <td><small>{m.email}</small></td>
                                 <td>
                                   <select
@@ -2358,6 +2741,7 @@ function AdminPortal({ session }: { session: Session }) {
             <div>
               <p className="eyebrow eyebrow--red">Portable reporting data</p>
               <h1>Import &amp; export</h1>
+              <p>Export responses to Excel, generate longitudinal pivot tables, or bulk-import historical responses.</p>
             </div>
           </div>
 
@@ -2365,12 +2749,35 @@ function AdminPortal({ session }: { session: Session }) {
             {/* Import */}
             <form className="panel-form" onSubmit={importHistory}>
               <h3>Historical Excel / CSV import</h3>
-              <p>
-                Required columns: <code>company_name, company_slug, reporting_year, question_key, answer</code>
+              <p className="muted" style={{ fontSize: "13px" }}>
+                Required headers: <code>company_name, company_slug, reporting_year, question_key, answer</code>
               </p>
-              <input name="historyFile" type="file" accept=".xlsx,.csv" required />
-              <button className="button button--ink" disabled={busy}>
-                {busy ? "Importing…" : "Import historical responses"}
+              <div
+                style={{
+                  border: "2px dashed var(--line)",
+                  borderRadius: "var(--radius-md)",
+                  padding: "24px",
+                  textAlign: "center",
+                  background: "var(--surface-subtle)",
+                }}
+              >
+                <input
+                  name="historyFile"
+                  type="file"
+                  accept=".xlsx,.csv"
+                  required
+                  onChange={(e) => setImportFileName(e.target.files?.[0]?.name ?? "")}
+                  style={{ display: "none" }}
+                  id="file-upload"
+                />
+                <label htmlFor="file-upload" style={{ cursor: "pointer", display: "grid", gap: "8px" }}>
+                  <span style={{ fontSize: "28px" }}>📂</span>
+                  <strong>{importFileName ? importFileName : "Click to select .xlsx or .csv file"}</strong>
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Supports Excel workbooks and UTF-8 CSV</span>
+                </label>
+              </div>
+              <button className="button button--ink" disabled={busy || !importFileName}>
+                {busy ? "Importing data…" : "Import historical responses"}
               </button>
             </form>
 
@@ -2390,20 +2797,20 @@ function AdminPortal({ session }: { session: Session }) {
                   className={`toggle-btn ${exportFormat === "pivot" ? "toggle-btn--active" : ""}`}
                   onClick={() => setExportFormat("pivot")}
                 >
-                  Pivot / wide format
+                  Pivot / matrix format
                 </button>
               </div>
               <p className="export-format-desc">
                 {exportFormat === "flat"
-                  ? "One row per answer — best for programmatic analysis."
-                  : "One row per company per year, one column per question — best for comparisons."}
+                  ? "One row per answer — ideal for data warehousing and statistical analysis."
+                  : "One row per company per year, columns per question — ideal for comparisons and board reporting."}
               </p>
               <div className="form-grid">
                 <label>
                   Year
                   <select value={year} onChange={(e) => setYear(e.target.value)}>
-                    <option value="">All years</option>
-                    {years.map((y) => <option key={y}>{y}</option>)}
+                    <option value="">All reporting years</option>
+                    {years.map((y) => <option key={y} value={y}>{y}</option>)}
                   </select>
                 </label>
                 <label>
@@ -2416,17 +2823,17 @@ function AdminPortal({ session }: { session: Session }) {
               </div>
               <label>
                 Question ID filter
-                <input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="e.g. GOV-001" />
+                <input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="e.g. GOV-001 (Optional)" />
               </label>
               <button className="button button--secondary" onClick={() => void prepare()} disabled={busy}>
-                {busy ? "Preparing…" : "Prepare data"}
+                {busy ? "Preparing preview…" : "Preview export data"}
               </button>
               <div className="export-actions">
                 <button className="button button--primary" onClick={() => void downloadExport()} disabled={busy}>
-                  {busy ? "Generating…" : `Download Excel (${exportFormat})`}
+                  {busy ? "Generating file…" : `⬇️ Download Excel (${exportFormat})`}
                 </button>
                 <button className="button button--secondary" onClick={() => print()}>
-                  Print / PDF
+                  🖨️ Print / PDF
                 </button>
               </div>
             </div>
@@ -2463,15 +2870,15 @@ function AdminPortal({ session }: { session: Session }) {
                     <tr>
                       <th>Year</th>
                       <th>Company</th>
-                      <th>ID</th>
-                      <th>Question</th>
+                      <th>Question ID</th>
+                      <th>Question prompt</th>
                       <th>Answer</th>
                     </tr>
                   </thead>
                   <tbody>
                     {visibleExports.map((r, i) => (
                       <tr key={i}>
-                        <td data-label="Year">{r.reporting_year}</td>
+                        <td data-label="Year"><strong>{r.reporting_year}</strong></td>
                         <td data-label="Company">{r.company_name}</td>
                         <td data-label="Question ID"><code>{r.question_key}</code></td>
                         <td data-label="Question">{r.question_prompt}</td>
@@ -2493,6 +2900,7 @@ function AdminPortal({ session }: { session: Session }) {
             <div>
               <p className="eyebrow eyebrow--red">Lightweight analytics</p>
               <h1>Participation trends</h1>
+              <p>Track annual submission progress, cohort completion rates, and company reporting trajectories.</p>
             </div>
           </div>
           <section className="analytics-grid">
@@ -2514,7 +2922,7 @@ function AdminPortal({ session }: { session: Session }) {
             </article>
 
             <article className="chart-card">
-              <h3>Current status</h3>
+              <h3>Current status distribution</h3>
               <div className="donut-wrap">
                 <div
                   className="analytics-donut"
@@ -2539,8 +2947,8 @@ function AdminPortal({ session }: { session: Session }) {
             <article className="chart-card chart-card--wide">
               <div className="trajectory-heading">
                 <div>
-                  <h3>Company trajectory</h3>
-                  <p>Annual reporting completion by company</p>
+                  <h3>Company reporting trajectory</h3>
+                  <p>Annual reporting completion timeline across participating brands</p>
                 </div>
                 <span>{orgs.filter((o) => o.is_active).length} active companies</span>
               </div>
