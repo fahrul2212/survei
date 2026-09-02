@@ -1,17 +1,27 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  ClipboardPlus,
+  Clock3,
+  LockKeyhole,
+  Plus,
+  Printer,
+  RotateCcw,
+  Send,
+} from "lucide-react";
 import { supabase } from "./lib/supabase";
 import {
   evaluateVisibility,
   formatDate,
-  formatDateTime,
   isAnswered,
   normalizeImportMatrix,
   parseSurveyQuestion,
   slugify,
   valueAsText,
   type AnswerRecord,
-  type AuditEventRow,
   type ExportRow,
   type JsonAnswer,
   type MemberRow,
@@ -23,12 +33,25 @@ import {
   type SurveyVersion,
 } from "./lib/portal";
 import { exportPivotXlsx, exportResponsesXlsx, readImportWorkbook } from "./lib/spreadsheet";
-import { Loading, Logo, NoticeBar, QuestionField, Shell, type Notice } from "./components/ui";
+import {
+  Button,
+  EmptyState,
+  Loading,
+  Logo,
+  NoticeBar,
+  PageHeader,
+  QuestionField,
+  SearchField,
+  Shell,
+  type Notice,
+} from "./components/ui";
+import { AuditLogView } from "./components/admin/AuditLogView";
+import { CompanyDirectory, type CompanyStatusFilter } from "./components/admin/CompanyDirectory";
+import { SurveyWorkspaceHeader } from "./components/admin/SurveyWorkspaceHeader";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const QUESTION_SELECT = `id,survey_version_id,display_order,is_required,carry_forward_enabled,visibility_rule,section_key,section_title,question_revision:question_revisions!inner(id,prompt,help_text,question_type,options,validation,question:question_definitions!inner(id,stable_key,category))`;
-const AUDIT_PAGE_SIZE = 40;
 const EXPORT_PAGE_SIZE = 25;
 const Q_PAGE_SIZE = 12;
 const ORG_PAGE_SIZE = 12;
@@ -316,7 +339,7 @@ function Report({
         <div className="report-header-row">
           <p className="eyebrow eyebrow--tight">Annual report {version.reporting_year}</p>
           <span className="live-autosave-pill">
-            {readOnly ? "🔒 Read only" : saving ? "⏳ Saving…" : "✓ Saved"}
+            {readOnly ? <><LockKeyhole size={13} /> Read only</> : saving ? <><Clock3 size={13} /> Saving…</> : <><Check size={13} /> Saved</>}
           </span>
         </div>
         <h2>{active.sectionTitle}</h2>
@@ -329,7 +352,7 @@ function Report({
 
         {/* Section Filter */}
         {sectionKeys.length > 1 && (
-          <div style={{ marginBottom: "12px" }}>
+          <div className="section-filter-wrap">
             <select
               value={selectedSection}
               onChange={(e) => setSelectedSection(e.target.value)}
@@ -382,7 +405,7 @@ function Report({
             <span>Question {index + 1} of {visible.length}</span>
             <div className="question-meta-actions">
               <span className="question-save-indicator">
-                {readOnly ? "🔒 Submitted (Read only)" : saving ? "⏳ Saving securely…" : "✓ All changes saved"}
+                {readOnly ? <><LockKeyhole size={13} /> Submitted · read only</> : saving ? <><Clock3 size={13} /> Saving securely…</> : <><Check size={13} /> All changes saved</>}
               </span>
               <code>{active.stableKey}</code>
             </div>
@@ -392,7 +415,7 @@ function Report({
           {active.helpText && <p className="question-help">{active.helpText}</p>}
           {active.carryForwardEnabled && isAnswered(answers[active.id]) && !readOnly && (
             <div className="previous-answer">
-              <span>✓ Prefilled from previous verified report</span>
+              <span><Check size={14} /> Prefilled from previous verified report</span>
               <p>Please review and confirm this response remains accurate, or update it below.</p>
             </div>
           )}
@@ -412,7 +435,7 @@ function Report({
               disabled={index === 0}
               onClick={() => setActiveId(visible[index - 1].id)}
             >
-              ← Previous
+              <ArrowLeft size={16} aria-hidden="true" /> Previous
             </button>
             {index < visible.length - 1 ? (
               <button
@@ -422,15 +445,15 @@ function Report({
                   setActiveId(visible[index + 1].id);
                 }}
               >
-                Save &amp; next →
+                Save &amp; next <ArrowRight size={16} aria-hidden="true" />
               </button>
             ) : readOnly ? (
               <button className="button button--secondary" onClick={() => print()}>
-                🖨️ Print / save PDF
+                <Printer size={16} aria-hidden="true" /> Print / save PDF
               </button>
             ) : (
               <button className="button button--primary" onClick={() => setConfirmSubmit(true)}>
-                Review &amp; submit report ✓
+                Review &amp; submit <Check size={16} aria-hidden="true" />
               </button>
             )}
           </div>
@@ -743,7 +766,8 @@ function CompanyPortal({ session }: { session: Session }) {
                   <h2>{version.name}</h2>
                   <p>Approved persistent question mappings preserve reliable prior-year responses for review.</p>
                   <button className="button button--ink" onClick={() => setView("report")}>
-                    {submission.status === "submitted" ? "View submission →" : "Continue reporting →"}
+                    {submission.status === "submitted" ? "View submission" : "Continue reporting"}
+                    <ArrowRight size={16} aria-hidden="true" />
                   </button>
                 </div>
                 <div className="progress-art">
@@ -773,7 +797,7 @@ function CompanyPortal({ session }: { session: Session }) {
                     {sections.map((s) => (
                       <button key={s.key} onClick={() => setView("report")}>
                         <span className="section-check">
-                          {s.answered === s.total ? "✓" : `${Math.round((s.answered / s.total) * 100)}%`}
+                          {s.answered === s.total ? <Check size={16} aria-label="Complete" /> : `${Math.round((s.answered / s.total) * 100)}%`}
                         </span>
                         <span>
                           <strong>{s.title}</strong>
@@ -801,7 +825,7 @@ function CompanyPortal({ session }: { session: Session }) {
                     </p>
                   </div>
                   <button className="button info-card__action" onClick={() => setView("report")}>
-                    Review responses →
+                    Review responses <ArrowRight size={16} aria-hidden="true" />
                   </button>
                 </aside>
               </section>
@@ -836,7 +860,7 @@ function CompanyPortal({ session }: { session: Session }) {
                     <p>{s.submitted_at ? `Submitted ${formatDate(s.submitted_at)}` : `Last saved ${formatDate(s.updated_at)}`}</p>
                   </div>
                   <strong>● {s.status}</strong>
-                  <button onClick={() => void open(v)}>View report →</button>
+                  <button onClick={() => void open(v)}>View report <ArrowRight size={15} aria-hidden="true" /></button>
                 </article>
               ) : null;
             })}
@@ -847,142 +871,6 @@ function CompanyPortal({ session }: { session: Session }) {
       {/* ── Account ── */}
       {view === "account" && <AccountSettings session={session} />}
     </Shell>
-  );
-}
-
-// ── Admin: AuditLogView ───────────────────────────────────────────────────────
-
-function AuditLogView({ orgs }: { orgs: Organization[] }) {
-  const [events, setEvents] = useState<AuditEventRow[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [filterOrg, setFilterOrg] = useState("");
-  const [filterType, setFilterType] = useState("");
-  const [notice, setNotice] = useState<Notice>(null);
-
-  const load = useCallback(async (pg = 0, reset = false) => {
-    if (!supabase) return;
-    setLoading(true);
-    try {
-      const r = await supabase.rpc("get_audit_events", {
-        page_limit: AUDIT_PAGE_SIZE,
-        page_offset: pg * AUDIT_PAGE_SIZE,
-        filter_org_id: filterOrg ? Number(filterOrg) : null,
-        filter_event_type: filterType || null,
-      });
-      if (r.error) throw r.error;
-      const rows = (r.data ?? []) as AuditEventRow[];
-      setEvents(reset ? rows : (prev) => [...prev, ...rows]);
-      setHasMore(rows.length === AUDIT_PAGE_SIZE);
-      setPage(pg);
-    } catch (e) {
-      setNotice({ kind: "error", message: e instanceof Error ? e.message : "Unable to load audit log" });
-    } finally {
-      setLoading(false);
-    }
-  }, [filterOrg, filterType]);
-
-  useEffect(() => { void load(0, true); }, [load]);
-
-  const eventTypes = [
-    "submission.submitted", "submission.initialized", "submission.reopened",
-    "question.added", "question.updated", "question.removed",
-    "survey.created", "survey.published", "survey.closed",
-    "organization.updated", "member.removed", "member.role_updated",
-    "historical.imported",
-  ];
-
-  return (
-    <div className="page">
-      <div className="page-intro">
-        <div>
-          <p className="eyebrow eyebrow--red">Full activity trail</p>
-          <h1>Audit log</h1>
-          <p>All administrative and company actions are recorded with actor and timestamp.</p>
-        </div>
-      </div>
-
-      <NoticeBar notice={notice} clear={() => setNotice(null)} />
-
-      <section className="audit-filters panel-form">
-        <div className="form-grid">
-          <label>
-            Company
-            <select value={filterOrg} onChange={(e) => setFilterOrg(e.target.value)}>
-              <option value="">All companies</option>
-              {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
-            </select>
-          </label>
-          <label>
-            Event type
-            <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-              <option value="">All events</option>
-              {eventTypes.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </label>
-        </div>
-      </section>
-
-      <section className="admin-table">
-        <div className="admin-table__head">
-          <div>
-            <p className="eyebrow">Activity</p>
-            <h3>Recent events</h3>
-          </div>
-          {loading && <span className="loading-inline">Loading…</span>}
-        </div>
-        <div className="table-scroll">
-          <table className="responsive-table responsive-table--audit">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Actor</th>
-                <th>Event</th>
-                <th>Entity</th>
-                <th>Company</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {events.map((ev) => (
-                <tr key={ev.id}>
-                  <td data-label="Time" className="audit-time">{formatDateTime(ev.occurred_at)}</td>
-                  <td data-label="Actor"><span className="audit-actor">{ev.actor_email}</span></td>
-                  <td data-label="Event">
-                    <span className={`audit-badge audit-badge--${ev.event_type.split(".")[0]}`}>
-                      {ev.event_type}
-                    </span>
-                  </td>
-                  <td data-label="Entity" className="audit-entity">
-                    <code>{ev.entity_type}</code>
-                    <small>#{ev.entity_id}</small>
-                  </td>
-                  <td data-label="Company">{ev.organization_name ?? "—"}</td>
-                  <td data-label="Details" className="audit-details">
-                    <code>{Object.keys(ev.details).length > 0 ? JSON.stringify(ev.details) : "—"}</code>
-                  </td>
-                </tr>
-              ))}
-              {events.length === 0 && !loading && (
-                <tr><td colSpan={6} className="empty-row">No events found.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        {hasMore && (
-          <div className="catalog-pager">
-            <button
-              className="button button--secondary"
-              disabled={loading}
-              onClick={() => void load(page + 1)}
-            >
-              {loading ? "Loading…" : "Load more"}
-            </button>
-          </div>
-        )}
-      </section>
-    </div>
   );
 }
 
@@ -1006,7 +894,7 @@ function AdminPortal({ session }: { session: Session }) {
   const [qSearch, setQSearch] = useState("");
   const [qSectionFilter, setQSectionFilter] = useState("");
   const [orgSearch, setOrgSearch] = useState("");
-  const [orgStatusFilter, setOrgStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [orgStatusFilter, setOrgStatusFilter] = useState<CompanyStatusFilter>("all");
   const [orgPage, setOrgPage] = useState(0);
 
   // Reopen modal
@@ -1623,7 +1511,7 @@ function AdminPortal({ session }: { session: Session }) {
                   Cancel
                 </button>
                 <button type="submit" className="button button--primary" disabled={busy} aria-busy={busy}>
-                  {busy ? "Sending invitation…" : "Send secure invitation →"}
+                  {busy ? "Sending invitation…" : <><Send size={16} aria-hidden="true" /> Send invitation</>}
                 </button>
               </div>
             </form>
@@ -1832,7 +1720,7 @@ function AdminPortal({ session }: { session: Session }) {
               <p>{current?.name ?? "Create a reporting year to begin."}</p>
             </div>
             <button className="button button--primary" onClick={() => setView("surveys")}>
-              Manage survey years →
+              Manage survey years <ArrowRight size={16} aria-hidden="true" />
             </button>
           </div>
 
@@ -1949,14 +1837,16 @@ function AdminPortal({ session }: { session: Session }) {
           {/* Overview */}
           {surveyView === "overview" && (
             <>
-              <div className="page-intro">
-                <div>
-                  <p className="eyebrow eyebrow--red">Persistent question IDs</p>
-                  <h1>Survey builder</h1>
-                  <p>Select a reporting year to manage its questions, carry-forward mappings, and publication status.</p>
-                </div>
-                <button className="button button--primary" onClick={beginCreateYear}>+ New reporting year</button>
-              </div>
+              <PageHeader
+                eyebrow="Survey management"
+                title="Survey builder"
+                description="Manage annual question sets, carry-forward mappings, and publishing status."
+                actions={(
+                  <Button icon={Plus} variant="primary" onClick={beginCreateYear}>
+                    New reporting year
+                  </Button>
+                )}
+              />
               <section className="survey-year-overview">
                 <div className="panel-heading">
                   <div>
@@ -1980,7 +1870,7 @@ function AdminPortal({ session }: { session: Session }) {
                           <span className={`status-chip status-chip--${v.status}`}>{v.status}</span>
                         </small>
                       </div>
-                      <em>{busy && selected === v.id ? "Opening…" : "Open workspace →"}</em>
+                      <em>{busy && selected === v.id ? "Opening…" : <>Open workspace <ArrowRight size={15} aria-hidden="true" /></>}</em>
                     </button>
                   ))}
                 </div>
@@ -2051,53 +1941,23 @@ function AdminPortal({ session }: { session: Session }) {
           {/* Workspace */}
           {surveyView === "workspace" && selectedVersion && (
             <>
-              <button className="back-link builder-back" onClick={() => { setSurveyView("overview"); setPreviewMode(false); }}>
-                Back to reporting years
-              </button>
-              <div className="page-intro builder-subpage-intro">
-                <div>
-                  <p className="eyebrow eyebrow--red">Reporting year {selectedVersion.reporting_year}</p>
-                  <h1>{selectedVersion.name}</h1>
-                  <p>
-                    {questions.length} questions ·{" "}
-                    <span className={`status-chip status-chip--${selectedVersion.status}`}>{selectedVersion.status}</span>
-                  </p>
-                </div>
-                <div className="builder-header-actions">
-                  <button
-                    className={`button button--secondary ${previewMode ? "button--active" : ""}`}
-                    onClick={() => setPreviewMode((p) => !p)}
-                  >
-                    {previewMode ? "Exit preview mode" : "👁️ Preview survey"}
-                  </button>
-                  {selectedVersion.status === "draft" && (
-                    <button
-                      className="button button--secondary"
-                      onClick={() => { setForm(EMPTY_Q); setSurveyView("question"); }}
-                    >
-                      + Add question
-                    </button>
-                  )}
-                  {selectedVersion.status === "draft" && (
-                    <button
-                      className="button button--primary"
-                      disabled={!questions.length || busy}
-                      onClick={() => void publishYear()}
-                    >
-                      {busy ? "Publishing…" : "Publish reporting year"}
-                    </button>
-                  )}
-                  {selectedVersion.status === "published" && (
-                    <button
-                      className="button button--danger"
-                      disabled={busy}
-                      onClick={() => void closeYear()}
-                    >
-                      {busy ? "Closing…" : "Close year"}
-                    </button>
-                  )}
-                </div>
-              </div>
+              <SurveyWorkspaceHeader
+                version={selectedVersion}
+                questionCount={questions.length}
+                previewMode={previewMode}
+                busy={busy}
+                onBack={() => {
+                  setSurveyView("overview");
+                  setPreviewMode(false);
+                }}
+                onTogglePreview={() => setPreviewMode((currentPreview) => !currentPreview)}
+                onAddQuestion={() => {
+                  setForm(EMPTY_Q);
+                  setSurveyView("question");
+                }}
+                onPublish={() => void publishYear()}
+                onClose={() => void closeYear()}
+              />
 
               {selectedVersion.status !== "draft" && (
                 <div className="builder-lock-note" role="note">
@@ -2132,7 +1992,7 @@ function AdminPortal({ session }: { session: Session }) {
                           <code>{q.stableKey}</code>
                           <span className="preview-item__section">{q.sectionTitle}</span>
                           {q.required && <em className="preview-item__required">Required</em>}
-                          {carry[q.id] && <span className="preview-item__carry">↩ Carried from {carry[q.id]}</span>}
+                          {carry[q.id] && <span className="preview-item__carry"><RotateCcw size={13} aria-hidden="true" /> Carried from {carry[q.id]}</span>}
                         </div>
                         <p className="preview-item__prompt">{q.prompt}</p>
                         {q.helpText && <p className="preview-item__help">{q.helpText}</p>}
@@ -2161,13 +2021,15 @@ function AdminPortal({ session }: { session: Session }) {
                           <p className="eyebrow">Question library</p>
                           <h3>{questions.length} questions</h3>
                         </div>
-                        <input
-                          type="search"
-                          placeholder="Search questions…"
-                          value={qSearch}
-                          onChange={(e) => setQSearch(e.target.value)}
-                          className="catalog-search"
-                        />
+                        {questions.length > 0 && (
+                          <SearchField
+                            aria-label="Search survey questions"
+                            placeholder="Search questions"
+                            value={qSearch}
+                            onChange={(event) => setQSearch(event.target.value)}
+                            className="catalog-search"
+                          />
+                        )}
                       </div>
                     </div>
 
@@ -2177,18 +2039,25 @@ function AdminPortal({ session }: { session: Session }) {
                         <p>Preparing the question workspace.</p>
                       </div>
                     ) : filteredQuestions.length === 0 ? (
-                      <div className="empty-catalog">
-                        <strong>No questions found</strong>
-                        <p>{questions.length === 0 ? "Add the first question or clone from an existing year." : "No questions match your search filter."}</p>
-                        {selectedVersion.status === "draft" && questions.length === 0 && (
-                          <button
-                            className="button button--primary"
-                            onClick={() => { setForm(EMPTY_Q); setSurveyView("question"); }}
+                      <EmptyState
+                        icon={ClipboardPlus}
+                        title={questions.length === 0 ? "Start the question library" : "No matching questions"}
+                        description={questions.length === 0
+                          ? "Add the first question to prepare this reporting year. Persistent IDs keep answers aligned across years."
+                          : "Try a different search term or section filter."}
+                        action={selectedVersion.status === "draft" && questions.length === 0 ? (
+                          <Button
+                            icon={Plus}
+                            variant="primary"
+                            onClick={() => {
+                              setForm(EMPTY_Q);
+                              setSurveyView("question");
+                            }}
                           >
-                            + Add first question
-                          </button>
-                        )}
-                      </div>
+                            Add first question
+                          </Button>
+                        ) : undefined}
+                      />
                     ) : (
                       filteredQuestions.slice(questionPage * Q_PAGE_SIZE, questionPage * Q_PAGE_SIZE + Q_PAGE_SIZE).map((q) => (
                         <article key={q.id}>
@@ -2238,7 +2107,7 @@ function AdminPortal({ session }: { session: Session }) {
                           disabled={questionPage === 0}
                           onClick={() => setQuestionPage((p) => Math.max(0, p - 1))}
                         >
-                          ← Previous
+                          <ArrowLeft size={15} aria-hidden="true" /> Previous
                         </button>
                         <span>
                           Page {questionPage + 1} of {Math.max(1, Math.ceil(filteredQuestions.length / Q_PAGE_SIZE))}
@@ -2248,7 +2117,7 @@ function AdminPortal({ session }: { session: Session }) {
                           disabled={(questionPage + 1) * Q_PAGE_SIZE >= filteredQuestions.length}
                           onClick={() => setQuestionPage((p) => p + 1)}
                         >
-                          Next →
+                          Next <ArrowRight size={15} aria-hidden="true" />
                         </button>
                       </div>
                     )}
@@ -2430,25 +2299,25 @@ function AdminPortal({ session }: { session: Session }) {
       {/* ══════════════════════════ COMPANIES ════════════════════════════════ */}
       {view === "companies" && (
         <div className="page">
-          <div className="page-intro">
-            <div>
-              <p className="eyebrow eyebrow--red">Secure participation</p>
-              <h1>Companies</h1>
-              <p>Manage participating organizations, team members, and secure access permissions.</p>
-            </div>
-            <button
-              type="button"
-              className="button button--primary"
-              onClick={() => {
-                setAddOrgModalOpen(true);
-                setNewOrgName("");
-                setNewOrgSlug("");
-                setSlugManuallyEdited(false);
-              }}
-            >
-              + Add company &amp; invite
-            </button>
-          </div>
+          <PageHeader
+            eyebrow="Participation"
+            title="Companies"
+            description="Manage organizations, members, and secure access."
+            actions={(
+              <Button
+                icon={Plus}
+                variant="primary"
+                onClick={() => {
+                  setAddOrgModalOpen(true);
+                  setNewOrgName("");
+                  setNewOrgSlug("");
+                  setSlugManuallyEdited(false);
+                }}
+              >
+                Add company
+              </Button>
+            )}
+          />
 
           <section className="metric-grid metric-grid--four admin-metric-grid">
             <article>
@@ -2469,148 +2338,28 @@ function AdminPortal({ session }: { session: Session }) {
             </article>
           </section>
 
-          <section className="admin-table">
-            <div className="admin-table__head">
-              <div>
-                <p className="eyebrow">Directory</p>
-                <h3>Company directory</h3>
-              </div>
-              <div className="table-toolbar">
-                <input
-                  type="search"
-                  placeholder="Search company, slug, email…"
-                  value={orgSearch}
-                  onChange={(e) => { setOrgSearch(e.target.value); setOrgPage(0); }}
-                  className="directory-search"
-                />
-              </div>
-            </div>
-
-            {/* Status Filter Tabs */}
-            <div className="table-filters">
-              {[
-                ["all", `All (${orgs.length})`],
-                ["active", `Active (${orgs.filter((o) => o.is_active).length})`],
-                ["inactive", `Archived (${orgs.filter((o) => !o.is_active).length})`],
-              ].map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => { setOrgStatusFilter(key as "all" | "active" | "inactive"); setOrgPage(0); }}
-                  className={orgStatusFilter === key ? "filter-pill filter-pill--active" : "filter-pill"}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            <div className="table-scroll">
-              <table className="responsive-table">
-                <thead>
-                  <tr>
-                    <th>Company</th>
-                    <th>Code / Slug</th>
-                    <th>Contact Email</th>
-                    <th>Reference</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedOrgs.map((o) => (
-                    <tr key={o.id}>
-                      <td data-label="Company">
-                        <div className="company-cell">
-                          <span className="company-avatar company-avatar--small">
-                            {o.name.slice(0, 2).toUpperCase()}
-                          </span>
-                          <strong>{o.name}</strong>
-                        </div>
-                      </td>
-                      <td data-label="Code / Slug">
-                        <code>{o.slug}</code>
-                      </td>
-                      <td data-label="Contact Email">
-                        {o.contact_email ? (
-                          <span className="text-secondary">{o.contact_email}</span>
-                        ) : (
-                          <span className="text-muted text-muted--italic">Not set</span>
-                        )}
-                      </td>
-                      <td data-label="Reference">
-                        {o.external_reference ? (
-                          <span className="reference-value">{o.external_reference}</span>
-                        ) : (
-                          <span className="text-muted">—</span>
-                        )}
-                      </td>
-                      <td data-label="Status">
-                        <span className={`table-status ${o.is_active ? "table-status--submitted" : "table-status--not-started"}`}>
-                          {o.is_active ? "● Active" : "Archived"}
-                        </span>
-                      </td>
-                      <td data-label="Actions">
-                        <div className="row-actions row-actions--compact">
-                          <button
-                            type="button"
-                            className="table-action"
-                            onClick={() => beginEditOrg(o)}
-                            title="Edit company details"
-                          >
-                            ✏️ Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="table-action"
-                            onClick={() => void openMembersModal(o)}
-                            title="Manage company users and team roles"
-                          >
-                            👥 Members
-                          </button>
-                          <button
-                            type="button"
-                            className={o.is_active ? "danger-link" : "table-action"}
-                            onClick={() => void toggleActive(o)}
-                            title={o.is_active ? "Archive company" : "Reactivate company"}
-                          >
-                            {o.is_active ? "Archive" : "Reactivate"}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {paginatedOrgs.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="empty-row">No companies found matching the filter.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            {totalOrgPages > 1 && (
-              <div className="catalog-pager">
-                <button
-                  type="button"
-                  disabled={orgPage === 0}
-                  onClick={() => setOrgPage((p) => Math.max(0, p - 1))}
-                >
-                  ← Previous
-                </button>
-                <span>
-                  Page {orgPage + 1} of {totalOrgPages} ({filteredOrgs.length} companies)
-                </span>
-                <button
-                  type="button"
-                  disabled={orgPage >= totalOrgPages - 1}
-                  onClick={() => setOrgPage((p) => p + 1)}
-                >
-                  Next →
-                </button>
-              </div>
-            )}
-          </section>
+          <CompanyDirectory
+            organizations={paginatedOrgs}
+            totalOrganizations={orgs.length}
+            totalActive={orgs.filter((organization) => organization.is_active).length}
+            statusFilter={orgStatusFilter}
+            search={orgSearch}
+            page={orgPage}
+            totalPages={totalOrgPages}
+            filteredCount={filteredOrgs.length}
+            onSearch={(value) => {
+              setOrgSearch(value);
+              setOrgPage(0);
+            }}
+            onStatusFilter={(filter) => {
+              setOrgStatusFilter(filter);
+              setOrgPage(0);
+            }}
+            onPage={setOrgPage}
+            onEdit={beginEditOrg}
+            onMembers={(organization) => void openMembersModal(organization)}
+            onToggleActive={(organization) => void toggleActive(organization)}
+          />
         </div>
       )}
 
@@ -2705,7 +2454,7 @@ function AdminPortal({ session }: { session: Session }) {
                   {busy ? "Generating file…" : `⬇️ Download Excel (${exportFormat})`}
                 </button>
                 <button className="button button--secondary" onClick={() => print()}>
-                  🖨️ Print / PDF
+                  <Printer size={16} aria-hidden="true" /> Print / PDF
                 </button>
               </div>
             </div>
@@ -2722,7 +2471,7 @@ function AdminPortal({ session }: { session: Session }) {
                     disabled={exportPage === 0}
                     onClick={() => setExportPage((p) => p - 1)}
                   >
-                    ← Prev
+                    <ArrowLeft size={15} aria-hidden="true" /> Previous
                   </button>
                   <span>
                     {exportPage * EXPORT_PAGE_SIZE + 1}–{Math.min((exportPage + 1) * EXPORT_PAGE_SIZE, exports.length)} of {exports.length}
@@ -2732,7 +2481,7 @@ function AdminPortal({ session }: { session: Session }) {
                     disabled={(exportPage + 1) * EXPORT_PAGE_SIZE >= exports.length}
                     onClick={() => setExportPage((p) => p + 1)}
                   >
-                    Next →
+                    Next <ArrowRight size={15} aria-hidden="true" />
                   </button>
                 </div>
               </div>

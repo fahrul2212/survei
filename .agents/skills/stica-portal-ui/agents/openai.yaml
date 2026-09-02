@@ -1,0 +1,4 @@
+interface:
+  display_name: "STICA Portal UI"
+  short_description: "Maintain STICA portal UI consistency"
+  default_prompt: "Review and improve the STICA portal UI using its component and responsive rules."

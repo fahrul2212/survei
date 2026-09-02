@@ -1,0 +1,291 @@
+/* Focused overrides for the componentized UI layer. Keep page-specific rules
+   beside the component when Tailwind utilities are sufficient. */
+
+button svg,
+a svg {
+  flex: 0 0 auto;
+  pointer-events: none;
+}
+
+.sidebar-bottom a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+}
+
+.topbar-actions {
+  min-width: 0;
+}
+
+.profile-chip {
+  min-width: 0;
+  max-width: 260px;
+}
+
+.profile-avatar {
+  flex: 0 0 auto;
+  background: var(--ink);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.profile-chip div,
+.profile-chip strong,
+.profile-chip small {
+  min-width: 0;
+}
+
+.profile-chip strong,
+.profile-chip small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-intro > div {
+  min-width: 0;
+  max-width: 760px;
+}
+
+.page-intro h1 {
+  max-width: 22ch;
+  text-wrap: balance;
+}
+
+.builder-subpage-intro {
+  align-items: center;
+}
+
+.builder-workspace .question-catalog > .panel-heading {
+  min-height: 82px;
+}
+
+.loading-catalog {
+  min-height: 256px;
+  display: grid;
+  place-content: center;
+  gap: 6px;
+  padding: 40px;
+  text-align: center;
+}
+
+.section-filter-wrap {
+  margin-bottom: 12px;
+}
+
+.live-autosave-pill,
+.question-save-indicator,
+.previous-answer > span,
+.preview-item__carry,
+.version-list--overview > button em,
+.history-list button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.choice-row button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.company-table-modern {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.company-table-modern th:nth-child(1) {
+  width: 29%;
+}
+
+.company-table-modern th:nth-child(2) {
+  width: 30%;
+}
+
+.company-table-modern th:nth-child(3) {
+  width: 12%;
+}
+
+.company-table-modern th:nth-child(4) {
+  width: 29%;
+}
+
+.company-table-modern td {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.company-table-modern .row-actions {
+  justify-content: flex-end;
+  margin-left: 0;
+}
+
+.company-table-modern .row-actions button {
+  padding: 8px 10px;
+}
+
+.audit-actor {
+  max-width: 190px;
+}
+
+.audit-details {
+  max-width: 260px;
+}
+
+.audit-details code,
+.audit-details span {
+  max-width: 100%;
+}
+
+@media (max-width: 1100px) {
+  .company-table-modern th:nth-child(1) {
+    width: 28%;
+  }
+
+  .company-table-modern th:nth-child(2) {
+    width: 30%;
+  }
+
+  .company-table-modern th:nth-child(3) {
+    width: 14%;
+  }
+
+  .company-table-modern th:nth-child(4) {
+    width: 28%;
+  }
+
+  .company-table-modern .row-actions button {
+    min-width: 36px;
+    padding-inline: 8px;
+  }
+}
+
+@media (max-width: 840px) {
+  .sidebar {
+    position: relative;
+    padding: 14px 16px 12px;
+  }
+
+  .sidebar .brand img {
+    width: 34px;
+    height: 34px;
+  }
+
+  .sidebar .brand strong {
+    font-size: 17px;
+  }
+
+  .sidebar .brand span {
+    font-size: 9px;
+  }
+
+  .sidebar nav {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .sidebar nav button {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 0;
+    min-height: 38px;
+    padding-inline: 11px;
+    white-space: nowrap;
+  }
+
+  .sidebar nav button .nav-item-label {
+    gap: 7px;
+  }
+
+  .sidebar-bottom {
+    display: none;
+  }
+
+  .topbar {
+    min-height: 58px;
+    padding-inline: 16px;
+  }
+
+  .profile-chip {
+    max-width: min(250px, calc(100vw - 70px));
+    padding: 5px 8px;
+  }
+
+  .profile-avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .profile-chip strong {
+    max-width: 150px;
+  }
+
+  .profile-chip small {
+    display: none;
+  }
+
+  .topbar-logout {
+    width: 38px;
+    min-height: 38px;
+    justify-content: center;
+  }
+
+  .responsive-table td:last-child {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .responsive-table td:last-child::before {
+    text-align: left;
+  }
+
+  .company-table-modern .row-actions {
+    justify-content: flex-start;
+    margin-top: 2px;
+  }
+
+  .audit-actor,
+  .audit-details {
+    max-width: min(70vw, 300px);
+  }
+}
+
+@media (max-width: 560px) {
+  .page-actions > button {
+    flex: 1 1 auto;
+  }
+
+  .page-intro h1 {
+    font-size: clamp(30px, 9vw, 38px);
+  }
+
+  .company-table-modern .row-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .company-table-modern .row-actions button:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

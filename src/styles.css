@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
 
 /* ════════════════════════════════════════════════════════════════════════════
    1. DESIGN SYSTEM TOKENS & VARIABLES
@@ -72,27 +73,12 @@
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
-   2. GLOBAL RESETS & SCROLLBAR HIDING (FUNCTIONALITY PRESERVED)
+   2. GLOBAL RESETS
    ════════════════════════════════════════════════════════════════════════════ */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
-
-/* Hide scrollbars everywhere while keeping full native scrolling */
-html, body, div, aside, section, article, nav, ul, ol, details, .table-scroll, .question-index, .report-outline {
-  scrollbar-width: none !important; /* Firefox */
-  -ms-overflow-style: none !important; /* IE & Edge */
-}
-
-html::-webkit-scrollbar, body::-webkit-scrollbar, div::-webkit-scrollbar,
-aside::-webkit-scrollbar, section::-webkit-scrollbar, article::-webkit-scrollbar,
-nav::-webkit-scrollbar, ul::-webkit-scrollbar, details::-webkit-scrollbar,
-.table-scroll::-webkit-scrollbar, .question-index::-webkit-scrollbar, .report-outline::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
 }
 
 html {

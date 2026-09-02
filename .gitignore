@@ -8,3 +8,6 @@ dist/
 worker-configuration.d.ts
 supabase/.temp/
 *.log
+.playwright-cli/
+output/playwright/
+*.tsbuildinfo

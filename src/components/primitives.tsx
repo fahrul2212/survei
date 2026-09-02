@@ -1,0 +1,145 @@
+import { Search, type LucideIcon } from "lucide-react";
+import {
+  forwardRef,
+  type ButtonHTMLAttributes,
+  type InputHTMLAttributes,
+  type ReactNode,
+} from "react";
+import { cn } from "../lib/cn";
+
+type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
+type ButtonSize = "default" | "small" | "icon";
+
+const buttonVariants: Record<ButtonVariant, string> = {
+  primary:
+    "border-transparent bg-[#d91f17] text-white shadow-sm hover:bg-[#b81711] disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none",
+  secondary:
+    "border-slate-300 bg-white text-slate-900 shadow-sm hover:border-slate-400 hover:bg-slate-50 disabled:bg-slate-100",
+  danger:
+    "border-red-200 bg-red-50 text-red-700 hover:border-red-300 hover:bg-red-100",
+  ghost:
+    "border-transparent bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-950",
+};
+
+const buttonSizes: Record<ButtonSize, string> = {
+  default: "min-h-11 px-4 py-2.5 text-sm",
+  small: "min-h-9 px-3 py-2 text-xs",
+  icon: "size-10 justify-center p-0",
+};
+
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  icon?: LucideIcon;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+};
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { className, icon: Icon, variant = "secondary", size = "default", children, ...props },
+  ref,
+) {
+  return (
+    <button
+      ref={ref}
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d91f17] focus-visible:ring-offset-2 disabled:pointer-events-none",
+        buttonVariants[variant],
+        buttonSizes[size],
+        className,
+      )}
+      {...props}
+    >
+      {Icon && <Icon size={size === "small" ? 15 : 17} strokeWidth={2} aria-hidden="true" />}
+      {children}
+    </button>
+  );
+});
+
+export function PageHeader({
+  eyebrow,
+  title,
+  description,
+  meta,
+  actions,
+  compact = false,
+}: {
+  eyebrow?: string;
+  title: ReactNode;
+  description?: ReactNode;
+  meta?: ReactNode;
+  actions?: ReactNode;
+  compact?: boolean;
+}) {
+  return (
+    <header
+      className={cn(
+        "mb-7 flex items-end justify-between gap-6 max-[840px]:items-start max-[840px]:flex-col",
+        compact && "mb-6",
+      )}
+    >
+      <div className="min-w-0 max-w-3xl">
+        {eyebrow && (
+          <p className="mb-2 text-[0.69rem] font-extrabold uppercase tracking-[0.12em] text-[#d91f17]">
+            {eyebrow}
+          </p>
+        )}
+        <h1 className="max-w-[22ch] text-balance text-[clamp(2rem,3.5vw,2.75rem)] leading-[1.08] tracking-[-0.035em]">
+          {title}
+        </h1>
+        {meta && <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-600">{meta}</div>}
+        {description && <p className="mt-2 max-w-2xl text-[0.95rem] leading-6 text-slate-600">{description}</p>}
+      </div>
+      {actions && <div className="page-actions flex max-w-full flex-wrap items-center gap-2.5 max-[560px]:w-full">{actions}</div>}
+    </header>
+  );
+}
+
+export function SearchField({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <label className={cn("relative block min-w-0", className)}>
+      <Search
+        size={16}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+      />
+      <span className="sr-only">{props["aria-label"] ?? "Search"}</span>
+      <input
+        type="search"
+        className="min-h-10 w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100"
+        {...props}
+      />
+    </label>
+  );
+}
+
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="grid min-h-64 place-items-center px-6 py-12 text-center">
+      <div className="grid max-w-md justify-items-center">
+        <span className="mb-4 grid size-12 place-items-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500">
+          <Icon size={22} aria-hidden="true" />
+        </span>
+        <h3 className="text-lg font-bold text-slate-950">{title}</h3>
+        <p className="mt-1.5 text-sm leading-6 text-slate-600">{description}</p>
+        {action && <div className="mt-5">{action}</div>}
+      </div>
+    </div>
+  );
+}
+
+export function TruncatedText({ children, className }: { children: string; className?: string }) {
+  return (
+    <span className={cn("block max-w-full truncate", className)} title={children}>
+      {children}
+    </span>
+  );
+}
