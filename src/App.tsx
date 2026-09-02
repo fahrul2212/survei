@@ -516,7 +516,7 @@ function AccountSettings({ session }: { session: Session }) {
   }
 
   return (
-    <div className="page">
+    <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
       <div className="page-intro">
         <div>
           <p className="eyebrow eyebrow--red">Your profile</p>
@@ -738,7 +738,7 @@ function CompanyPortal({ session }: { session: Session }) {
 
       {/* ── Overview ── */}
       {view === "overview" && (
-        <div className="page">
+        <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
           <div className="page-intro">
             <div>
               <p className="eyebrow eyebrow--red">Company climate action programme</p>
@@ -842,7 +842,7 @@ function CompanyPortal({ session }: { session: Session }) {
 
       {/* ── History ── */}
       {view === "history" && (
-        <div className="page">
+        <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
           <div className="page-intro">
             <div>
               <p className="eyebrow eyebrow--red">Reporting archive</p>
@@ -1713,7 +1713,7 @@ function AdminPortal({ session }: { session: Session }) {
 
       {/* ══════════════════════════ DASHBOARD ════════════════════════════════ */}
       {view === "dashboard" && (
-        <div className="page">
+        <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
           <div className="page-intro">
             <div>
               <p className="eyebrow eyebrow--red">Administrator dashboard</p>
@@ -1725,22 +1725,30 @@ function AdminPortal({ session }: { session: Session }) {
             </button>
           </div>
 
-          <section className="metric-grid metric-grid--four">
-            <article>
-              <span>Active companies</span>
-              <strong>{orgs.filter((o) => o.is_active).length}</strong>
+          <section className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
+            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active companies</span>
+              <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
+                {orgs.filter((o) => o.is_active).length}
+              </strong>
             </article>
-            <article>
-              <span>Submitted</span>
-              <strong>{submitted}</strong>
+            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Submitted</span>
+              <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
+                {submitted}
+              </strong>
             </article>
-            <article>
-              <span>In progress</span>
-              <strong>{inProgress}</strong>
+            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">In progress</span>
+              <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
+                {inProgress}
+              </strong>
             </article>
-            <article>
-              <span>Not started</span>
-              <strong>{notStarted}</strong>
+            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Not started</span>
+              <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
+                {notStarted}
+              </strong>
             </article>
           </section>
 
@@ -1833,7 +1841,7 @@ function AdminPortal({ session }: { session: Session }) {
 
       {/* ══════════════════════════ SURVEY BUILDER ════════════════════════════ */}
       {view === "surveys" && (
-        <div className="page survey-builder-page">
+        <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
 
           {/* Overview */}
           {surveyView === "overview" && (
@@ -2299,7 +2307,7 @@ function AdminPortal({ session }: { session: Session }) {
 
       {/* ══════════════════════════ COMPANIES ════════════════════════════════ */}
       {view === "companies" && (
-        <div className="page">
+        <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
           <PageHeader
             eyebrow="Participation"
             title="Companies"
@@ -2320,22 +2328,30 @@ function AdminPortal({ session }: { session: Session }) {
             )}
           />
 
-          <section className="metric-grid metric-grid--four admin-metric-grid">
-            <article>
-              <span>Total registered</span>
-              <strong>{orgs.length}</strong>
+          <section className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
+            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total registered</span>
+              <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
+                {orgs.length}
+              </strong>
             </article>
-            <article>
-              <span>Active companies</span>
-              <strong>{orgs.filter((o) => o.is_active).length}</strong>
+            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active companies</span>
+              <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
+                {orgs.filter((o) => o.is_active).length}
+              </strong>
             </article>
-            <article>
-              <span>Archived</span>
-              <strong>{orgs.filter((o) => !o.is_active).length}</strong>
+            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Archived</span>
+              <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
+                {orgs.filter((o) => !o.is_active).length}
+              </strong>
             </article>
-            <article>
-              <span>Reporting in {current?.reporting_year ?? "2026"}</span>
-              <strong>{currentRows.filter((r) => r.status !== "not_started").length}</strong>
+            <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Reporting in {current?.reporting_year ?? "2026"}</span>
+              <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
+                {currentRows.filter((r) => r.status !== "not_started").length}
+              </strong>
             </article>
           </section>
 
@@ -2366,7 +2382,7 @@ function AdminPortal({ session }: { session: Session }) {
 
       {/* ══════════════════════════ DATA ═════════════════════════════════════ */}
       {view === "data" && (
-        <div className="page">
+        <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
           <div className="page-intro">
             <div>
               <p className="eyebrow eyebrow--red">Portable reporting data</p>
@@ -2517,7 +2533,7 @@ function AdminPortal({ session }: { session: Session }) {
 
       {/* ══════════════════════════ ANALYTICS ════════════════════════════════ */}
       {view === "analytics" && (
-        <div className="page">
+        <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
           <div className="page-intro">
             <div>
               <p className="eyebrow eyebrow--red">Lightweight analytics</p>

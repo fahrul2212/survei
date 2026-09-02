@@ -85,21 +85,26 @@ export function Shell({
     setDrawerOpen(false);
   }
 
+  const baseSidebar = "flex flex-col h-dvh px-4.5 py-6 overflow-y-auto overflow-x-hidden border-r text-white";
+  const desktopSidebar = "sticky top-0 z-30 hidden lg:flex";
+  const drawerSidebar = "fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] shadow-xl transition-transform duration-300 lg:hidden";
+  const themeSidebar = admin ? "bg-slate-950 border-slate-900" : "bg-slate-900 border-slate-800";
+
   const SidebarContent = () => (
     <>
       {/* Logo */}
-      <div className="sidebar-logo-row">
-        <div className="brand brand--inverse">
-          <img src="/stica-logo.png" alt="STICA" />
-          <div>
-            <strong>STICA</strong>
-            <span>Climate Action</span>
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img src="/stica-logo.png" alt="STICA" className="size-8 rounded-md" />
+          <div className="flex flex-col">
+            <strong className="text-sm font-bold tracking-wide">STICA</strong>
+            <span className="text-[10px] uppercase tracking-wider text-slate-400">Climate Action</span>
           </div>
         </div>
         {/* Close button — mobile only */}
         <button
           type="button"
-          className="sidebar-close-btn"
+          className="grid size-8 place-items-center rounded-md text-slate-400 transition-colors hover:bg-slate-800 hover:text-white lg:hidden"
           onClick={() => setDrawerOpen(false)}
           aria-label="Close navigation"
         >
@@ -107,28 +112,48 @@ export function Shell({
         </button>
       </div>
 
-      <p className="sidebar-role">{admin ? "Administrator" : "Company workspace"}</p>
+      <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+        {admin ? "Administrator" : "Company workspace"}
+      </p>
 
-      <nav aria-label="Primary navigation">
-        {items.map(([id, label, meta]) => (
-          <button
-            key={id}
-            type="button"
-            className={view === id ? "active" : ""}
-            onClick={() => navigate(id)}
-            aria-current={view === id ? "page" : undefined}
-          >
-            <span className="nav-item-label">
-              <NavIcon name={id} />
-              <span>{label}</span>
-            </span>
-            {meta && <small>{meta}</small>}
-          </button>
-        ))}
+      <nav aria-label="Primary navigation" className="flex flex-col gap-1.5 w-full">
+        {items.map(([id, label, meta]) => {
+          const isActive = view === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              className={`flex min-h-[44px] w-full items-center justify-between rounded-lg px-3.5 transition-all ${
+                isActive 
+                  ? "bg-[#d91f17] text-white shadow-md" 
+                  : "text-slate-300 hover:bg-slate-800 hover:text-white"
+              }`}
+              onClick={() => navigate(id)}
+              aria-current={isActive ? "page" : undefined}
+            >
+              <span className="flex items-center gap-3 font-semibold text-[13px]">
+                <NavIcon name={id} />
+                <span>{label}</span>
+              </span>
+              {meta && (
+                <small className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                  isActive ? "bg-white/20 text-white" : "bg-slate-800 text-slate-400"
+                }`}>
+                  {meta}
+                </small>
+              )}
+            </button>
+          );
+        })}
       </nav>
 
-      <div className="sidebar-bottom">
-        <a href="https://sustainablefashionacademy.org/stica/" target="_blank" rel="noreferrer">
+      <div className="mt-auto pt-6 flex items-center justify-between">
+        <a 
+          href="https://sustainablefashionacademy.org/stica/" 
+          target="_blank" 
+          rel="noreferrer"
+          className="flex items-center gap-2 text-xs text-slate-400 hover:text-white transition-colors"
+        >
           <span>STICA guidance</span>
           <ExternalLink size={13} aria-hidden="true" />
         </a>
@@ -137,82 +162,89 @@ export function Shell({
   );
 
   return (
-    <div className="app-shell">
+    <div className="grid min-h-dvh bg-slate-50 lg:grid-cols-[260px_1fr]">
       {/* ── Desktop sidebar ─────────────────────────────────────── */}
-      <aside className={`sidebar sidebar--desktop ${admin ? "sidebar--admin" : ""}`}>
+      <aside className={`${baseSidebar} ${desktopSidebar} ${themeSidebar}`}>
         <SidebarContent />
       </aside>
 
       {/* ── Mobile drawer overlay ────────────────────────────────── */}
       {drawerOpen && (
         <div
-          className="drawer-backdrop"
+          className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-sm lg:hidden"
           aria-hidden="true"
           onClick={() => setDrawerOpen(false)}
         />
       )}
       <aside
-        className={`sidebar sidebar--drawer ${admin ? "sidebar--admin" : ""} ${drawerOpen ? "drawer--open" : ""}`}
+        className={`${baseSidebar} ${drawerSidebar} ${themeSidebar} ${drawerOpen ? "translate-x-0" : "-translate-x-full"}`}
         aria-hidden={!drawerOpen}
       >
         <SidebarContent />
       </aside>
 
       {/* ── Main workspace ──────────────────────────────────────── */}
-      <div className="workspace">
-        <header className="topbar">
+      <div className="flex min-h-dvh min-w-0 flex-col">
+        <header className="sticky top-0 z-25 flex min-h-[64px] items-center gap-3 border-b border-slate-200 bg-white/95 px-4 text-[13px] font-medium backdrop-blur-md md:px-6 lg:px-10">
           {/* Hamburger — mobile only */}
           <button
             type="button"
-            className="topbar-hamburger"
+            className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:hidden"
             onClick={() => setDrawerOpen(true)}
             aria-label="Open navigation menu"
             aria-expanded={drawerOpen}
           >
-            <Menu size={22} />
+            <Menu size={20} />
           </button>
 
           {/* Status pill — hidden on small screens */}
-          <div className="topbar-status">
-            <span className="status-dot" />
-            <span>Secure portal connected</span>
+          <div className="hidden flex-1 items-center gap-2.5 min-w-0 md:flex">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
+            </span>
+            <span className="text-slate-500">Secure portal connected</span>
           </div>
 
-          <div className="topbar-actions">
+          <div className="ml-auto flex items-center gap-2 md:gap-3">
             {/* STICA logo icon — admin badge on the right */}
             {admin && (
-              <span className="topbar-brand-badge" aria-label="Administrator account" title={`${visibleName} · ${user.email ?? ""}`}>
-                <img src="/stica-logo.png" alt="STICA" />
-                <span className="topbar-brand-label">Administrator</span>
+              <span 
+                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 py-1 pl-1 pr-3" 
+                aria-label="Administrator account" 
+                title={`${visibleName} · ${user.email ?? ""}`}
+              >
+                <img src="/stica-logo.png" alt="STICA" className="size-6 rounded-full" />
+                <span className="hidden text-xs font-bold text-slate-700 md:block">Administrator</span>
               </span>
             )}
 
             {/* Profile chip — company account */}
             {!admin && (
               <div
-                className="profile-chip"
+                className="flex items-center gap-2.5"
                 aria-label={`${name}, ${user.email ?? ""}`}
                 title={user.email ?? name}
               >
-                <span className="profile-avatar" aria-hidden="true">
+                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-slate-200 text-[11px] font-bold tracking-wider text-slate-700" aria-hidden="true">
                   {initials(name)}
                 </span>
-                <div>
-                  <strong>{visibleName}</strong>
-                  <small>{accountLabel}</small>
+                <div className="hidden flex-col md:flex">
+                  <strong className="text-sm font-semibold text-slate-900">{visibleName}</strong>
+                  <small className="text-[11px] font-medium text-slate-500">{accountLabel}</small>
                 </div>
               </div>
             )}
 
             <button
               type="button"
-              className="topbar-logout"
+              className="inline-flex h-9 items-center justify-center gap-2 rounded-lg px-2 text-[#d91f17] font-semibold transition-colors hover:bg-red-50 md:px-3"
               onClick={() => void supabase?.auth.signOut()}
               aria-label="Sign out of portal"
               title="Sign out"
             >
               <LogOut size={16} aria-hidden="true" />
-              <span>Sign out</span>
+              <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
         </header>
