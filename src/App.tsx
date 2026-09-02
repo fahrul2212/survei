@@ -20,6 +20,7 @@ import {
   normalizeImportMatrix,
   parseSurveyQuestion,
   slugify,
+  surveyDisplayTitle,
   valueAsText,
   type AnswerRecord,
   type ExportRow,
@@ -1865,7 +1866,7 @@ function AdminPortal({ session }: { session: Session }) {
                     >
                       <span>{v.reporting_year}</span>
                       <div>
-                        <strong>{v.name}</strong>
+                        <strong>{surveyDisplayTitle(v.name)}</strong>
                         <small>
                           <span className={`status-chip status-chip--${v.status}`}>{v.status}</span>
                         </small>

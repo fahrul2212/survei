@@ -32,11 +32,6 @@ function eventLabel(value: string) {
   return value.replaceAll(".", " · ").replaceAll("_", " ");
 }
 
-function canUseTableFallback(error: unknown) {
-  if (typeof error !== "object" || !error || !("code" in error)) return false;
-  return ["42804", "PGRST202"].includes(String(error.code));
-}
-
 export function AuditLogView({ orgs }: { orgs: Organization[] }) {
   const [events, setEvents] = useState<AuditEventRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -89,18 +84,7 @@ export function AuditLogView({ orgs }: { orgs: Organization[] }) {
     setNotice(null);
 
     try {
-      const result = await supabase.rpc("get_audit_events", {
-        page_limit: PAGE_SIZE,
-        page_offset: nextPage * PAGE_SIZE,
-        filter_org_id: filterOrg ? Number(filterOrg) : null,
-        filter_event_type: filterType || null,
-      });
-      const rows = result.error && canUseTableFallback(result.error)
-        ? await loadFromTables(nextPage)
-        : (() => {
-            if (result.error) throw result.error;
-            return (result.data ?? []) as AuditEventRow[];
-          })();
+      const rows = await loadFromTables(nextPage);
       setEvents(reset ? rows : (current) => [...current, ...rows]);
       setHasMore(rows.length === PAGE_SIZE);
       setPage(nextPage);

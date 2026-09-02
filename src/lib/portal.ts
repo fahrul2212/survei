@@ -272,6 +272,10 @@ export function formatDate(value: string | null | undefined): string {
   }).format(new Date(value));
 }
 
+export function surveyDisplayTitle(name: string): string {
+  return name.replace(/\s+(?:19|20)\d{2}\s*$/, "").trim();
+}
+
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) return "—";
   return new Intl.DateTimeFormat("en-GB", {

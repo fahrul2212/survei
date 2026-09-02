@@ -1,5 +1,5 @@
 import { ArrowLeft, Eye, EyeOff, Plus, Send, XCircle } from "lucide-react";
-import type { SurveyVersion } from "../../lib/portal";
+import { surveyDisplayTitle, type SurveyVersion } from "../../lib/portal";
 import { Button, PageHeader } from "../ui";
 
 export function SurveyWorkspaceHeader({
@@ -34,7 +34,7 @@ export function SurveyWorkspaceHeader({
       <PageHeader
         compact
         eyebrow={`Reporting year ${version.reporting_year}`}
-        title={version.name}
+        title={surveyDisplayTitle(version.name)}
         meta={(
           <>
             <span>{questionCount} {questionCount === 1 ? "question" : "questions"}</span>
