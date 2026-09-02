@@ -30,6 +30,7 @@ const QUESTION_SELECT = `id,survey_version_id,display_order,is_required,carry_fo
 const AUDIT_PAGE_SIZE = 40;
 const EXPORT_PAGE_SIZE = 25;
 const Q_PAGE_SIZE = 12;
+const ORG_PAGE_SIZE = 12;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1306,6 +1307,8 @@ function AdminPortal({ session }: { session: Session }) {
   const [qSearch, setQSearch] = useState("");
   const [qSectionFilter, setQSectionFilter] = useState("");
   const [orgSearch, setOrgSearch] = useState("");
+  const [orgStatusFilter, setOrgStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [orgPage, setOrgPage] = useState(0);
 
   // Reopen modal
   const [reopenTarget, setReopenTarget] = useState<ProgressRow | null>(null);
@@ -1323,10 +1326,14 @@ function AdminPortal({ session }: { session: Session }) {
   const [pendingDelete, setPendingDelete] = useState<SurveyQuestion | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
 
-  // Company management
+  // Company management (Modals & Edit)
+  const [addOrgModalOpen, setAddOrgModalOpen] = useState(false);
+  const [newOrgName, setNewOrgName] = useState("");
+  const [newOrgSlug, setNewOrgSlug] = useState("");
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [editOrgForm, setEditOrgForm] = useState({ name: "", contactEmail: "", externalReference: "" });
-  const [expandedOrgId, setExpandedOrgId] = useState<number | null>(null);
+  const [membersModalOrg, setMembersModalOrg] = useState<Organization | null>(null);
   const [orgMembersCache, setOrgMembersCache] = useState<Record<number, MemberRow[]>>({});
   const [membersBusy, setMembersBusy] = useState(false);
 
@@ -1434,14 +1441,24 @@ function AdminPortal({ session }: { session: Session }) {
 
   const filteredOrgs = useMemo(() => {
     return orgs.filter((o) => {
-      return (
+      const matchesSearch =
         !orgSearch ||
         o.name.toLowerCase().includes(orgSearch.toLowerCase()) ||
         o.slug.toLowerCase().includes(orgSearch.toLowerCase()) ||
-        (o.contact_email && o.contact_email.toLowerCase().includes(orgSearch.toLowerCase()))
-      );
+        (o.contact_email && o.contact_email.toLowerCase().includes(orgSearch.toLowerCase())) ||
+        (o.external_reference && o.external_reference.toLowerCase().includes(orgSearch.toLowerCase()));
+      const matchesStatus =
+        orgStatusFilter === "all" ||
+        (orgStatusFilter === "active" && o.is_active) ||
+        (orgStatusFilter === "inactive" && !o.is_active);
+      return matchesSearch && matchesStatus;
     });
-  }, [orgSearch, orgs]);
+  }, [orgSearch, orgStatusFilter, orgs]);
+
+  const totalOrgPages = Math.max(1, Math.ceil(filteredOrgs.length / ORG_PAGE_SIZE));
+  const paginatedOrgs = useMemo(() => {
+    return filteredOrgs.slice(orgPage * ORG_PAGE_SIZE, (orgPage + 1) * ORG_PAGE_SIZE);
+  }, [filteredOrgs, orgPage]);
 
   // ── Survey builder actions ────────────────────────────────────────────────
 
@@ -1644,7 +1661,7 @@ function AdminPortal({ session }: { session: Session }) {
       return setNotice({ kind: "error", message: r.data?.error ?? r.error?.message ?? "Invitation failed" });
     }
     setNotice({ kind: "success", message: r.data.invited ? "Company created and invitation sent." : "Existing user linked." });
-    e.currentTarget.reset();
+    setAddOrgModalOpen(false);
     await load(true, selected ?? undefined);
   }
 
@@ -1687,16 +1704,15 @@ function AdminPortal({ session }: { session: Session }) {
     await load(true, selected ?? undefined);
   }
 
-  async function expandMembers(orgId: number) {
-    if (expandedOrgId === orgId) { setExpandedOrgId(null); return; }
-    setExpandedOrgId(orgId);
-    if (orgMembersCache[orgId]) return;
+  async function openMembersModal(o: Organization) {
+    setMembersModalOrg(o);
+    if (orgMembersCache[o.id]) return;
     if (!supabase) return;
     setMembersBusy(true);
     try {
-      const r = await supabase.rpc("get_organization_members", { target_organization_id: orgId });
+      const r = await supabase.rpc("get_organization_members", { target_organization_id: o.id });
       if (r.error) throw r.error;
-      setOrgMembersCache((prev) => ({ ...prev, [orgId]: (r.data ?? []) as MemberRow[] }));
+      setOrgMembersCache((prev) => ({ ...prev, [o.id]: (r.data ?? []) as MemberRow[] }));
     } catch (e) {
       setNotice({ kind: "error", message: e instanceof Error ? e.message : "Unable to load members" });
     } finally {
@@ -1846,6 +1862,202 @@ function AdminPortal({ session }: { session: Session }) {
     <Shell admin view={view} setView={setView} items={navItems} user={session.user} name="STICA Administration">
       <NoticeBar notice={notice} clear={() => setNotice(null)} />
 
+      {/* ── Add company modal dialog ── */}
+      {addOrgModalOpen && (
+        <div
+          className="dialog-backdrop"
+          role="presentation"
+          onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) setAddOrgModalOpen(false); }}
+        >
+          <section className="confirm-dialog confirm-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="add-org-title">
+            <p className="eyebrow eyebrow--red">New registration</p>
+            <h2 id="add-org-title">Add Company &amp; Send Invitation</h2>
+            <p>Register a participating company and invite their administrator via email.</p>
+            <form onSubmit={invite} className="dialog-form">
+              <div className="form-grid">
+                <label>
+                  Company name
+                  <input
+                    name="companyName"
+                    value={newOrgName}
+                    onChange={(e) => {
+                      setNewOrgName(e.target.value);
+                      if (!slugManuallyEdited) {
+                        setNewOrgSlug(slugify(e.target.value));
+                      }
+                    }}
+                    placeholder="e.g. Nordic Weave AB"
+                    required
+                  />
+                </label>
+                <label>
+                  Company code / slug
+                  <input
+                    name="companySlug"
+                    value={newOrgSlug}
+                    onChange={(e) => {
+                      setNewOrgSlug(e.target.value);
+                      setSlugManuallyEdited(true);
+                    }}
+                    pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                    placeholder="e.g. nordic-weave-ab"
+                    required
+                  />
+                </label>
+              </div>
+              <div className="form-grid">
+                <label>
+                  Administrator name
+                  <input name="fullName" placeholder="e.g. Anna Lindberg" required />
+                </label>
+                <label>
+                  Administrator email
+                  <input name="email" type="email" placeholder="e.g. anna@nordicweave.com" required />
+                </label>
+              </div>
+              <label>
+                External reference
+                <input name="externalReference" placeholder="Optional, e.g. STICA-2026-057" />
+              </label>
+              <div className="confirm-dialog__actions">
+                <button type="button" className="button button--secondary" onClick={() => setAddOrgModalOpen(false)} disabled={busy}>
+                  Cancel
+                </button>
+                <button type="submit" className="button button--primary" disabled={busy} aria-busy={busy}>
+                  {busy ? "Sending invitation…" : "Send secure invitation →"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {/* ── Edit org dialog ── */}
+      {editingOrg && (
+        <div
+          className="dialog-backdrop"
+          role="presentation"
+          onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) setEditingOrg(null); }}
+        >
+          <section className="confirm-dialog confirm-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="edit-org-title">
+            <p className="eyebrow eyebrow--red">Edit company</p>
+            <h2 id="edit-org-title">{editingOrg.name}</h2>
+            <form onSubmit={saveOrg} className="dialog-form">
+              <label>
+                Company name
+                <input
+                  value={editOrgForm.name}
+                  onChange={(e) => setEditOrgForm((f) => ({ ...f, name: e.target.value }))}
+                  required
+                />
+              </label>
+              <label>
+                Contact email
+                <input
+                  type="email"
+                  value={editOrgForm.contactEmail}
+                  onChange={(e) => setEditOrgForm((f) => ({ ...f, contactEmail: e.target.value }))}
+                  placeholder="Optional"
+                />
+              </label>
+              <label>
+                External reference
+                <input
+                  value={editOrgForm.externalReference}
+                  onChange={(e) => setEditOrgForm((f) => ({ ...f, externalReference: e.target.value }))}
+                  placeholder="Optional, e.g. STICA-2026-057"
+                />
+              </label>
+              <div className="confirm-dialog__actions">
+                <button type="button" className="button button--secondary" onClick={() => setEditingOrg(null)} disabled={busy}>Cancel</button>
+                <button type="submit" className="button button--primary" disabled={busy} aria-busy={busy}>
+                  {busy ? "Saving…" : "Save changes"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {/* ── Manage members modal dialog ── */}
+      {membersModalOrg && (
+        <div
+          className="dialog-backdrop"
+          role="presentation"
+          onMouseDown={(e) => { if (e.target === e.currentTarget && !membersBusy) setMembersModalOrg(null); }}
+        >
+          <section className="confirm-dialog confirm-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="members-modal-title">
+            <p className="eyebrow eyebrow--red">Team management</p>
+            <h2 id="members-modal-title">Members of {membersModalOrg.name}</h2>
+            <p>Users who have access to this company's reporting workspace.</p>
+            
+            <div style={{ margin: "20px 0" }}>
+              {membersBusy && !orgMembersCache[membersModalOrg.id] ? (
+                <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading members…</p>
+              ) : (orgMembersCache[membersModalOrg.id] ?? []).length === 0 ? (
+                <div style={{ textAlign: "center", padding: "24px", background: "var(--surface-subtle)", borderRadius: "var(--radius-md)" }}>
+                  <p style={{ margin: 0, color: "var(--text-muted)" }}>No linked users for this company.</p>
+                </div>
+              ) : (
+                <div className="table-scroll" style={{ maxHeight: "320px", overflowY: "auto" }}>
+                  <table className="members-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(orgMembersCache[membersModalOrg.id] ?? []).map((m) => (
+                        <tr key={m.user_id}>
+                          <td><strong>{m.full_name}</strong></td>
+                          <td><small>{m.email}</small></td>
+                          <td>
+                            <select
+                              value={m.role}
+                              disabled={membersBusy}
+                              onChange={(e) => void changeMemberRole(membersModalOrg.id, m.user_id, e.target.value)}
+                              className="member-role-select"
+                            >
+                              <option value="member">Member</option>
+                              <option value="company_admin">Company admin</option>
+                            </select>
+                          </td>
+                          <td><small>{formatDate(m.created_at)}</small></td>
+                          <td>
+                            <button
+                              type="button"
+                              className="danger-link"
+                              disabled={membersBusy}
+                              onClick={() => void removeMember(membersModalOrg.id, m.user_id, m.email)}
+                            >
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="confirm-dialog__actions">
+              <button
+                type="button"
+                className="button button--secondary"
+                onClick={() => setMembersModalOrg(null)}
+              >
+                Close
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
       {/* ── Reopen dialog ── */}
       {reopenTarget && (
         <div
@@ -1907,53 +2119,6 @@ function AdminPortal({ session }: { session: Session }) {
                 {busy ? "Deleting…" : "Delete question"}
               </button>
             </div>
-          </section>
-        </div>
-      )}
-
-      {/* ── Edit org dialog ── */}
-      {editingOrg && (
-        <div
-          className="dialog-backdrop"
-          role="presentation"
-          onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) setEditingOrg(null); }}
-        >
-          <section className="confirm-dialog confirm-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="edit-org-title">
-            <p className="eyebrow eyebrow--red">Edit company</p>
-            <h2 id="edit-org-title">{editingOrg.name}</h2>
-            <form onSubmit={saveOrg} className="dialog-form">
-              <label>
-                Company name
-                <input
-                  value={editOrgForm.name}
-                  onChange={(e) => setEditOrgForm((f) => ({ ...f, name: e.target.value }))}
-                  required
-                />
-              </label>
-              <label>
-                Contact email
-                <input
-                  type="email"
-                  value={editOrgForm.contactEmail}
-                  onChange={(e) => setEditOrgForm((f) => ({ ...f, contactEmail: e.target.value }))}
-                  placeholder="Optional"
-                />
-              </label>
-              <label>
-                External reference
-                <input
-                  value={editOrgForm.externalReference}
-                  onChange={(e) => setEditOrgForm((f) => ({ ...f, externalReference: e.target.value }))}
-                  placeholder="Optional, e.g. STICA-2026-057"
-                />
-              </label>
-              <div className="confirm-dialog__actions">
-                <button type="button" className="button button--secondary" onClick={() => setEditingOrg(null)} disabled={busy}>Cancel</button>
-                <button type="submit" className="button button--primary" disabled={busy} aria-busy={busy}>
-                  {busy ? "Saving…" : "Save changes"}
-                </button>
-              </div>
-            </form>
           </section>
         </div>
       )}
@@ -2594,152 +2759,203 @@ function AdminPortal({ session }: { session: Session }) {
               <h1>Companies</h1>
               <p>Manage participating organizations, team members, and secure access permissions.</p>
             </div>
+            <button
+              type="button"
+              className="button button--primary"
+              onClick={() => {
+                setAddOrgModalOpen(true);
+                setNewOrgName("");
+                setNewOrgSlug("");
+                setSlugManuallyEdited(false);
+              }}
+            >
+              + Add company &amp; invite
+            </button>
           </div>
 
-          <section className="two-column-admin">
-            <form className="panel-form" onSubmit={invite}>
-              <h3>Add company &amp; invite</h3>
-              <div className="form-guidance" role="note">
-                <strong>Example entry</strong>
-                <span>Nordic Weave AB · nordic-weave-ab · Anna Lindberg · anna@nordicweave.com</span>
-              </div>
-              <label>
-                Company name
-                <input name="companyName" required placeholder="e.g. Nordic Weave AB" />
-              </label>
-              <label>
-                Company slug
-                <input
-                  name="companySlug"
-                  pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-                  required
-                  placeholder="e.g. nordic-weave-ab"
-                />
-                <small className="form-help">
-                  Lowercase letters, numbers, hyphens only.
-                </small>
-              </label>
-              <label>Contact name<input name="fullName" required placeholder="e.g. Anna Lindberg" /></label>
-              <label>Email<input name="email" type="email" required placeholder="e.g. anna@nordicweave.com" /></label>
-              <label>
-                External reference
-                <input name="externalReference" placeholder="Optional, e.g. STICA-2026-057" />
-              </label>
-              <button className="button button--primary" disabled={busy}>
-                {busy ? "Sending invitation…" : "Send secure invitation →"}
-              </button>
-            </form>
+          <section className="metric-grid metric-grid--four" style={{ marginBottom: "24px" }}>
+            <article>
+              <span>Total registered</span>
+              <strong>{orgs.length}</strong>
+            </article>
+            <article>
+              <span>Active companies</span>
+              <strong>{orgs.filter((o) => o.is_active).length}</strong>
+            </article>
+            <article>
+              <span>Archived</span>
+              <strong>{orgs.filter((o) => !o.is_active).length}</strong>
+            </article>
+            <article>
+              <span>Reporting in {current?.reporting_year ?? "2026"}</span>
+              <strong>{currentRows.filter((r) => r.status !== "not_started").length}</strong>
+            </article>
+          </section>
 
-            <div className="company-directory">
-              <div className="company-directory__header">
-                <div>
-                  <strong>{orgs.length} companies</strong>
-                  <span style={{ marginLeft: "10px", color: "var(--text-muted)", fontSize: "13px" }}>
-                    ({orgs.filter((o) => o.is_active).length} active)
-                  </span>
-                </div>
+          <section className="admin-table">
+            <div className="admin-table__head">
+              <div>
+                <p className="eyebrow">Directory</p>
+                <h3>Company directory</h3>
+              </div>
+              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                 <input
                   type="search"
-                  placeholder="Search company…"
+                  placeholder="Search company, slug, email…"
                   value={orgSearch}
-                  onChange={(e) => setOrgSearch(e.target.value)}
+                  onChange={(e) => { setOrgSearch(e.target.value); setOrgPage(0); }}
                   style={{
-                    padding: "6px 12px",
+                    padding: "6px 14px",
                     borderRadius: "var(--radius-sm)",
                     border: "1px solid var(--line)",
                     fontSize: "13px",
-                    width: "180px",
+                    width: "240px",
                   }}
                 />
               </div>
-              {filteredOrgs.map((o) => (
-                <article key={o.id} className={!o.is_active ? "inactive" : ""}>
-                  <div className="company-card__main">
-                    <span className="company-avatar">{o.name.slice(0, 2).toUpperCase()}</span>
-                    <div>
-                      <strong>{o.name}</strong>
-                      <small>{o.contact_email ?? "No contact email"}</small>
-                      <small className="company-meta">{o.slug}{o.external_reference ? ` · Ref: ${o.external_reference}` : ""}</small>
-                    </div>
-                    <em className={`company-status ${o.is_active ? "company-status--active" : ""}`}>
-                      {o.is_active ? "● Active" : "Archived"}
-                    </em>
-                  </div>
-                  <div className="company-card__actions">
-                    <button
-                      className="table-action"
-                      onClick={() => beginEditOrg(o)}
-                    >
-                      ✏️ Edit
-                    </button>
-                    <button
-                      className="table-action"
-                      onClick={() => void expandMembers(o.id)}
-                    >
-                      👥 {expandedOrgId === o.id ? "Hide members" : "Manage members"}
-                    </button>
-                    <button
-                      className={o.is_active ? "danger-link" : "table-action"}
-                      onClick={() => void toggleActive(o)}
-                    >
-                      {o.is_active ? "Archive" : "Reactivate"}
-                    </button>
-                  </div>
+            </div>
 
-                  {/* Members panel */}
-                  {expandedOrgId === o.id && (
-                    <div className="members-panel">
-                      {membersBusy && !orgMembersCache[o.id] ? (
-                        <p className="members-loading">Loading members…</p>
-                      ) : (orgMembersCache[o.id] ?? []).length === 0 ? (
-                        <p className="members-empty">No linked users. Use the invite form to add team members.</p>
-                      ) : (
-                        <table className="members-table">
-                          <thead>
-                            <tr>
-                              <th>Name</th>
-                              <th>Email</th>
-                              <th>Role</th>
-                              <th>Joined</th>
-                              <th></th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {(orgMembersCache[o.id] ?? []).map((m) => (
-                              <tr key={m.user_id}>
-                                <td><strong>{m.full_name}</strong></td>
-                                <td><small>{m.email}</small></td>
-                                <td>
-                                  <select
-                                    value={m.role}
-                                    disabled={membersBusy}
-                                    onChange={(e) => void changeMemberRole(o.id, m.user_id, e.target.value)}
-                                    className="member-role-select"
-                                  >
-                                    <option value="member">Member</option>
-                                    <option value="company_admin">Company admin</option>
-                                  </select>
-                                </td>
-                                <td><small>{formatDate(m.created_at)}</small></td>
-                                <td>
-                                  <button
-                                    className="danger-link"
-                                    disabled={membersBusy}
-                                    onClick={() => void removeMember(o.id, m.user_id, m.email)}
-                                  >
-                                    Remove
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
-                    </div>
-                  )}
-                </article>
+            {/* Status Filter Tabs */}
+            <div style={{ display: "flex", gap: "8px", padding: "12px 24px", background: "var(--surface-subtle)", borderBottom: "1px solid var(--line)" }}>
+              {[
+                ["all", `All (${orgs.length})`],
+                ["active", `Active (${orgs.filter((o) => o.is_active).length})`],
+                ["inactive", `Archived (${orgs.filter((o) => !o.is_active).length})`],
+              ].map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => { setOrgStatusFilter(key as "all" | "active" | "inactive"); setOrgPage(0); }}
+                  style={{
+                    padding: "4px 12px",
+                    borderRadius: "var(--radius-full)",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    border: orgStatusFilter === key ? "1px solid var(--ink)" : "1px solid transparent",
+                    background: orgStatusFilter === key ? "var(--ink)" : "transparent",
+                    color: orgStatusFilter === key ? "white" : "var(--text-secondary)",
+                    transition: "all var(--transition-fast)",
+                  }}
+                >
+                  {label}
+                </button>
               ))}
             </div>
+
+            <div className="table-scroll">
+              <table className="responsive-table">
+                <thead>
+                  <tr>
+                    <th>Company</th>
+                    <th>Code / Slug</th>
+                    <th>Contact Email</th>
+                    <th>Reference</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedOrgs.map((o) => (
+                    <tr key={o.id}>
+                      <td data-label="Company">
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                          <span
+                            className="company-avatar"
+                            style={{
+                              width: "36px",
+                              height: "36px",
+                              fontSize: "12px",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {o.name.slice(0, 2).toUpperCase()}
+                          </span>
+                          <strong>{o.name}</strong>
+                        </div>
+                      </td>
+                      <td data-label="Code / Slug">
+                        <code>{o.slug}</code>
+                      </td>
+                      <td data-label="Contact Email">
+                        {o.contact_email ? (
+                          <span style={{ color: "var(--text-secondary)" }}>{o.contact_email}</span>
+                        ) : (
+                          <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>Not set</span>
+                        )}
+                      </td>
+                      <td data-label="Reference">
+                        {o.external_reference ? (
+                          <span style={{ fontSize: "13px" }}>{o.external_reference}</span>
+                        ) : (
+                          <span style={{ color: "var(--text-muted)" }}>—</span>
+                        )}
+                      </td>
+                      <td data-label="Status">
+                        <span className={`table-status ${o.is_active ? "table-status--submitted" : "table-status--not-started"}`}>
+                          {o.is_active ? "● Active" : "Archived"}
+                        </span>
+                      </td>
+                      <td data-label="Actions">
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <button
+                            type="button"
+                            className="table-action"
+                            onClick={() => beginEditOrg(o)}
+                            title="Edit company details"
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="table-action"
+                            onClick={() => void openMembersModal(o)}
+                            title="Manage company users and team roles"
+                          >
+                            👥 Members
+                          </button>
+                          <button
+                            type="button"
+                            className={o.is_active ? "danger-link" : "table-action"}
+                            onClick={() => void toggleActive(o)}
+                            title={o.is_active ? "Archive company" : "Reactivate company"}
+                          >
+                            {o.is_active ? "Archive" : "Reactivate"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {paginatedOrgs.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="empty-row">No companies found matching the filter.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {totalOrgPages > 1 && (
+              <div className="catalog-pager">
+                <button
+                  type="button"
+                  disabled={orgPage === 0}
+                  onClick={() => setOrgPage((p) => Math.max(0, p - 1))}
+                >
+                  ← Previous
+                </button>
+                <span>
+                  Page {orgPage + 1} of {totalOrgPages} ({filteredOrgs.length} companies)
+                </span>
+                <button
+                  type="button"
+                  disabled={orgPage >= totalOrgPages - 1}
+                  onClick={() => setOrgPage((p) => p + 1)}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
           </section>
         </div>
       )}
