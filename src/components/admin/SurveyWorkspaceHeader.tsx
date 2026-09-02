@@ -28,7 +28,7 @@ export function SurveyWorkspaceHeader({
 
   return (
     <>
-      <Button icon={ArrowLeft} size="small" variant="ghost" className="builder-back mb-5" onClick={onBack}>
+      <Button icon={ArrowLeft} size="small" variant="ghost" className="mb-5" onClick={onBack}>
         Reporting years
       </Button>
       <PageHeader

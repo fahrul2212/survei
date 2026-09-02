@@ -286,9 +286,9 @@ export function AdminCompanies({
             <p className="text-[15px] leading-relaxed text-slate-600">Register a participating company and invite their administrator via email.</p>
             <form onSubmit={invite} className="mt-6 flex flex-col gap-5">
               <div className="grid gap-5 md:grid-cols-2">
-                <label>
+                <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                   Company name
-                  <input
+                  <input className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100"
                     name="companyName"
                     value={newOrgName}
                     onChange={(e) => {
@@ -301,9 +301,9 @@ export function AdminCompanies({
                     required
                   />
                 </label>
-                <label>
+                <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                   Company code / slug
-                  <input
+                  <input className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100"
                     name="companySlug"
                     value={newOrgSlug}
                     onChange={(e) => {
@@ -317,18 +317,18 @@ export function AdminCompanies({
                 </label>
               </div>
               <div className="grid gap-5 md:grid-cols-2">
-                <label>
+                <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                   Administrator name
-                  <input name="fullName" placeholder="e.g. Anna Lindberg" required />
+                  <input className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100" name="fullName" placeholder="e.g. Anna Lindberg" required />
                 </label>
-                <label>
+                <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                   Administrator email
-                  <input name="email" type="email" placeholder="e.g. anna@nordicweave.com" required />
+                  <input className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100" name="email" type="email" placeholder="e.g. anna@nordicweave.com" required />
                 </label>
               </div>
-              <label>
+              <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                 External reference
-                <input name="externalReference" placeholder="Optional, e.g. STICA-2026-057" />
+                <input className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100" name="externalReference" placeholder="Optional, e.g. STICA-2026-057" />
               </label>
               <div className="-mx-6 -mb-6 mt-6 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/50 p-5 md:-mx-8 md:-mb-8">
                 <button type="button" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 transition-all hover:bg-slate-50 hover:text-slate-900" onClick={() => setAddOrgModalOpen(false)} disabled={busy}>
@@ -354,26 +354,26 @@ export function AdminCompanies({
             <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#d91f17]">Edit company</p>
             <h2 id="edit-org-title" className="mb-3 text-2xl font-bold tracking-tight text-slate-900">{editingOrg.name}</h2>
             <form onSubmit={saveOrg} className="mt-6 flex flex-col gap-5">
-              <label>
+              <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                 Company name
-                <input
+                <input className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100"
                   value={editOrgForm.name}
                   onChange={(e) => setEditOrgForm((f) => ({ ...f, name: e.target.value }))}
                   required
                 />
               </label>
-              <label>
+              <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                 Contact email
-                <input
+                <input className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100"
                   type="email"
                   value={editOrgForm.contactEmail}
                   onChange={(e) => setEditOrgForm((f) => ({ ...f, contactEmail: e.target.value }))}
                   placeholder="Optional"
                 />
               </label>
-              <label>
+              <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                 External reference
-                <input
+                <input className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100"
                   value={editOrgForm.externalReference}
                   onChange={(e) => setEditOrgForm((f) => ({ ...f, externalReference: e.target.value }))}
                   placeholder="Optional, e.g. STICA-2026-057"
@@ -402,15 +402,15 @@ export function AdminCompanies({
             <h2 id="members-modal-title" className="mb-3 text-2xl font-bold tracking-tight text-slate-900">Members of {membersModalOrg.name}</h2>
             <p className="text-[15px] leading-relaxed text-slate-600">Users who have access to this company's reporting workspace.</p>
             
-            <div className="members-modal-body">
+            <div className="mt-6">
               {membersBusy && !orgMembersCache[membersModalOrg.id] ? (
-                <p className="members-empty members-empty--loading">Loading members…</p>
+                <p className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm font-medium text-slate-500">Loading members…</p>
               ) : (orgMembersCache[membersModalOrg.id] ?? []).length === 0 ? (
-                <div className="members-empty">
-                  <p>No linked users for this company.</p>
+                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center">
+                  <p className="text-sm font-medium text-slate-600">No linked users for this company.</p>
                 </div>
               ) : (
-                <div className="table-scroll members-table-scroll">
+                <div className="overflow-x-auto">
                   <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200"><table className="w-full whitespace-nowrap text-left text-sm text-slate-600">
                     <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
                       <tr>

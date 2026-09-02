@@ -90,7 +90,7 @@ export function PageHeader({
         {meta && <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-600">{meta}</div>}
         {description && <p className="mt-2 max-w-2xl text-[0.95rem] leading-6 text-slate-600">{description}</p>}
       </div>
-      {actions && <div className="page-actions flex max-w-full flex-wrap items-center gap-2.5 max-[560px]:w-full">{actions}</div>}
+      {actions && <div className="flex max-w-full flex-wrap items-center gap-2.5 max-[560px]:w-full">{actions}</div>}
     </header>
   );
 }

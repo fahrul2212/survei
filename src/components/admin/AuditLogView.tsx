@@ -101,7 +101,7 @@ export function AuditLogView({ orgs }: { orgs: Organization[] }) {
   }, [load]);
 
   return (
-    <div className="page">
+    <div className="mx-auto w-full max-w-[1400px] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
       <PageHeader
         eyebrow="Activity trail"
         title="Audit log"
@@ -120,20 +120,20 @@ export function AuditLogView({ orgs }: { orgs: Organization[] }) {
 
       <NoticeBar notice={notice} clear={() => setNotice(null)} />
 
-      <section className="audit-filters panel-form" aria-label="Audit log filters">
-        <div className="form-grid">
-          <label>
+      <section className="mb-8 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:p-5" aria-label="Audit log filters">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
             Company
-            <select value={filterOrg} onChange={(event) => setFilterOrg(event.target.value)}>
+            <select className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100" value={filterOrg} onChange={(event) => setFilterOrg(event.target.value)}>
               <option value="">All companies</option>
               {orgs.map((organization) => (
                 <option key={organization.id} value={organization.id}>{organization.name}</option>
               ))}
             </select>
           </label>
-          <label>
+          <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
             Event type
-            <select value={filterType} onChange={(event) => setFilterType(event.target.value)}>
+            <select className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100" value={filterType} onChange={(event) => setFilterType(event.target.value)}>
               <option value="">All events</option>
               {eventTypes.map((eventType) => (
                 <option key={eventType} value={eventType}>{eventLabel(eventType)}</option>

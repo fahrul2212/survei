@@ -284,7 +284,7 @@ export function SurveyBuilder({
 
   return (
     <>
-<div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
+          <div className="mx-auto w-full max-w-[1480px] px-4 py-7 md:px-8 lg:px-10 lg:pb-20">
 
           {/* Overview */}
           {surveyView === "overview" && (
@@ -302,8 +302,8 @@ export function SurveyBuilder({
               <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                 <div className="flex flex-col gap-2 border-b border-slate-200 bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between md:p-6">
                   <div>
-                    <p className="eyebrow">Reporting cycles</p>
-                    <h3>{versions.length} reporting years</h3>
+                    <p className="mb-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">Reporting cycles</p>
+                    <h3 className="text-lg font-bold text-slate-900">{versions.length} reporting years</h3>
                   </div>
                   <span>Choose a year to open its workspace</span>
                 </div>
@@ -416,10 +416,10 @@ export function SurveyBuilder({
               />
 
               {selectedVersion.status !== "draft" && (
-                <div className="flex items-center gap-2 rounded-lg bg-slate-100 p-4 text-sm font-semibold text-slate-700" role="note">
-                  <div>
-                    <strong>This reporting year is {selectedVersion.status === "published" ? "published (active)" : "closed (archived)"}</strong>
-                    <span>
+                <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-100 p-4 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between" role="note">
+                  <div className="min-w-0">
+                    <strong className="block font-bold text-slate-900">This reporting year is {selectedVersion.status === "published" ? "published (active)." : "closed (archived)."}</strong>
+                    <span className="mt-1 block leading-6 text-slate-600">
                       {selectedVersion.status === "published"
                         ? "Published questions are locked to preserve stable IDs and longitudinal integrity. To modify question structure, create a new draft year."
                         : "Closed reporting years are preserved for historical reporting and audit."}
@@ -435,32 +435,32 @@ export function SurveyBuilder({
 
               {/* Preview mode */}
               {previewMode ? (
-                <section className="preview-panel">
-                  <div className="preview-banner">
-                    <strong>Simulator preview</strong>
+                  <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                  <div className="flex flex-col gap-2 border-b border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 sm:flex-row sm:items-center">
+                    <strong className="w-fit rounded-md bg-amber-200 px-2 py-1 text-[11px] font-extrabold uppercase tracking-wider text-amber-900">Simulator preview</strong>
                     <span>This interactive view mimics what participating companies see. Responses are not saved.</span>
                   </div>
-                  <div className="preview-list">
+                  <div className="divide-y divide-slate-100">
                     {questions.map((q, i) => (
-                      <div key={q.id} className="flex flex-col gap-1.5 rounded-lg border border-slate-100 p-4">
-                        <div className="preview-item__meta">
-                          <span className="preview-item__num">{i + 1}</span>
-                          <code>{q.stableKey}</code>
-                          <span className="preview-item__section">{q.sectionTitle}</span>
-                          {q.required && <em className="preview-item__required">Required</em>}
-                          {carry[q.id] && <span className="preview-item__carry"><RotateCcw size={13} aria-hidden="true" /> Carried from {carry[q.id]}</span>}
+                        <div key={q.id} className="flex flex-col gap-3 p-5 md:p-6">
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          <span className="grid size-7 place-items-center rounded-full bg-slate-900 text-xs font-bold text-white">{i + 1}</span>
+                          <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-bold text-slate-600">{q.stableKey}</code>
+                          <span className="font-bold uppercase tracking-wider text-slate-500">{q.sectionTitle}</span>
+                          {q.required && <em className="not-italic font-bold uppercase tracking-wider text-[#d91f17]">Required</em>}
+                          {carry[q.id] && <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-700"><RotateCcw size={13} aria-hidden="true" /> Carried from {carry[q.id]}</span>}
                         </div>
-                        <p className="preview-item__prompt">{q.prompt}</p>
-                        {q.helpText && <p className="preview-item__help">{q.helpText}</p>}
+                        <p className="text-base font-bold leading-6 text-slate-900">{q.prompt}</p>
+                        {q.helpText && <p className="text-sm leading-6 text-slate-600">{q.helpText}</p>}
                         {q.visibilityRule.questionKey && (
-                          <p className="preview-item__condition">
+                          <p className="w-fit rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
                             Visible when <code>{q.visibilityRule.questionKey}</code> {q.visibilityRule.operator} {String(q.visibilityRule.value ?? "")}
                           </p>
                         )}
                         {["single_choice", "multiple_choice", "yes_no"].includes(q.type) && (
-                          <div className="preview-item__options">
+                          <div className="flex flex-wrap gap-2">
                             {(q.type === "yes_no" ? ["Yes", "No"] : q.options).map((opt) => (
-                              <span key={opt} className="preview-option">{opt}</span>
+                              <span key={opt} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700">{opt}</span>
                             ))}
                           </div>
                         )}
@@ -471,11 +471,11 @@ export function SurveyBuilder({
               ) : (
                 <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                   <div className="flex flex-col">
-                    <div className="flex flex-col gap-2 border-b border-slate-200 bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between md:p-6">
-                      <div className="builder-heading-row">
+                    <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50 p-5 sm:flex-row sm:items-end sm:justify-between md:p-6">
+                      <div className="min-w-0">
                         <div>
-                          <p className="eyebrow">Question library</p>
-                          <h3>{questions.length} questions</h3>
+                          <p className="mb-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">Question library</p>
+                          <h3 className="text-lg font-bold text-slate-900">{questions.length} questions</h3>
                         </div>
                         {questions.length > 0 && (
                           <SearchField
@@ -483,16 +483,18 @@ export function SurveyBuilder({
                             placeholder="Search questions"
                             value={qSearch}
                             onChange={(event) => setQSearch(event.target.value)}
-                            className="catalog-search"
+                            className="w-full sm:w-72"
                           />
                         )}
                       </div>
                     </div>
 
                     {openingVersion === selectedVersion.id ? (
-                      <div className="empty-catalog loading-catalog" role="status">
-                        <strong>Loading questions…</strong>
-                        <p>Preparing the question workspace.</p>
+                      <div className="grid min-h-64 place-items-center px-6 py-12 text-center" role="status">
+                        <div>
+                          <strong className="block text-base font-bold text-slate-900">Loading questions…</strong>
+                          <p className="mt-1 text-sm text-slate-500">Preparing the question workspace.</p>
+                        </div>
                       </div>
                     ) : filteredQuestions.length === 0 ? (
                       <EmptyState
@@ -516,40 +518,40 @@ export function SurveyBuilder({
                       />
                     ) : (
                       filteredQuestions.slice(questionPage * Q_PAGE_SIZE, questionPage * Q_PAGE_SIZE + Q_PAGE_SIZE).map((q) => (
-                        <article key={q.id}>
-                          <div className="q-order-controls">
+                        <article key={q.id} className="grid grid-cols-[auto_minmax(0,1fr)] gap-4 border-b border-slate-100 p-4 transition-colors last:border-b-0 hover:bg-slate-50 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-start md:p-5">
+                          <div className="flex shrink-0 flex-col items-center gap-1.5">
                             {selectedVersion.status === "draft" && (
                               <>
                                 <button
                                   type="button"
-                                  className="order-btn"
+                                  className="grid size-7 place-items-center rounded-md border border-slate-200 bg-white text-[10px] text-slate-500 transition-colors hover:border-slate-400 hover:bg-slate-900 hover:text-white disabled:pointer-events-none disabled:opacity-40"
                                   title="Move up"
                                   disabled={busy || q.displayOrder === questions[0]?.displayOrder}
                                   onClick={() => void reorder(q, "up")}
-                                >▲</button>
+                                ><ArrowUp size={13} aria-hidden="true" /></button>
                                 <button
                                   type="button"
-                                  className="order-btn"
+                                  className="grid size-7 place-items-center rounded-md border border-slate-200 bg-white text-[10px] text-slate-500 transition-colors hover:border-slate-400 hover:bg-slate-900 hover:text-white disabled:pointer-events-none disabled:opacity-40"
                                   title="Move down"
                                   disabled={busy || q.displayOrder === questions[questions.length - 1]?.displayOrder}
                                   onClick={() => void reorder(q, "down")}
-                                >▼</button>
+                                ><ArrowDown size={13} aria-hidden="true" /></button>
                               </>
                             )}
-                            <span className="q-display-order">{q.displayOrder}</span>
+                            <span className="text-xs font-bold tabular-nums text-slate-400">{q.displayOrder}</span>
                           </div>
-                          <div>
-                            <code>{q.stableKey}</code>
-                            <h4>{q.prompt}</h4>
-                            <p>
+                          <div className="min-w-0">
+                            <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-bold text-slate-600">{q.stableKey}</code>
+                            <h4 className="mt-2 text-base font-bold leading-6 text-slate-900">{q.prompt}</h4>
+                            <p className="mt-1 text-sm text-slate-500">
                               {q.sectionTitle} / {q.type.replace("_", " ")}
                               {carry[q.id] ? ` / Prefill: ${carry[q.id]}` : ""}
                             </p>
                           </div>
                           {selectedVersion.status === "draft" && (
-                            <div className="row-actions" aria-label={`Actions for ${q.stableKey}`}>
-                              <button type="button" onClick={() => edit(q)}>Edit</button>
-                              <button type="button" className="danger-link" onClick={() => setPendingDelete(q)}>Delete</button>
+                            <div className="col-span-2 flex flex-wrap gap-2 sm:col-span-1 sm:justify-self-end" aria-label={`Actions for ${q.stableKey}`}>
+                              <button type="button" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50" onClick={() => edit(q)}>Edit</button>
+                              <button type="button" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 transition-colors hover:border-red-300 hover:bg-red-100" onClick={() => setPendingDelete(q)}>Delete</button>
                             </div>
                           )}
                         </article>
@@ -557,8 +559,9 @@ export function SurveyBuilder({
                     )}
 
                     {filteredQuestions.length > Q_PAGE_SIZE && (
-                      <div className="catalog-pager">
+                      <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 p-4 text-sm sm:flex-row">
                         <button
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-40"
                           type="button"
                           disabled={questionPage === 0}
                           onClick={() => setQuestionPage((p) => Math.max(0, p - 1))}
@@ -569,6 +572,7 @@ export function SurveyBuilder({
                           Page {questionPage + 1} of {Math.max(1, Math.ceil(filteredQuestions.length / Q_PAGE_SIZE))}
                         </span>
                         <button
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-40"
                           type="button"
                           disabled={(questionPage + 1) * Q_PAGE_SIZE >= filteredQuestions.length}
                           onClick={() => setQuestionPage((p) => p + 1)}
@@ -587,16 +591,16 @@ export function SurveyBuilder({
           {surveyView === "question" && selectedVersion && (
             <>
               <button
-                className="back-link builder-back"
+                className="mb-5 inline-flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900"
                 onClick={() => { setForm(EMPTY_Q); setSurveyView("workspace"); }}
               >
                 Back to {selectedVersion.reporting_year} questions
               </button>
-              <div className="page-intro builder-subpage-intro">
-                <div>
+              <div className="mb-7 flex items-center justify-between gap-6 max-[840px]:flex-col max-[840px]:items-start">
+                <div className="min-w-0 max-w-3xl">
                   <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#d91f17]">{form.id ? "Question revision" : "New question"}</p>
-                  <h1>{form.id ? `Revise ${form.stableKey}` : "Add question"}</h1>
-                  <p>Reporting year {selectedVersion.reporting_year}. Persistent IDs keep historical answers mapped across years.</p>
+                  <h1 className="max-w-[22ch] text-balance text-[clamp(2rem,3.5vw,2.75rem)] leading-[1.08] tracking-[-0.035em]">{form.id ? `Revise ${form.stableKey}` : "Add question"}</h1>
+                  <p className="mt-2 max-w-2xl text-[0.95rem] leading-6 text-slate-600">Reporting year {selectedVersion.reporting_year}. Persistent IDs keep historical answers mapped across years.</p>
                 </div>
               </div>
               <form className="flex flex-col gap-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" onSubmit={saveQ}>

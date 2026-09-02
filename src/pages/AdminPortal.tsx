@@ -348,18 +348,19 @@ export function AdminPortal({ session }: { session: Session }) {
       {/* ── Reopen dialog ── */}
       {reopenTarget && (
         <div
-          className="dialog-backdrop"
+          className="fixed inset-0 z-50 grid place-items-center bg-slate-950/40 p-4 backdrop-blur-sm"
           role="presentation"
           onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) setReopenTarget(null); }}
         >
-          <section className="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="reopen-title">
-            <p className="eyebrow eyebrow--red">Reopen submission</p>
-            <h2 id="reopen-title">Reopen for {reopenTarget.organization_name}?</h2>
-            <p>This allows the company to edit and resubmit their responses for reporting year {reopenTarget.reporting_year}.</p>
-            <div className="dialog-form">
-              <label>
+          <section className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl md:p-8" role="dialog" aria-modal="true" aria-labelledby="reopen-title">
+            <p className="mb-2 text-[11px] font-extrabold uppercase tracking-widest text-[#d91f17]">Reopen submission</p>
+            <h2 id="reopen-title" className="text-2xl font-bold tracking-tight text-slate-900">Reopen for {reopenTarget.organization_name}?</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">This allows the company to edit and resubmit their responses for reporting year {reopenTarget.reporting_year}.</p>
+            <div className="mt-6 flex flex-col gap-5">
+              <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                 Reason for reopening (logged to audit trail)
                 <textarea
+                  className="min-h-28 w-full resize-y rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100"
                   rows={3}
                   value={reopenReason}
                   placeholder="e.g. Correction requested for Scope 3 emissions data"
@@ -367,13 +368,13 @@ export function AdminPortal({ session }: { session: Session }) {
                   required
                 />
               </label>
-              <div className="confirm-dialog__actions">
-                <button type="button" className="button button--secondary" onClick={() => setReopenTarget(null)} disabled={busy}>
+              <div className="flex flex-col-reverse justify-end gap-2 border-t border-slate-100 pt-5 sm:flex-row">
+                <button type="button" className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50" onClick={() => setReopenTarget(null)} disabled={busy}>
                   Cancel
                 </button>
                 <button
                   type="button"
-                  className="button button--primary"
+                  className="inline-flex min-h-10 items-center justify-center rounded-lg bg-[#d91f17] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#b81711] disabled:pointer-events-none disabled:opacity-50"
                   onClick={() => void executeReopen()}
                   disabled={busy || !reopenReason.trim()}
                 >
@@ -548,11 +549,12 @@ export function AdminPortal({ session }: { session: Session }) {
 
           {/* Export preview */}
           {exports.length > 0 && (
-            <section className="admin-table export-preview">
-              <div className="admin-table__head">
-                <h3>{exports.length} response rows</h3>
-                <div className="export-pager-controls">
+            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <h3 className="text-lg font-bold text-slate-900">{exports.length} response rows</h3>
+                <div className="flex items-center gap-2">
                   <button
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-40"
                     type="button"
                     disabled={exportPage === 0}
                     onClick={() => setExportPage((p) => p - 1)}
@@ -563,6 +565,7 @@ export function AdminPortal({ session }: { session: Session }) {
                     {exportPage * EXPORT_PAGE_SIZE + 1}–{Math.min((exportPage + 1) * EXPORT_PAGE_SIZE, exports.length)} of {exports.length}
                   </span>
                   <button
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-40"
                     type="button"
                     disabled={(exportPage + 1) * EXPORT_PAGE_SIZE >= exports.length}
                     onClick={() => setExportPage((p) => p + 1)}
@@ -571,10 +574,10 @@ export function AdminPortal({ session }: { session: Session }) {
                   </button>
                 </div>
               </div>
-              <div className="table-scroll">
-                <table className="responsive-table responsive-table--export">
-                  <thead>
-                    <tr>
+              <div className="w-full overflow-x-auto">
+                <table className="w-full min-w-[760px] text-left text-sm text-slate-600">
+                  <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    <tr className="border-b border-slate-200">
                       <th>Year</th>
                       <th>Company</th>
                       <th>Question ID</th>
@@ -584,12 +587,12 @@ export function AdminPortal({ session }: { session: Session }) {
                   </thead>
                   <tbody>
                     {visibleExports.map((r, i) => (
-                      <tr key={i}>
-                        <td data-label="Year"><strong>{r.reporting_year}</strong></td>
-                        <td data-label="Company">{r.company_name}</td>
-                        <td data-label="Question ID"><code>{r.question_key}</code></td>
-                        <td data-label="Question">{r.question_prompt}</td>
-                        <td data-label="Answer">{valueAsText(r.answer)}</td>
+                      <tr key={i} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                        <td className="px-4 py-3 font-bold text-slate-900">{r.reporting_year}</td>
+                        <td className="max-w-52 truncate px-4 py-3" title={r.company_name}>{r.company_name}</td>
+                        <td className="px-4 py-3"><code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">{r.question_key}</code></td>
+                        <td className="max-w-[28rem] truncate px-4 py-3" title={r.question_prompt}>{r.question_prompt}</td>
+                        <td className="max-w-64 truncate px-4 py-3" title={valueAsText(r.answer)}>{valueAsText(r.answer)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -602,78 +605,70 @@ export function AdminPortal({ session }: { session: Session }) {
 
       {/* ══════════════════════════ ANALYTICS ════════════════════════════════ */}
       {view === "analytics" && (
-        <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
-          <div className="page-intro">
-            <div>
-              <p className="eyebrow eyebrow--red">Lightweight analytics</p>
-              <h1>Participation trends</h1>
-              <p>Track annual submission progress, cohort completion rates, and company reporting trajectories.</p>
-            </div>
-          </div>
-          <section className="analytics-grid">
-            <article className="chart-card">
-              <h3>Average completion by year</h3>
-              <div className="bar-chart">
+        <PageContainer>
+          <PageHeader eyebrow="Lightweight analytics" title="Participation trends" description="Track annual submission progress, cohort completion rates, and company reporting trajectories." />
+          <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+              <h3 className="text-lg font-bold text-slate-900">Average completion by year</h3>
+              <div className="mt-6 grid gap-4">
                 {years.map((y) => {
                   const rr = rows.filter((r) => r.reporting_year === y);
                   const avg = rr.length ? Math.round(rr.reduce((s, r) => s + r.completion_percent, 0) / rr.length) : 0;
                   return (
-                    <div key={y}>
-                      <span>{y}</span>
-                      <div><i style={{ width: `${avg}%` }} /></div>
-                      <strong>{avg}%</strong>
+                    <div key={y} className="grid grid-cols-[3.5rem_minmax(0,1fr)_3.5rem] items-center gap-3 text-sm">
+                      <span className="font-semibold text-slate-500">{y}</span>
+                      <div className="h-2 overflow-hidden rounded-full bg-slate-100"><i className="block h-full rounded-full bg-[#d91f17]" style={{ width: `${avg}%` }} /></div>
+                      <strong className="text-right tabular-nums text-slate-900">{avg}%</strong>
                     </div>
                   );
                 })}
               </div>
             </article>
 
-            <article className="chart-card">
-              <h3>Current status distribution</h3>
-              <div className="donut-wrap">
+            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+              <h3 className="text-lg font-bold text-slate-900">Current status distribution</h3>
+              <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row sm:justify-center">
                 <div
-                  className="analytics-donut"
+                  className="grid size-40 shrink-0 place-items-center rounded-full"
                   style={{
-                    "--submitted": `${currentRows.length ? (submitted / currentRows.length) * 360 : 0}deg`,
-                    "--progress": `${currentRows.length ? ((submitted + inProgress) / currentRows.length) * 360 : 0}deg`,
+                    background: `conic-gradient(#059669 0deg ${(currentRows.length ? submitted / currentRows.length : 0) * 360}deg, #2563eb ${(currentRows.length ? submitted / currentRows.length : 0) * 360}deg ${(currentRows.length ? (submitted + inProgress) / currentRows.length : 0) * 360}deg, #e2e8f0 ${(currentRows.length ? (submitted + inProgress) / currentRows.length : 0) * 360}deg 360deg)`,
                   } as React.CSSProperties}
                 >
-                  <span>
-                    <strong>{currentRows.length}</strong>
+                  <span className="grid size-28 place-items-center rounded-full bg-white text-center text-xs font-semibold text-slate-500 shadow-inner">
+                    <strong className="block text-2xl font-extrabold text-slate-900">{currentRows.length}</strong>
                     companies
                   </span>
                 </div>
-                <ul className="status-legend">
-                  <li><span>Submitted</span><strong>{submitted}</strong></li>
-                  <li><span>In progress</span><strong>{inProgress}</strong></li>
-                  <li><span>Not started</span><strong>{currentRows.length - submitted - inProgress}</strong></li>
+                <ul className="grid w-full max-w-56 gap-3 text-sm">
+                  <li className="flex items-center justify-between gap-4"><span className="flex items-center gap-2"><i className="size-2 rounded-full bg-emerald-500" />Submitted</span><strong>{submitted}</strong></li>
+                  <li className="flex items-center justify-between gap-4"><span className="flex items-center gap-2"><i className="size-2 rounded-full bg-blue-500" />In progress</span><strong>{inProgress}</strong></li>
+                  <li className="flex items-center justify-between gap-4"><span className="flex items-center gap-2"><i className="size-2 rounded-full bg-slate-300" />Not started</span><strong>{currentRows.length - submitted - inProgress}</strong></li>
                 </ul>
               </div>
             </article>
 
-            <article className="chart-card chart-card--wide">
-              <div className="trajectory-heading">
+            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:col-span-2 md:p-6">
+              <div className="flex flex-col gap-2 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h3>Company reporting trajectory</h3>
-                  <p>Annual reporting completion timeline across participating brands</p>
+                  <h3 className="text-lg font-bold text-slate-900">Company reporting trajectory</h3>
+                  <p className="mt-1 text-sm text-slate-500">Annual reporting completion timeline across participating brands</p>
                 </div>
-                <span>{orgs.filter((o) => o.is_active).length} active companies</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{orgs.filter((o) => o.is_active).length} active companies</span>
               </div>
-              <div className="trajectory-table">
+              <div className="divide-y divide-slate-100">
                 {orgs.filter((o) => o.is_active).map((o) => (
-                  <article className="trajectory-company" key={o.id}>
-                    <div className="trajectory-company__name">
-                      <strong>{o.name}</strong>
-                      <span>Completion history</span>
+                  <article className="grid gap-4 py-5 md:grid-cols-[minmax(12rem,0.7fr)_minmax(0,1.3fr)] md:items-center" key={o.id}>
+                    <div className="min-w-0">
+                      <strong className="block truncate text-sm font-bold text-slate-900" title={o.name}>{o.name}</strong>
+                      <span className="text-xs text-slate-500">Completion history</span>
                     </div>
-                    <div className="trajectory-company__years">
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
                       {years.map((y) => {
                         const completion = rows.find((r) => r.organization_id === o.id && r.reporting_year === y)?.completion_percent ?? 0;
                         return (
-                          <div key={y}>
-                            <span>{y}</span>
-                            <strong>{completion}%</strong>
-                            <i aria-hidden="true"><b style={{ width: `${completion}%` }} /></i>
+                          <div key={y} className="grid gap-1">
+                            <div className="flex justify-between gap-2 text-[11px] font-semibold text-slate-500"><span>{y}</span><strong className="text-slate-900">{completion}%</strong></div>
+                            <i className="block h-1.5 overflow-hidden rounded-full bg-slate-100" aria-hidden="true"><b className="block h-full rounded-full bg-[#d91f17]" style={{ width: `${completion}%` }} /></i>
                           </div>
                         );
                       })}
@@ -683,7 +678,7 @@ export function AdminPortal({ session }: { session: Session }) {
               </div>
             </article>
           </section>
-        </div>
+        </PageContainer>
       )}
 
       {/* ══════════════════════════ AUDIT LOG ════════════════════════════════ */}
