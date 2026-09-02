@@ -16,6 +16,7 @@ const eventTypes = [
   "survey.created",
   "survey.published",
   "survey.closed",
+  "survey.reopened",
   "organization.updated",
   "member.removed",
   "member.role_updated",
@@ -120,7 +121,7 @@ export function AuditLogView({ orgs }: { orgs: Organization[] }) {
 
       <NoticeBar notice={notice} clear={() => setNotice(null)} />
 
-      <section className="mb-8 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:p-5" aria-label="Audit log filters">
+      <section className="mb-8 rounded-xl border border-slate-200 bg-white p-4 md:p-5" aria-label="Audit log filters">
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
             Company
@@ -143,8 +144,8 @@ export function AuditLogView({ orgs }: { orgs: Organization[] }) {
         </div>
       </section>
 
-      <section className="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50/50 p-4 sm:flex-row sm:items-center sm:justify-between md:p-5">
+      <section className="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between md:p-5">
           <div>
             <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">Recent activity</p>
             <h3 className="text-lg font-bold text-slate-900">{activeFilters ? `Filtered events (${activeFilters})` : "All events"}</h3>
@@ -159,57 +160,53 @@ export function AuditLogView({ orgs }: { orgs: Organization[] }) {
             description={notice ? "Refresh after the database issue has been resolved." : "Try changing the filters or check back after new activity."}
           />
         ) : (
-          <div className="w-full overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600">
-              <thead className="hidden border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500 md:table-header-group">
-                <tr>
-                  <th className="p-4 font-semibold">Time</th>
-                  <th className="p-4 font-semibold">Actor</th>
-                  <th className="p-4 font-semibold">Event</th>
-                  <th className="p-4 font-semibold">Entity</th>
-                  <th className="p-4 font-semibold">Company</th>
-                  <th className="p-4 font-semibold">Details</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+          <div className="text-sm text-slate-600" role="table" aria-label="Audit events">
+            <div className="hidden grid-cols-[9rem_minmax(0,0.8fr)_minmax(8rem,1fr)_7rem_minmax(0,0.8fr)_minmax(0,1fr)] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 xl:grid" role="row">
+              <span role="columnheader">Time</span>
+              <span role="columnheader">Actor</span>
+              <span role="columnheader">Event</span>
+              <span role="columnheader">Entity</span>
+              <span role="columnheader">Company</span>
+              <span role="columnheader">Details</span>
+            </div>
+            <div className="divide-y divide-slate-100" role="rowgroup">
                 {events.map((event) => {
                   const details = Object.keys(event.details).length > 0 ? JSON.stringify(event.details) : "No details";
                   return (
-                    <tr key={event.id} className="flex flex-col p-4 transition-colors hover:bg-slate-50/50 md:table-row md:p-0">
-                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
-                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Time</span>
+                    <article key={event.id} className="grid min-w-0 gap-5 p-4 transition-colors hover:bg-slate-50 sm:grid-cols-2 xl:grid-cols-[9rem_minmax(0,0.8fr)_minmax(8rem,1fr)_7rem_minmax(0,0.8fr)_minmax(0,1fr)] xl:items-center xl:gap-4 xl:px-5 xl:py-4" role="row">
+                      <div className="min-w-0" role="cell">
+                        <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Time</span>
                         <span className="font-mono text-[11px] font-medium text-slate-500">{formatDateTime(event.occurred_at)}</span>
-                      </td>
-                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
-                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Actor</span>
+                      </div>
+                      <div className="min-w-0" role="cell">
+                        <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Actor</span>
                         <TruncatedText className="font-medium text-slate-900" children={event.actor_email} />
-                      </td>
-                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
-                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Event</span>
+                      </div>
+                      <div className="min-w-0" role="cell">
+                        <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Event</span>
                         <span className="inline-flex w-fit rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
                           {eventLabel(event.event_type)}
                         </span>
-                      </td>
-                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
-                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Entity</span>
+                      </div>
+                      <div className="min-w-0" role="cell">
+                        <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Entity</span>
                         <div className="flex flex-col gap-0.5">
                           <code className="text-xs text-slate-700">{event.entity_type}</code>
                           <small className="font-mono text-[10px] text-slate-400">#{event.entity_id}</small>
                         </div>
-                      </td>
-                      <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
-                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Company</span>
+                      </div>
+                      <div className="min-w-0" role="cell">
+                        <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Company</span>
                         <TruncatedText className="font-medium text-slate-700" children={event.organization_name ?? "System"} />
-                      </td>
-                      <td className="mb-2 flex flex-col border-t border-slate-100 pt-3 md:table-cell md:border-0 md:p-4 md:pt-4 md:align-middle">
-                        <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Details</span>
+                      </div>
+                      <div className="min-w-0 border-t border-slate-100 pt-4 sm:border-0 sm:pt-0" role="cell">
+                        <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Details</span>
                         <TruncatedText className="font-mono text-[10px] text-slate-500" children={details} />
-                      </td>
-                    </tr>
+                      </div>
+                    </article>
                   );
                 })}
-              </tbody>
-            </table>
+            </div>
           </div>
         )}
 

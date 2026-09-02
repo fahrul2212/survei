@@ -8,10 +8,10 @@ Goal: make the annual reporting cycle easy to complete, easy to administer, and 
 
 - Calm STICA-aligned UI across login, company workspace, report flow, admin dashboard, survey builder, company directory, import/export, analytics, and audit log.
 - Secure authentication and company-level data isolation through Supabase Auth and RLS.
-- One versioned survey per reporting year with persistent question IDs.
+- Multiple independently named survey cycles per reporting year, each with persistent question IDs and its own lifecycle.
 - Explicit carry-forward mappings: matching answers are prefilled, new questions stay blank, and retired questions are not copied.
 - Conditional questions and sections for simple dependencies such as reseller status or Yes/No follow-ups.
-- Company save-and-continue workflow with visible save state, review of prefilled answers, submission lock, and administrator reopen flow.
+- Company save-and-continue workflow with visible save state, review of prefilled answers, submission lock, administrator submission reopen, and close/reopen controls for whole surveys.
 - Previous-year report history for each company.
 - Historical Excel/CSV import and flat or pivot Excel export.
 - Admin progress summary, company status filters, lightweight analytics, and audit trail.

@@ -95,6 +95,8 @@ export type ProgressRow = {
 
 export type ExportRow = {
   reporting_year: number;
+  survey_version_id: number;
+  survey_name: string;
   company_name: string;
   company_slug: string;
   external_reference: string | null;

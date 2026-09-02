@@ -33,7 +33,8 @@ export function Report({
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [selectedSection, setSelectedSection] = useState<string>("all");
 
-  const readOnly = submission.status === "submitted";
+  const readOnly = submission.status === "submitted" || version.status !== "published";
+  const readOnlyLabel = version.status === "closed" ? "Survey closed" : "Submitted · read only";
   const answered = visible.filter((q) => isAnswered(answers[q.id])).length;
 
   const sectionKeys = useMemo(() => {
@@ -128,14 +129,14 @@ export function Report({
         </div>
       )}
 
-      <aside className="sticky top-[64px] flex h-[calc(100vh-64px)] flex-col overflow-y-auto border-r border-slate-200 bg-white p-5 md:p-6">
+      <aside className="flex flex-col border-b border-slate-200 bg-white p-5 md:sticky md:top-[64px] md:h-[calc(100vh-64px)] md:overflow-y-auto md:border-b-0 md:border-r md:p-6">
         <button className="mb-4 inline-flex w-fit items-center text-sm font-semibold text-slate-500 hover:text-slate-900" onClick={back}>
           <ArrowLeft size={16} className="mr-1.5" /> Back to overview
         </button>
         <div className="mb-1 flex items-center justify-between gap-3">
           <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Annual report {version.reporting_year}</p>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">
-            {readOnly ? <><LockKeyhole size={12} /> Read only</> : saving ? <><Clock3 size={12} /> Saving…</> : saveError ? <><TriangleAlert size={12} /> Save failed</> : <><Check size={12} /> Saved</>}
+            {readOnly ? <><LockKeyhole size={12} /> {version.status === "closed" ? "Closed" : "Read only"}</> : saving ? <><Clock3 size={12} /> Saving…</> : saveError ? <><TriangleAlert size={12} /> Save failed</> : <><Check size={12} /> Saved</>}
           </span>
         </div>
         <h2 className="mb-3.5 text-xl font-bold leading-tight text-slate-900">{active.sectionTitle}</h2>
@@ -173,7 +174,7 @@ export function Report({
             <span className="flex items-center gap-1.5"><i className="size-2 rounded-full bg-slate-200" />Unanswered</span>
             <span className="flex items-center gap-1.5"><i className="size-2 rounded-full bg-[#d91f17]" />Current</span>
           </div>
-          <div className="grid min-h-0 flex-1 grid-cols-5 content-start gap-1.5 overflow-y-auto pb-5 pt-1 pr-1" role="navigation" aria-label="Question navigator" tabIndex={0}>
+          <div className="grid max-h-48 min-h-0 flex-1 grid-cols-5 content-start gap-1.5 overflow-y-auto overscroll-contain pb-5 pr-1 pt-1 [scrollbar-width:none] md:max-h-none [&::-webkit-scrollbar]:hidden" role="navigation" aria-label="Question navigator" tabIndex={0}>
             {navigationQuestions.map((q) => {
               const overallIdx = visible.indexOf(q);
               const isQAnswered = isAnswered(answers[q.id]);
@@ -206,12 +207,12 @@ export function Report({
       </aside>
 
       <section className="grid place-items-center p-6 md:p-14 lg:p-20">
-        <div className="w-full max-w-[840px] rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-10 lg:p-12" key={active.id}>
+        <div className="w-full max-w-[840px] rounded-2xl border border-slate-200 bg-white p-6 md:p-10 lg:p-12" key={active.id}>
           <div className="mb-6 flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Question {overallIndex + 1} of {visible.length}</span>
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
-                {readOnly ? <><LockKeyhole size={13} /> Submitted · read only</> : saving ? <><Clock3 size={13} /> Saving securely…</> : saveError ? <><TriangleAlert size={13} /> Could not save</> : <><Check size={13} /> All changes saved</>}
+                {readOnly ? <><LockKeyhole size={13} /> {readOnlyLabel}</> : saving ? <><Clock3 size={13} /> Saving securely…</> : saveError ? <><TriangleAlert size={13} /> Could not save</> : <><Check size={13} /> All changes saved</>}
               </span>
               <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-bold text-slate-600">{active.stableKey}</code>
             </div>

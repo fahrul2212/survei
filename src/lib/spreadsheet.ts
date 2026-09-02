@@ -20,6 +20,7 @@ export async function exportResponsesXlsx(rows: ExportRow[], fileName: string): 
 
   const headers = [
     "Reporting year",
+    "Survey",
     "Company",
     "Company slug",
     "External reference",
@@ -46,6 +47,7 @@ export async function exportResponsesXlsx(rows: ExportRow[], fileName: string): 
 
   const dataRows: Cell[][] = rows.map((row) => [
     { value: row.reporting_year },
+    { value: row.survey_name },
     { value: row.company_name },
     { value: row.company_slug },
     { value: row.external_reference ?? "" },
@@ -64,7 +66,7 @@ export async function exportResponsesXlsx(rows: ExportRow[], fileName: string): 
 
   await writeXlsx([headerRow, ...dataRows], {
     fileName,
-    columns: [12, 24, 20, 18, 14, 20, 22, 8, 16, 22, 52, 16, 44, 18, 20].map((width) => ({ width })),
+    columns: [12, 32, 24, 20, 18, 14, 20, 22, 8, 16, 22, 52, 16, 44, 18, 20].map((width) => ({ width })),
   });
 }
 
@@ -89,7 +91,7 @@ export async function exportPivotXlsx(rows: ExportRow[], fileName: string): Prom
   )];
 
   // Fixed meta columns
-  const metaHeaders = ["Year", "Company", "Company slug", "External ref", "Status", "Submitted at"];
+  const metaHeaders = ["Year", "Survey", "Company", "Company slug", "External ref", "Status", "Submitted at"];
   const allHeaders = [...metaHeaders, ...questionKeys];
 
   const headerRow: Cell[] = allHeaders.map((value) => ({
@@ -100,12 +102,12 @@ export async function exportPivotXlsx(rows: ExportRow[], fileName: string): Prom
     wrap: true,
   }));
 
-  // Group rows by (reporting_year, company_slug)
+  // Group rows by (survey, company) so same-year surveys remain distinct.
   type PivotKey = string;
   const groups = new Map<PivotKey, { meta: ExportRow; answers: Map<string, string> }>();
 
   for (const row of rows) {
-    const key: PivotKey = `${row.reporting_year}||${row.company_slug}`;
+    const key: PivotKey = `${row.survey_version_id}||${row.company_slug}`;
     if (!groups.has(key)) {
       groups.set(key, { meta: row, answers: new Map() });
     }
@@ -114,6 +116,7 @@ export async function exportPivotXlsx(rows: ExportRow[], fileName: string): Prom
 
   const dataRows: Cell[][] = [...groups.values()].map(({ meta, answers }) => [
     { value: meta.reporting_year },
+    { value: meta.survey_name },
     { value: meta.company_name },
     { value: meta.company_slug },
     { value: meta.external_reference ?? "" },
@@ -122,7 +125,7 @@ export async function exportPivotXlsx(rows: ExportRow[], fileName: string): Prom
     ...questionKeys.map((key) => ({ value: answers.get(key) ?? "", wrap: true })),
   ]);
 
-  const metaWidths = [8, 28, 20, 18, 14, 20];
+  const metaWidths = [8, 32, 28, 20, 18, 14, 20];
   const questionWidths = questionKeys.map(() => 36);
 
   await writeXlsx([headerRow, ...dataRows], {

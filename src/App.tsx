@@ -24,7 +24,7 @@ export default function App() {
   if (!supabase) {
     return (
       <main className="grid min-h-[100dvh] place-items-center bg-slate-50 p-6">
-        <section className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <section className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl border border-slate-200 bg-white p-8 text-center">
           <Logo />
           <h1 className="text-xl font-bold text-slate-900">Supabase configuration required</h1>
           <p className="text-sm text-slate-500">Add the project URL and publishable key. Never use a secret key in the frontend.</p>
@@ -40,7 +40,7 @@ export default function App() {
   if (recovery) {
     return (
       <main className="grid min-h-[100dvh] place-items-center bg-slate-50 p-6">
-        <section className="flex w-full max-w-md flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+        <section className="flex w-full max-w-md flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-8">
           <h1 className="text-2xl font-bold text-slate-900">Set a new password</h1>
           <form
             className="flex flex-col gap-5"

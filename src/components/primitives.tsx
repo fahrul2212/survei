@@ -120,10 +120,10 @@ const statusClasses: Record<ReportingStatus, string> = {
 export function StatusBadge({ status, inverse = false }: { status: ReportingStatus; inverse?: boolean }) {
   return (
     <span className={cn(
-      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em]",
-      inverse ? "border-white/60 bg-transparent text-white" : statusClasses[status],
+      "inline-flex w-fit self-start whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em]",
+      inverse ? "border-white bg-white text-[#b81711]" : statusClasses[status],
     )}>
-      <span aria-hidden="true" className={cn("size-1.5 rounded-full", inverse ? "bg-white" : status === "submitted" || status === "published" ? "bg-emerald-500" : status === "reopened" ? "bg-amber-500" : status === "draft" ? "bg-blue-500" : "bg-slate-400")} />
+      <span aria-hidden="true" className={cn("size-1.5 rounded-full", inverse ? "bg-[#d91f17]" : status === "submitted" || status === "published" ? "bg-emerald-500" : status === "reopened" ? "bg-amber-500" : status === "draft" ? "bg-blue-500" : "bg-slate-400")} />
       {statusLabels[status]}
     </span>
   );

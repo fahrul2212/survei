@@ -18,8 +18,10 @@ type MemberRow = {
 
 export function AdminCompanies({
   orgs,
+  versions,
   current,
   currentRows,
+  onCurrentSurveyChange,
   selected,
   busy,
   setBusy,
@@ -27,8 +29,10 @@ export function AdminCompanies({
   load
 }: {
   orgs: Organization[];
+  versions: SurveyVersion[];
   current?: SurveyVersion;
   currentRows: ProgressRow[];
+  onCurrentSurveyChange: (id: number) => void;
   selected: number | null;
   busy: boolean;
   setBusy: (b: boolean) => void;
@@ -223,6 +227,25 @@ export function AdminCompanies({
             )}
           />
 
+          {versions.filter((survey) => survey.status === "published").length > 1 && (
+            <section className="mb-6 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between md:p-5">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Participation survey</p>
+                <p className="mt-1 text-sm text-slate-600">Choose which active survey drives the participation summary.</p>
+              </div>
+              <select
+                className="min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-900 outline-none focus:border-[#d91f17] focus:ring-2 focus:ring-red-100 sm:w-80"
+                value={current?.id ?? ""}
+                onChange={(event) => onCurrentSurveyChange(Number(event.target.value))}
+                aria-label="Participation survey"
+              >
+                {versions.filter((survey) => survey.status === "published").map((survey) => (
+                  <option key={survey.id} value={survey.id}>{survey.reporting_year} · {survey.name}</option>
+                ))}
+              </select>
+            </section>
+          )}
+
           <section className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
             <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 md:p-5">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total registered</span>
@@ -330,11 +353,11 @@ export function AdminCompanies({
                 External reference
                 <input className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-[#d91f17] focus:ring-2 focus:ring-red-100" name="externalReference" placeholder="Optional, e.g. STICA-2026-057" />
               </label>
-              <div className="-mx-6 -mb-6 mt-6 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/50 p-5 md:-mx-8 md:-mb-8">
-                <button type="button" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 transition-all hover:bg-slate-50 hover:text-slate-900" onClick={() => setAddOrgModalOpen(false)} disabled={busy}>
+              <div className="-mx-6 -mb-6 mt-6 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 p-5 md:-mx-8 md:-mb-8">
+                <button type="button" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-50" onClick={() => setAddOrgModalOpen(false)} disabled={busy}>
                   Cancel
                 </button>
-                <button type="submit" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800" disabled={busy} aria-busy={busy}>
+                <button type="submit" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-slate-800" disabled={busy} aria-busy={busy}>
                   {busy ? "Sending invitation…" : <><Send size={16} aria-hidden="true" /> Send invitation</>}
                 </button>
               </div>
@@ -379,9 +402,9 @@ export function AdminCompanies({
                   placeholder="Optional, e.g. STICA-2026-057"
                 />
               </label>
-              <div className="-mx-6 -mb-6 mt-6 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/50 p-5 md:-mx-8 md:-mb-8">
-                <button type="button" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 transition-all hover:bg-slate-50 hover:text-slate-900" onClick={() => setEditingOrg(null)} disabled={busy}>Cancel</button>
-                <button type="submit" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800" disabled={busy} aria-busy={busy}>
+              <div className="-mx-6 -mb-6 mt-6 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 p-5 md:-mx-8 md:-mb-8">
+                <button type="button" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-50" onClick={() => setEditingOrg(null)} disabled={busy}>Cancel</button>
+                <button type="submit" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-slate-800" disabled={busy} aria-busy={busy}>
                   {busy ? "Saving…" : "Save changes"}
                 </button>
               </div>
@@ -431,7 +454,7 @@ export function AdminCompanies({
                               value={m.role}
                               disabled={membersBusy}
                               onChange={(e) => void changeMemberRole(membersModalOrg.id, m.user_id, e.target.value)}
-                              className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                              className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
                             >
                               <option value="member">Member</option>
                               <option value="company_admin">Company admin</option>
@@ -456,10 +479,10 @@ export function AdminCompanies({
               )}
             </div>
 
-            <div className="-mx-6 -mb-6 mt-6 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/50 p-5 md:-mx-8 md:-mb-8">
+            <div className="-mx-6 -mb-6 mt-6 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 p-5 md:-mx-8 md:-mb-8">
               <button
                 type="button"
-                className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 transition-all hover:bg-slate-50 hover:text-slate-900"
+                className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-50"
                 onClick={() => setMembersModalOrg(null)}
               >
                 Close

@@ -1,4 +1,4 @@
-import { ArrowLeft, Eye, EyeOff, Plus, Send, XCircle } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Plus, RotateCcw, Send, XCircle } from "lucide-react";
 import { surveyDisplayTitle, type SurveyVersion } from "../../lib/portal";
 import { Button, PageHeader, StatusBadge } from "../ui";
 
@@ -12,6 +12,7 @@ export function SurveyWorkspaceHeader({
   onAddQuestion,
   onPublish,
   onClose,
+  onReopen,
 }: {
   version: SurveyVersion;
   questionCount: number;
@@ -22,6 +23,7 @@ export function SurveyWorkspaceHeader({
   onAddQuestion: () => void;
   onPublish: () => void;
   onClose: () => void;
+  onReopen: () => void;
 }) {
   const draft = version.status === "draft";
   const empty = questionCount === 0;
@@ -29,7 +31,7 @@ export function SurveyWorkspaceHeader({
   return (
     <>
       <Button icon={ArrowLeft} size="small" variant="ghost" className="mb-5" onClick={onBack}>
-        Reporting years
+        Surveys
       </Button>
       <PageHeader
         compact
@@ -63,12 +65,17 @@ export function SurveyWorkspaceHeader({
                 onClick={onPublish}
                 title={empty ? "Add at least one question before publishing" : undefined}
               >
-                {busy ? "Publishing…" : "Publish year"}
+                {busy ? "Publishing…" : "Publish survey"}
               </Button>
             )}
             {version.status === "published" && (
               <Button icon={XCircle} variant="danger" disabled={busy} onClick={onClose}>
-                {busy ? "Closing…" : "Close year"}
+                {busy ? "Closing…" : "Close survey"}
+              </Button>
+            )}
+            {version.status === "closed" && (
+              <Button icon={RotateCcw} variant="primary" disabled={busy} onClick={onReopen}>
+                {busy ? "Reopening…" : "Reopen survey"}
               </Button>
             )}
           </>

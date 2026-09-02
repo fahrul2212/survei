@@ -80,7 +80,7 @@ export function CompanyPortal({ session }: { session: Session }) {
       setOrg(o as Organization);
 
       const [vr, sr] = await Promise.all([
-        supabase.from("survey_versions").select("*").in("status", ["published", "closed"]).order("reporting_year", { ascending: false }),
+        supabase.from("survey_versions").select("*").in("status", ["published", "closed"]).order("reporting_year", { ascending: false }).order("id", { ascending: false }),
         supabase.from("company_submissions").select("*").eq("organization_id", o.id),
       ]);
       if (vr.error) throw vr.error;
@@ -105,6 +105,7 @@ export function CompanyPortal({ session }: { session: Session }) {
   const visible = useMemo(() => questions.filter((q) => evaluateVisibility(q, questions, answers)), [answers, questions]);
   const answered = visible.filter((q) => isAnswered(answers[q.id])).length;
   const progress = visible.length ? Math.round((answered / visible.length) * 100) : 0;
+  const openSurveys = versions.filter((survey) => survey.status === "published");
   const sections = useMemo(() =>
     Object.values(
       visible.reduce<Record<string, { key: string; title: string; total: number; answered: number }>>((a, q) => {
@@ -118,7 +119,7 @@ export function CompanyPortal({ session }: { session: Session }) {
   [answers, visible]);
 
   async function save(q: SurveyQuestion, v: JsonAnswer) {
-    if (!supabase || !submission || submission.status === "submitted") return;
+    if (!supabase || !submission || submission.status === "submitted" || version?.status !== "published") return;
     const r = await supabase.from("answers").upsert(
       { submission_id: submission.id, survey_question_id: q.id, value: v, provenance: "manual", updated_by: session.user.id },
       { onConflict: "submission_id,survey_question_id" },
@@ -131,7 +132,7 @@ export function CompanyPortal({ session }: { session: Session }) {
   }
 
   async function submit() {
-    if (!supabase || !submission) return;
+    if (!supabase || !submission || version?.status !== "published") return;
     const missing = visible.filter((q) => q.required && !isAnswered(answers[q.id]));
     if (missing.length) return setNotice({ kind: "error", message: `${missing.length} required response(s) are missing.` });
     const r = await supabase.rpc("submit_submission", { target_submission_id: submission.id });
@@ -158,7 +159,7 @@ export function CompanyPortal({ session }: { session: Session }) {
   if (!org) {
     return (
       <main className="grid min-h-[100dvh] place-items-center bg-slate-50 p-6">
-        <section className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <section className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl border border-slate-200 bg-white p-8 text-center">
           <Logo />
           <h1 className="text-xl font-bold text-slate-900">Account awaiting company access</h1>
           <p className="text-slate-500">Ask a STICA administrator to link this account to a participating company.</p>
@@ -170,8 +171,8 @@ export function CompanyPortal({ session }: { session: Session }) {
 
   const navItems: Array<[string, string, string?]> = [
     ["overview", "Overview"],
-    ["report", version ? `${version.reporting_year} report` : "Current report", `${answered}/${visible.length}`],
-    ["history", "Previous years"],
+    ["report", version ? version.name : "Current survey", `${answered}/${visible.length}`],
+    ["history", "Survey archive"],
     ["account", "Account"],
   ];
 
@@ -201,12 +202,12 @@ export function CompanyPortal({ session }: { session: Session }) {
           <PageHeader
             eyebrow="Company climate action programme"
             title={org.name}
-            description={version ? `Your ${version.reporting_year} report is ready for review.` : "No reporting cycle is open."}
+            description={openSurveys.length > 1 ? `${openSurveys.length} surveys are open for reporting.` : version ? `Your ${version.reporting_year} survey is ready for review.` : "No reporting cycle is open."}
             meta={version && submission ? <StatusBadge status={submission.status} /> : undefined}
           />
           <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
             {version?.closes_at && (
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
                 <CalendarDays size={18} className="text-[#d91f17]" aria-hidden="true" />
                 <span className="grid gap-0.5">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Submission deadline</span>
@@ -216,34 +217,62 @@ export function CompanyPortal({ session }: { session: Session }) {
             )}
           </div>
 
+          {openSurveys.length > 1 && (
+            <section className="mb-7 overflow-hidden rounded-xl border border-slate-200 bg-white" aria-labelledby="open-surveys-title">
+              <div className="border-b border-slate-200 bg-slate-50 px-5 py-4 md:px-6">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active reporting</p>
+                <h2 id="open-surveys-title" className="mt-1 text-lg font-bold text-slate-900">Open surveys</h2>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {openSurveys.map((survey) => {
+                  const surveySubmission = submissions.find((item) => item.survey_version_id === survey.id);
+                  return (
+                    <button
+                      key={survey.id}
+                      type="button"
+                      className="grid w-full gap-3 px-5 py-4 text-left transition-colors hover:bg-slate-50 sm:grid-cols-[5rem_minmax(0,1fr)_auto] sm:items-center md:px-6"
+                      onClick={() => void open(survey)}
+                    >
+                      <strong className="tabular-nums text-slate-900">{survey.reporting_year}</strong>
+                      <span className="min-w-0">
+                        <span className="block truncate font-bold text-slate-900">{survey.name}</span>
+                        <small className="mt-0.5 block text-xs text-slate-500">{survey.closes_at ? `Closes ${formatDate(survey.closes_at)}` : "No deadline set"}</small>
+                      </span>
+                      <span className="flex items-center justify-between gap-3 sm:justify-end">
+                        <StatusBadge status={surveySubmission?.status ?? "not_started"} />
+                        <ArrowRight size={16} className="text-slate-500" aria-hidden="true" />
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
           {version && submission ? (
             <>
-              <section className="relative mb-7 grid min-h-[310px] grid-cols-1 overflow-hidden rounded-2xl bg-[#d91f17] text-white shadow-lg md:grid-cols-[1.35fr_0.65fr]">
-                <div className="relative z-10 p-7 md:p-11">
-                  <StatusBadge status={submission.status} inverse />
-                  <h2 className="mb-3 text-3xl font-extrabold tracking-tight md:text-4xl">{version.name}</h2>
-                  <p className="max-w-xl text-white/90">Review the responses carried forward from your last verified report, update anything that changed, then submit when the report is complete.</p>
-                  <button className="mt-6 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-black" onClick={() => setView("report")}>
+              <section className="mb-7 grid min-h-[280px] grid-cols-1 overflow-hidden rounded-xl border border-slate-200 bg-white md:grid-cols-[1.35fr_0.65fr]">
+                <div className="p-7 md:p-10">
+                  <StatusBadge status={submission.status} />
+                  <h2 className="mb-3 mt-5 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">{version.name}</h2>
+                  <p className="max-w-xl leading-6 text-slate-600">Review the responses carried forward from your last verified report, update anything that changed, then submit when the report is complete.</p>
+                  <button className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#d91f17] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#b81711]" onClick={() => setView("report")}>
                     {submission.status === "submitted" ? "View submission" : "Continue reporting"}
                     <ArrowRight size={16} aria-hidden="true" />
                   </button>
                 </div>
-                  <div className="relative z-10 grid place-items-center content-center border-t border-white/15 bg-black/10 p-7 md:border-l md:border-t-0">
-                  <div
-                    className="grid size-[170px] place-items-center rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.15)]" style={{ background: `conic-gradient(white ${progress * 3.6}deg, rgba(255,255,255,0.22) 0)` }}
-                    
-                  >
-                    <div className="flex flex-col items-center justify-center rounded-full bg-[#d81e16] size-[140px]">
-                      <strong className="text-4xl font-extrabold tracking-tight">{progress}%</strong>
-                      <span className="text-xs font-semibold uppercase tracking-wider opacity-90">complete</span>
-                    </div>
+                <div className="flex flex-col justify-center border-t border-slate-200 bg-slate-50 p-7 md:border-l md:border-t-0 md:p-9">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Overall completion</span>
+                  <strong className="mt-2 text-5xl font-extrabold tracking-tight text-slate-900">{progress}%</strong>
+                  <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label="Overall report completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
+                    <div className="h-full rounded-full bg-[#d91f17]" style={{ width: `${progress}%` }} />
                   </div>
-                  <p className="mt-6 text-sm font-semibold opacity-90">{answered} of {visible.length} responses completed</p>
+                  <p className="mt-3 text-sm font-semibold text-slate-600">{answered} of {visible.length} responses completed</p>
                 </div>
               </section>
 
               <section className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_330px]">
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                   <div className="flex items-center justify-between border-b border-slate-200 p-5 md:px-6">
                     <div>
                       <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-slate-500">Reporting sections</p>
@@ -269,20 +298,20 @@ export function CompanyPortal({ session }: { session: Session }) {
                   </div>
                 </div>
 
-                  <aside className="flex flex-col justify-between overflow-hidden rounded-xl border border-emerald-700 bg-emerald-800 p-7 text-white shadow-md">
+                <aside className="flex flex-col justify-between rounded-xl border border-slate-200 border-l-4 border-l-emerald-600 bg-white p-7 text-slate-900">
                   <div>
-                    <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-widest text-white/90">
+                    <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-widest text-emerald-700">
                       Baseline data
                     </span>
-                    <div className="my-2 text-5xl font-extrabold leading-none">
+                    <div className="my-2 text-5xl font-extrabold leading-none text-slate-900">
                       {questions.filter((q) => isAnswered(answers[q.id]) && (answerProvenance[q.id] === "prefilled" || answerProvenance[q.id] === "historical_import")).length}
                     </div>
                     <h3 className="mb-2.5 mt-1.5 text-xl font-bold">responses prefilled</h3>
-                    <p className="text-sm leading-relaxed text-white/95">
+                    <p className="text-sm leading-relaxed text-slate-600">
                       Verified responses from prior reporting cycles are automatically carried forward for your review.
                     </p>
                   </div>
-                  <button className="mt-5 inline-flex w-fit items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-bold text-emerald-800 shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all hover:bg-slate-50" onClick={() => setView("report")}>
+                  <button className="mt-5 inline-flex w-fit items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-50" onClick={() => setView("report")}>
                     Review responses <ArrowRight size={16} aria-hidden="true" />
                   </button>
                 </aside>
@@ -299,9 +328,9 @@ export function CompanyPortal({ session }: { session: Session }) {
       {/* ── History ── */}
       {view === "history" && (
         <PageContainer>
-          <PageHeader eyebrow="Reporting archive" title="Previous years" description="Review and reference historical submissions and validated transition plans." />
-          <div className="grid overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            {versions.map((v) => {
+          <PageHeader eyebrow="Reporting archive" title="Survey archive" description="Review closed surveys and historical submissions without changing their recorded answers." />
+          <div className="grid overflow-hidden rounded-xl border border-slate-200 bg-white">
+            {versions.filter((v) => v.status === "closed").map((v) => {
               const s = submissions.find((x) => x.survey_version_id === v.id);
               return s ? (
                 <article key={v.id} className="flex flex-col items-start gap-4 border-b border-slate-100 p-5 transition-colors hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between md:p-6">
@@ -311,12 +340,12 @@ export function CompanyPortal({ session }: { session: Session }) {
                     <p className="text-sm text-slate-500">{s.submitted_at ? `Submitted ${formatDate(s.submitted_at)}` : `Last saved ${formatDate(s.updated_at)}`}</p>
                   </div>
                   <StatusBadge status={s.status} />
-                  <button className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 transition-all hover:bg-slate-50 hover:text-[#d91f17]" onClick={() => void open(v)}>View report <ArrowRight size={15} aria-hidden="true" /></button>
+                  <button className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-50 hover:text-[#d91f17]" onClick={() => void open(v)}>View report <ArrowRight size={15} aria-hidden="true" /></button>
                 </article>
               ) : null;
             })}
           </div>
-          {versions.every((v) => !submissions.some((s) => s.survey_version_id === v.id)) && (
+          {versions.filter((v) => v.status === "closed").every((v) => !submissions.some((s) => s.survey_version_id === v.id)) && (
             <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50">
               <EmptyState icon={ShieldCheck} title="No previous submissions yet" description="Submitted reports will appear here for reference across reporting years." />
             </div>

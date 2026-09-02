@@ -63,7 +63,7 @@ export function AccountSettings({ session }: { session: Session }) {
       </div>
 
       <section className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <form className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" onSubmit={saveName}>
+        <form className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 sm:p-8" onSubmit={saveName}>
           <h3 className="text-xl font-bold text-slate-900">Display name</h3>
           {nameNotice && (
             <p className={`rounded-lg px-3.5 py-2.5 text-[13px] font-semibold ${nameNotice.kind === "error" ? "border border-red-200 bg-red-50 text-red-700" : "border border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
@@ -86,7 +86,7 @@ export function AccountSettings({ session }: { session: Session }) {
           </Button>
         </form>
 
-        <form className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" onSubmit={changePassword}>
+        <form className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 sm:p-8" onSubmit={changePassword}>
           <h3 className="text-xl font-bold text-slate-900">Change password</h3>
           {pwNotice && (
             <p className={`rounded-lg px-3.5 py-2.5 text-[13px] font-semibold ${pwNotice.kind === "error" ? "border border-red-200 bg-red-50 text-red-700" : "border border-emerald-200 bg-emerald-50 text-emerald-700"}`}>

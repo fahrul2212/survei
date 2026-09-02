@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
   ArrowLeft,
@@ -53,6 +53,7 @@ import { AuditLogView } from "../components/admin/AuditLogView";
 import { CompanyDirectory, type CompanyStatusFilter } from "../components/admin/CompanyDirectory";
 import { SurveyWorkspaceHeader } from "../components/admin/SurveyWorkspaceHeader";
 import { AdminDashboard } from "../components/admin/AdminDashboard";
+import { AdminAnalytics } from "../components/admin/AdminAnalytics";
 import { SurveyBuilder } from "../components/admin/SurveyBuilder";
 import { AdminCompanies } from "../components/admin/AdminCompanies";
 
@@ -123,6 +124,28 @@ async function allExports(filters: { year?: number; company?: string; question?:
   return result;
 }
 
+function errorMessage(error: unknown, fallback: string) {
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+    return error.message;
+  }
+  return fallback;
+}
+
+function retryableAdminLoad(error: unknown) {
+  if (!error || typeof error !== "object") return true;
+  const status = "status" in error ? Number(error.status) : 0;
+  const code = "code" in error ? String(error.code) : "";
+  return (
+    !status ||
+    [401, 403, 408, 425, 429, 500, 502, 503, 504, 520].includes(status) ||
+    ["PGRST000", "PGRST001", "PGRST002", "PGRST003"].includes(code)
+  );
+}
+
+function shortDelay(milliseconds: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
 
 export function AdminPortal({ session }: { session: Session }) {
   // Navigation
@@ -134,11 +157,10 @@ export function AdminPortal({ session }: { session: Session }) {
   const [rows, setRows] = useState<ProgressRow[]>([]);
   const [questions, setQuestions] = useState<SurveyQuestion[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
+  const [monitoringSurveyId, setMonitoringSurveyId] = useState<number | null>(null);
   const [carry, setCarry] = useState<Record<number, string>>({});
 
   // Filters & Search
-  const [dashSearch, setDashSearch] = useState("");
-  const [dashStatusFilter, setDashStatusFilter] = useState<string>("all");
   const [qSearch, setQSearch] = useState("");
   const [qSectionFilter, setQSectionFilter] = useState("");
   // Reopen modal
@@ -158,80 +180,114 @@ export function AdminPortal({ session }: { session: Session }) {
   const [notice, setNotice] = useState<Notice>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const loadRequest = useRef(0);
 
   // ── Loaders ──────────────────────────────────────────────────────────────
 
-  const loadQuestions = useCallback(async (id: number) => {
-    if (!supabase) return;
+  const fetchQuestions = useCallback(async (id: number) => {
+    if (!supabase) return { questions: [] as SurveyQuestion[], carry: {} as Record<number, string> };
     const [a, b] = await Promise.all([
       supabase.from("survey_questions").select(QUESTION_SELECT).eq("survey_version_id", id).order("display_order"),
       supabase.from("question_carry_forward_rules").select("target_survey_question_id,source:question_definitions!inner(stable_key)"),
     ]);
     if (a.error) throw a.error;
     if (b.error) throw b.error;
-    setQuestions((a.data ?? []).map(parseSurveyQuestion));
-    setCarry(
-      Object.fromEntries(
+    return {
+      questions: (a.data ?? []).map(parseSurveyQuestion),
+      carry: Object.fromEntries(
         (b.data ?? []).map((x) => [
           x.target_survey_question_id,
           (Array.isArray(x.source) ? x.source[0] : x.source)?.stable_key ?? "",
         ]),
       ),
-    );
+    };
   }, []);
+
+  const loadQuestions = useCallback(async (id: number) => {
+    const data = await fetchQuestions(id);
+    setQuestions(data.questions);
+    setCarry(data.carry);
+  }, [fetchQuestions]);
 
   const load = useCallback(async (silent = false, preferredId?: number) => {
     if (!supabase) return;
+    const client = supabase;
+    const requestId = ++loadRequest.current;
     if (!silent) setLoading(true);
-    try {
+
+    const fetchSnapshot = async () => {
+      const sessionResult = await client.auth.getSession();
+      if (sessionResult.error) throw sessionResult.error;
+      if (!sessionResult.data.session) {
+        const restored = await client.auth.setSession({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+        });
+        if (restored.error) throw restored.error;
+      }
+
       const [a, b, c] = await Promise.all([
-        supabase.from("survey_versions").select("*").order("reporting_year", { ascending: false }),
-        supabase.from("organizations").select("*").order("name"),
-        supabase.from("admin_submission_progress").select("*").order("reporting_year", { ascending: false }),
+        client.from("survey_versions").select("*").order("reporting_year", { ascending: false }).order("id", { ascending: false }),
+        client.from("organizations").select("*").order("name"),
+        client.from("admin_submission_progress").select("*").order("reporting_year", { ascending: false }),
       ]);
       if (a.error) throw a.error;
       if (b.error) throw b.error;
       if (c.error) throw c.error;
-      const vv = (a.data ?? []) as SurveyVersion[];
-      setVersions(vv);
-      setOrgs((b.data ?? []) as Organization[]);
-      setRows((c.data ?? []) as ProgressRow[]);
-      const id = preferredId ?? vv[0]?.id ?? null;
-      setSelected(id);
-      if (id) await loadQuestions(id);
+
+      const nextVersions = (a.data ?? []) as SurveyVersion[];
+      const nextSelected = preferredId ?? nextVersions[0]?.id ?? null;
+      const questionData = nextSelected
+        ? await fetchQuestions(nextSelected)
+        : { questions: [] as SurveyQuestion[], carry: {} as Record<number, string> };
+
+      return {
+        versions: nextVersions,
+        orgs: (b.data ?? []) as Organization[],
+        rows: (c.data ?? []) as ProgressRow[],
+        selected: nextSelected,
+        ...questionData,
+      };
+    };
+
+    try {
+      let snapshot;
+      try {
+        snapshot = await fetchSnapshot();
+      } catch (firstError) {
+        if (!retryableAdminLoad(firstError)) throw firstError;
+        await shortDelay(250);
+        const refreshed = await client.auth.refreshSession();
+        if (refreshed.error) throw firstError;
+        snapshot = await fetchSnapshot();
+      }
+
+      if (requestId !== loadRequest.current) return;
+      setVersions(snapshot.versions);
+      setOrgs(snapshot.orgs);
+      setRows(snapshot.rows);
+      setSelected(snapshot.selected);
+      setQuestions(snapshot.questions);
+      setCarry(snapshot.carry);
+      if (!silent) setNotice(null);
     } catch (e) {
-      setNotice({ kind: "error", message: e instanceof Error ? e.message : "Unable to load admin data" });
+      if (requestId === loadRequest.current) {
+        setNotice({ kind: "error", message: errorMessage(e, "Unable to load admin data") });
+      }
     } finally {
-      if (!silent) setLoading(false);
+      if (!silent && requestId === loadRequest.current) setLoading(false);
     }
-  }, [loadQuestions]);
+  }, [fetchQuestions, session.access_token, session.refresh_token]);
 
   useEffect(() => { void load(); }, [load]);
 
   // ── Derived state ─────────────────────────────────────────────────────────
 
   const selectedVersion = versions.find((v) => v.id === selected);
-  const current = versions.find((v) => v.status === "published") ?? versions[0];
+  const current = versions.find((v) => v.id === monitoringSurveyId && v.status === "published")
+    ?? versions.find((v) => v.status === "published");
   const currentRows = current ? rows.filter((r) => r.survey_version_id === current.id) : [];
   
-  const filteredDashboardRows = useMemo(() => {
-    return currentRows.filter((r) => {
-      const matchesSearch =
-        !dashSearch ||
-        r.organization_name.toLowerCase().includes(dashSearch.toLowerCase()) ||
-        (r.contact_email && r.contact_email.toLowerCase().includes(dashSearch.toLowerCase()));
-      const matchesStatus =
-        dashStatusFilter === "all" ||
-        (dashStatusFilter === "submitted" && r.status === "submitted") ||
-        (dashStatusFilter === "in_progress" && (r.status === "draft" || r.status === "reopened")) ||
-        (dashStatusFilter === "not_started" && r.status === "not_started");
-      return matchesSearch && matchesStatus;
-    });
-  }, [currentRows, dashSearch, dashStatusFilter]);
-
-  const submitted = currentRows.filter((r) => r.status === "submitted").length;
-  const inProgress = currentRows.filter((r) => r.status === "draft" || r.status === "reopened").length;
-  const notStarted = currentRows.filter((r) => r.status === "not_started").length;
   const years = [...new Set(rows.map((r) => r.reporting_year))].sort((a, b) => b - a);
   const visibleExports = exports.slice(exportPage * EXPORT_PAGE_SIZE, (exportPage + 1) * EXPORT_PAGE_SIZE);
 
@@ -392,7 +448,10 @@ export function AdminPortal({ session }: { session: Session }) {
           versions={versions}
           orgs={orgs}
           rows={rows}
+          currentSurveyId={current?.id ?? null}
+          onCurrentSurveyChange={setMonitoringSurveyId}
           setView={setView}
+          onReopen={setReopenTarget}
         />
       )}
 
@@ -423,8 +482,10 @@ export function AdminPortal({ session }: { session: Session }) {
       {view === "companies" && (
         <AdminCompanies
           orgs={orgs}
+          versions={versions}
           current={current}
           currentRows={currentRows}
+          onCurrentSurveyChange={setMonitoringSurveyId}
           selected={selected}
           busy={busy}
           setBusy={setBusy}
@@ -440,7 +501,7 @@ export function AdminPortal({ session }: { session: Session }) {
 
           <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Import */}
-            <form className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" onSubmit={importHistory}>
+            <form className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 sm:p-8" onSubmit={importHistory}>
               <h3 className="text-xl font-bold text-slate-900">Historical Excel / CSV import</h3>
               <p className="text-sm text-slate-500">
                 Required headers: <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-bold text-slate-600">company_name, company_slug, reporting_year, question_key, answer</code>
@@ -471,20 +532,20 @@ export function AdminPortal({ session }: { session: Session }) {
             </form>
 
             {/* Export */}
-            <div className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <div className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 sm:p-8">
               <h3 className="text-xl font-bold text-slate-900">Flexible export</h3>
               
               <div className="flex rounded-lg border border-slate-200 bg-slate-50 p-1">
                 <button
                   type="button"
-                  className={`flex-1 rounded-md px-3 py-2 text-[13px] font-bold transition-all ${exportFormat === "flat" ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-900"}`}
+                  className={`flex-1 rounded-md border px-3 py-2 text-[13px] font-bold transition-colors ${exportFormat === "flat" ? "border-slate-300 bg-white text-slate-900" : "border-transparent text-slate-500 hover:text-slate-900"}`}
                   onClick={() => setExportFormat("flat")}
                 >
                   Flat / long format
                 </button>
                 <button
                   type="button"
-                  className={`flex-1 rounded-md px-3 py-2 text-[13px] font-bold transition-all ${exportFormat === "pivot" ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-900"}`}
+                  className={`flex-1 rounded-md border px-3 py-2 text-[13px] font-bold transition-colors ${exportFormat === "pivot" ? "border-slate-300 bg-white text-slate-900" : "border-transparent text-slate-500 hover:text-slate-900"}`}
                   onClick={() => setExportFormat("pivot")}
                 >
                   Pivot / matrix format
@@ -549,7 +610,7 @@ export function AdminPortal({ session }: { session: Session }) {
 
           {/* Export preview */}
           {exports.length > 0 && (
-            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
               <div className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="text-lg font-bold text-slate-900">{exports.length} response rows</h3>
                 <div className="flex items-center gap-2">
@@ -579,6 +640,7 @@ export function AdminPortal({ session }: { session: Session }) {
                   <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
                     <tr className="border-b border-slate-200">
                       <th>Year</th>
+                      <th>Survey</th>
                       <th>Company</th>
                       <th>Question ID</th>
                       <th>Question prompt</th>
@@ -589,6 +651,7 @@ export function AdminPortal({ session }: { session: Session }) {
                     {visibleExports.map((r, i) => (
                       <tr key={i} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                         <td className="px-4 py-3 font-bold text-slate-900">{r.reporting_year}</td>
+                        <td className="max-w-64 truncate px-4 py-3" title={r.survey_name}>{r.survey_name}</td>
                         <td className="max-w-52 truncate px-4 py-3" title={r.company_name}>{r.company_name}</td>
                         <td className="px-4 py-3"><code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">{r.question_key}</code></td>
                         <td className="max-w-[28rem] truncate px-4 py-3" title={r.question_prompt}>{r.question_prompt}</td>
@@ -605,80 +668,7 @@ export function AdminPortal({ session }: { session: Session }) {
 
       {/* ══════════════════════════ ANALYTICS ════════════════════════════════ */}
       {view === "analytics" && (
-        <PageContainer>
-          <PageHeader eyebrow="Lightweight analytics" title="Participation trends" description="Track annual submission progress, cohort completion rates, and company reporting trajectories." />
-          <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-              <h3 className="text-lg font-bold text-slate-900">Average completion by year</h3>
-              <div className="mt-6 grid gap-4">
-                {years.map((y) => {
-                  const rr = rows.filter((r) => r.reporting_year === y);
-                  const avg = rr.length ? Math.round(rr.reduce((s, r) => s + r.completion_percent, 0) / rr.length) : 0;
-                  return (
-                    <div key={y} className="grid grid-cols-[3.5rem_minmax(0,1fr)_3.5rem] items-center gap-3 text-sm">
-                      <span className="font-semibold text-slate-500">{y}</span>
-                      <div className="h-2 overflow-hidden rounded-full bg-slate-100"><i className="block h-full rounded-full bg-[#d91f17]" style={{ width: `${avg}%` }} /></div>
-                      <strong className="text-right tabular-nums text-slate-900">{avg}%</strong>
-                    </div>
-                  );
-                })}
-              </div>
-            </article>
-
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
-              <h3 className="text-lg font-bold text-slate-900">Current status distribution</h3>
-              <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row sm:justify-center">
-                <div
-                  className="grid size-40 shrink-0 place-items-center rounded-full"
-                  style={{
-                    background: `conic-gradient(#059669 0deg ${(currentRows.length ? submitted / currentRows.length : 0) * 360}deg, #2563eb ${(currentRows.length ? submitted / currentRows.length : 0) * 360}deg ${(currentRows.length ? (submitted + inProgress) / currentRows.length : 0) * 360}deg, #e2e8f0 ${(currentRows.length ? (submitted + inProgress) / currentRows.length : 0) * 360}deg 360deg)`,
-                  } as React.CSSProperties}
-                >
-                  <span className="grid size-28 place-items-center rounded-full bg-white text-center text-xs font-semibold text-slate-500 shadow-inner">
-                    <strong className="block text-2xl font-extrabold text-slate-900">{currentRows.length}</strong>
-                    companies
-                  </span>
-                </div>
-                <ul className="grid w-full max-w-56 gap-3 text-sm">
-                  <li className="flex items-center justify-between gap-4"><span className="flex items-center gap-2"><i className="size-2 rounded-full bg-emerald-500" />Submitted</span><strong>{submitted}</strong></li>
-                  <li className="flex items-center justify-between gap-4"><span className="flex items-center gap-2"><i className="size-2 rounded-full bg-blue-500" />In progress</span><strong>{inProgress}</strong></li>
-                  <li className="flex items-center justify-between gap-4"><span className="flex items-center gap-2"><i className="size-2 rounded-full bg-slate-300" />Not started</span><strong>{currentRows.length - submitted - inProgress}</strong></li>
-                </ul>
-              </div>
-            </article>
-
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:col-span-2 md:p-6">
-              <div className="flex flex-col gap-2 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">Company reporting trajectory</h3>
-                  <p className="mt-1 text-sm text-slate-500">Annual reporting completion timeline across participating brands</p>
-                </div>
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{orgs.filter((o) => o.is_active).length} active companies</span>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {orgs.filter((o) => o.is_active).map((o) => (
-                  <article className="grid gap-4 py-5 md:grid-cols-[minmax(12rem,0.7fr)_minmax(0,1.3fr)] md:items-center" key={o.id}>
-                    <div className="min-w-0">
-                      <strong className="block truncate text-sm font-bold text-slate-900" title={o.name}>{o.name}</strong>
-                      <span className="text-xs text-slate-500">Completion history</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-                      {years.map((y) => {
-                        const completion = rows.find((r) => r.organization_id === o.id && r.reporting_year === y)?.completion_percent ?? 0;
-                        return (
-                          <div key={y} className="grid gap-1">
-                            <div className="flex justify-between gap-2 text-[11px] font-semibold text-slate-500"><span>{y}</span><strong className="text-slate-900">{completion}%</strong></div>
-                            <i className="block h-1.5 overflow-hidden rounded-full bg-slate-100" aria-hidden="true"><b className="block h-full rounded-full bg-[#d91f17]" style={{ width: `${completion}%` }} /></i>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </article>
-          </section>
-        </PageContainer>
+        <AdminAnalytics organizations={orgs} rows={rows} currentRows={currentRows} />
       )}
 
       {/* ══════════════════════════ AUDIT LOG ════════════════════════════════ */}

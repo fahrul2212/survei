@@ -83,7 +83,7 @@ export function CompanyDirectory({
         />
       ) : (
         <div className="text-sm text-slate-600" role="table" aria-label="Company directory">
-          <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_7rem_17rem] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 lg:grid" role="row">
+          <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_7rem_17rem] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 xl:grid" role="row">
             <span role="columnheader">Company</span>
             <span role="columnheader">Contact &amp; reference</span>
             <span role="columnheader">Status</span>
@@ -93,11 +93,11 @@ export function CompanyDirectory({
             {organizations.map((org) => (
               <article
                 key={org.id}
-                className="grid min-w-0 gap-5 p-4 transition-colors hover:bg-slate-50 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_7rem_17rem] lg:items-center lg:gap-4 lg:px-5 lg:py-4"
+                className="grid min-w-0 gap-5 p-4 transition-colors hover:bg-slate-50 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_7rem_17rem] xl:items-center xl:gap-4 xl:px-5 xl:py-4"
                 role="row"
               >
                   <div className="min-w-0" role="cell">
-                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 lg:hidden">Company</span>
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Company</span>
                     <div className="flex min-w-0 items-center gap-3">
                       <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
                         {org.name.slice(0, 2).toUpperCase()}
@@ -109,14 +109,14 @@ export function CompanyDirectory({
                     </div>
                   </div>
                   <div className="min-w-0" role="cell">
-                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 lg:hidden">Contact &amp; reference</span>
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Contact &amp; reference</span>
                     <div className="grid min-w-0 gap-0.5">
                       <TruncatedText className="font-medium text-slate-900" children={org.contact_email ?? "No contact email"} />
                       <TruncatedText className="text-xs text-slate-500" children={org.external_reference ? `Ref: ${org.external_reference}` : "No external reference"} />
                     </div>
                   </div>
                   <div className="min-w-0" role="cell">
-                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 lg:hidden">Status</span>
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Status</span>
                     <span className={`inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${
                       org.is_active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
                     }`}>
@@ -124,8 +124,8 @@ export function CompanyDirectory({
                     </span>
                   </div>
                   <div className="min-w-0 border-t border-slate-100 pt-4 sm:border-0 sm:pt-0" role="cell">
-                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 lg:hidden">Actions</span>
-                    <div className="flex flex-wrap items-center gap-1.5 lg:flex-nowrap">
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Actions</span>
+                    <div className="flex flex-wrap items-center gap-1.5 xl:flex-nowrap">
                       <Button icon={Pencil} size="small" variant="ghost" onClick={() => onEdit(org)} title="Edit company details">
                         Edit
                       </Button>

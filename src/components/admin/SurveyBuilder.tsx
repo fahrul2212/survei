@@ -43,6 +43,11 @@ const EMPTY_Q: QForm = {
 
 const Q_PAGE_SIZE = 12;
 
+function actionError(error: unknown, fallback: string) {
+  if (error && typeof error === "object" && "message" in error) return String(error.message);
+  return fallback;
+}
+
 export function SurveyBuilder({
   versions,
   questions,
@@ -110,8 +115,8 @@ export function SurveyBuilder({
 // ── Survey builder actions ────────────────────────────────────────────────
 
   function beginCreateYear() {
-    const next = Math.max(new Date().getFullYear(), ...versions.map((v) => v.reporting_year)) + 1;
-    setYearDraft({ year: String(next), name: `Climate Transition Plan Annual Report ${next}` });
+    const year = Math.max(new Date().getFullYear(), ...versions.map((v) => v.reporting_year));
+    setYearDraft({ year: String(year), name: `Climate Transition Plan Annual Report ${year}` });
     setNotice(null);
     setSurveyView("create-year");
   }
@@ -156,9 +161,15 @@ export function SurveyBuilder({
       setQuestionPage(0);
       await load(true, Number(r.data));
       setSurveyView("workspace");
-      setNotice({ kind: "success", message: `Draft ${yearDraft.year} created. You can now add or review questions.` });
+      setNotice({ kind: "success", message: `Draft survey for ${yearDraft.year} created. You can now add or review questions.` });
     } catch (e) {
-      setNotice({ kind: "error", message: e instanceof Error ? e.message : "Unable to create reporting year" });
+      const duplicate = e && typeof e === "object" && "code" in e && e.code === "23505";
+      setNotice({
+        kind: "error",
+        message: duplicate
+          ? `A survey named “${yearDraft.name}” already exists for ${yearDraft.year}. Use a different survey name.`
+          : actionError(e, "Unable to create survey"),
+      });
     } finally {
       setBusy(false);
     }
@@ -278,9 +289,25 @@ export function SurveyBuilder({
       const r = await supabase.rpc("close_survey_year", { target_survey_version_id: selectedVersion.id });
       if (r.error) throw r.error;
       await load(true, selected ?? undefined);
-      setNotice({ kind: "success", message: "Reporting year closed." });
+      setNotice({ kind: "success", message: "Survey closed. It remains available in the archive." });
     } catch (e) {
-      setNotice({ kind: "error", message: e instanceof Error ? e.message : "Unable to close year" });
+      setNotice({ kind: "error", message: e instanceof Error ? e.message : "Unable to close survey" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function reopenYear() {
+    if (!supabase || !selectedVersion || selectedVersion.status !== "closed") return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const r = await supabase.rpc("reopen_survey_version", { target_survey_version_id: selectedVersion.id });
+      if (r.error) throw r.error;
+      await load(true, selectedVersion.id);
+      setNotice({ kind: "success", message: "Survey reopened. Companies can access it again." });
+    } catch (e) {
+      setNotice({ kind: "error", message: actionError(e, "Unable to reopen survey") });
     } finally {
       setBusy(false);
     }
@@ -296,20 +323,20 @@ export function SurveyBuilder({
               <PageHeader
                 eyebrow="Survey management"
                 title="Survey builder"
-                description="Manage annual question sets, carry-forward mappings, and publishing status."
+                description="Manage survey cycles, carry-forward mappings, and publishing status. Multiple surveys can share the same reporting year."
                 actions={(
                   <Button icon={Plus} variant="primary" onClick={beginCreateYear}>
-                    New reporting year
+                    New survey
                   </Button>
                 )}
               />
               <section className="overflow-hidden rounded-xl border border-slate-300 bg-white">
                 <div className="flex flex-col gap-2 border-b border-slate-200 bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between md:p-6">
                   <div>
-                    <p className="mb-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">Reporting cycles</p>
-                    <h3 className="text-lg font-bold text-slate-900">{versions.length} reporting years</h3>
+                    <p className="mb-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">Survey cycles</p>
+                    <h3 className="text-lg font-bold text-slate-900">{versions.length} {versions.length === 1 ? "survey" : "surveys"}</h3>
                   </div>
-                  <span className="text-sm text-slate-600">Choose a year to open its workspace</span>
+                  <span className="text-sm text-slate-600">Choose a survey to open its workspace</span>
                 </div>
                 <div className="flex flex-col divide-y divide-slate-100">
                   {versions.map((v) => (
@@ -343,19 +370,19 @@ export function SurveyBuilder({
           {surveyView === "create-year" && (
             <>
               <button className="mb-4 inline-flex w-fit items-center text-sm font-semibold text-slate-500 hover:text-slate-900" onClick={() => setSurveyView("overview")}>
-                <ArrowLeft size={16} className="mr-1.5" /> Back to reporting years
+                <ArrowLeft size={16} className="mr-1.5" /> Back to surveys
               </button>
               <div className="mb-10 flex flex-col items-start gap-3">
                 <div>
-                  <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#d91f17]">New reporting cycle</p>
-                  <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Create reporting year</h1>
-                  <p className="mt-2 text-slate-500">Start empty or clone an existing year. You can review every question before publishing.</p>
+                  <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#d91f17]">New survey cycle</p>
+                  <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Create survey</h1>
+                  <p className="mt-2 text-slate-500">Choose its reporting year, then start empty or clone an existing survey. A year can contain more than one survey.</p>
                 </div>
               </div>
-              <form className="flex flex-col gap-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" onSubmit={createYear}>
+              <form className="flex flex-col gap-6 rounded-xl border border-slate-200 bg-white p-6 sm:p-8" onSubmit={createYear}>
                 <div className="flex flex-col gap-1 rounded-xl border border-blue-200 bg-blue-50 p-4" role="note">
                   <strong className="text-[13px] font-bold uppercase tracking-wider text-blue-700">Draft first, publish when ready</strong>
-                  <span className="text-[15px] font-medium text-blue-900">Creating a year creates an editable draft. It will not be visible to companies until you publish it.</span>
+                  <span className="text-[15px] font-medium text-blue-900">A new survey starts as an editable draft. It will not be visible to companies until you publish it.</span>
                 </div>
                 
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -385,7 +412,7 @@ export function SurveyBuilder({
                 </div>
                 
                 <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Clone from existing year
+                  Clone from existing survey
                   <select name="clone" className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10">
                     <option value="">Start empty</option>
                     {versions.map((v) => (
@@ -422,21 +449,22 @@ export function SurveyBuilder({
                 }}
                 onPublish={() => void publishYear()}
                 onClose={() => void closeYear()}
+                onReopen={() => void reopenYear()}
               />
 
               {selectedVersion.status !== "draft" && (
                 <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-100 p-4 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between" role="note">
                   <div className="min-w-0">
-                    <strong className="block font-bold text-slate-900">This reporting year is {selectedVersion.status === "published" ? "published (active)." : "closed (archived)."}</strong>
+                    <strong className="block font-bold text-slate-900">This survey is {selectedVersion.status === "published" ? "published (active)." : "closed (archived)."}</strong>
                     <span className="mt-1 block leading-6 text-slate-600">
                       {selectedVersion.status === "published"
-                        ? "Published questions are locked to preserve stable IDs and longitudinal integrity. To modify question structure, create a new draft year."
-                        : "Closed reporting years are preserved for historical reporting and audit."}
+                        ? "Published questions are locked to preserve stable IDs and longitudinal integrity. To modify the structure, create another draft survey."
+                        : "Closed surveys remain preserved for historical reporting and audit. Reopening keeps all responses and snapshots intact."}
                     </span>
                   </div>
                   {selectedVersion.status === "published" && (
-                    <button type="button" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 transition-all hover:bg-slate-50 hover:text-slate-900" onClick={beginCreateYear}>
-                      Create new draft year
+                    <button type="button" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-50" onClick={beginCreateYear}>
+                      Create another survey
                     </button>
                   )}
                 </div>
@@ -584,7 +612,7 @@ export function SurveyBuilder({
           {surveyView === "question" && selectedVersion && (
             <>
               <button
-                className="mb-5 inline-flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900"
+                className="mb-5 inline-flex w-fit items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900"
                 onClick={() => { setForm(EMPTY_Q); setSurveyView("workspace"); }}
               >
                 Back to {selectedVersion.reporting_year} questions
@@ -596,7 +624,7 @@ export function SurveyBuilder({
                   <p className="mt-2 max-w-2xl text-[0.95rem] leading-6 text-slate-600">Reporting year {selectedVersion.reporting_year}. Persistent IDs keep historical answers mapped across years.</p>
                 </div>
               </div>
-              <form className="flex flex-col gap-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" onSubmit={saveQ}>
+              <form className="flex flex-col gap-6 rounded-xl border border-slate-200 bg-white p-6 sm:p-8" onSubmit={saveQ}>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                     Persistent ID
@@ -790,9 +818,9 @@ export function SurveyBuilder({
               <code>{pendingDelete.stableKey}</code>
               <strong>{pendingDelete.prompt}</strong>
             </div>
-            <div className="-mx-6 -mb-6 mt-6 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/50 p-5 md:-mx-8 md:-mb-8">
-              <button type="button" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 transition-all hover:bg-slate-50 hover:text-slate-900" onClick={() => setPendingDelete(null)} disabled={busy}>Cancel</button>
-              <button type="button" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-[#d91f17] px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#b01710]" onClick={() => void remove(pendingDelete)} disabled={busy} aria-busy={busy}>
+            <div className="-mx-6 -mb-6 mt-6 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 p-5 md:-mx-8 md:-mb-8">
+              <button type="button" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-50" onClick={() => setPendingDelete(null)} disabled={busy}>Cancel</button>
+              <button type="button" className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-[#d91f17] px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[#b01710]" onClick={() => void remove(pendingDelete)} disabled={busy} aria-busy={busy}>
                 {busy ? "Deleting…" : "Delete question"}
               </button>
             </div>
