@@ -635,15 +635,26 @@ code {
   left: 0;
   width: 280px;
   max-width: 85vw;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh;
   z-index: 50;
   transform: translateX(-100%);
   transition: transform var(--transition-smooth);
   box-shadow: var(--shadow-xl);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar--drawer.drawer--open {
   transform: translateX(0);
+}
+
+@media (min-width: 1025px) {
+  .sidebar--drawer,
+  .drawer-backdrop {
+    display: none !important;
+  }
 }
 
 /* Backdrop for drawer */
@@ -3043,47 +3054,6 @@ code {
   }
   .login-panel {
     padding: 28px 16px 48px;
-  }
-  .app-shell {
-    display: block;
-  }
-  .sidebar {
-    position: relative;
-    width: 100%;
-    height: auto;
-    padding: 16px 18px 12px;
-  }
-  .sidebar-role {
-    display: none;
-  }
-  .sidebar-bottom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 12px;
-    padding-top: 10px;
-  }
-  .sidebar nav {
-    grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
-    gap: 6px;
-    margin-top: 14px;
-  }
-  .sidebar nav button {
-    min-height: 40px;
-    padding: 0 8px;
-    font-size: 12px;
-    justify-content: center;
-    text-align: center;
-  }
-  .sidebar nav button small {
-    display: none;
-  }
-  .topbar {
-    padding: 0 16px;
-    min-height: 60px;
-  }
-  .topbar > div:first-child {
-    display: none;
   }
   .page {
     padding: 24px 16px 60px;
