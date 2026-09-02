@@ -14,7 +14,7 @@ import {
   type SurveyQuestion,
   type SurveyVersion,
 } from "../lib/portal";
-import { Loading, NoticeBar, Shell, type Notice, Logo } from "../components/ui";
+import { Loading, NoticeBar, Shell, type Notice, Logo, Button } from "../components/ui";
 import { AccountSettings } from "./AccountSettings";
 import { Report } from "./Report";
 
@@ -150,12 +150,12 @@ export function CompanyPortal({ session }: { session: Session }) {
 
   if (!org) {
     return (
-      <main className="centered-shell">
-        <section className="setup-card">
+      <main className="grid min-h-[100dvh] place-items-center bg-slate-50 p-6">
+        <section className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <Logo />
-          <h1>Account awaiting company access</h1>
-          <p>Ask a STICA administrator to link this account to a participating company.</p>
-          <button className="button button--secondary" onClick={() => void supabase?.auth.signOut()}>Sign out</button>
+          <h1 className="text-xl font-bold text-slate-900">Account awaiting company access</h1>
+          <p className="text-slate-500">Ask a STICA administrator to link this account to a participating company.</p>
+          <Button variant="secondary" onClick={() => void supabase?.auth.signOut()}>Sign out</Button>
         </section>
       </main>
     );
@@ -189,9 +189,9 @@ export function CompanyPortal({ session }: { session: Session }) {
       {/* ── Overview ── */}
       {view === "overview" && (
         <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
-          <div className="page-intro">
+          <div className="mb-7 flex flex-wrap items-end justify-between gap-6">
             <div>
-              <p className="eyebrow eyebrow--red">Company climate action programme</p>
+              <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#d91f17]">Company climate action programme</p>
               <h1>{org.name}</h1>
               <p>
                 {version
@@ -200,7 +200,7 @@ export function CompanyPortal({ session }: { session: Session }) {
               </p>
             </div>
             {version?.closes_at && (
-              <div className="deadline">
+              <div className="grid min-w-[200px] gap-1 rounded-lg border border-slate-200 border-l-4 border-l-[#d91f17] bg-white p-3 px-4 shadow-sm">
                 <span>Submission deadline</span>
                 <strong>{formatDate(version.closes_at)}</strong>
               </div>
@@ -209,82 +209,82 @@ export function CompanyPortal({ session }: { session: Session }) {
 
           {version && submission ? (
             <>
-              <section className="hero-report">
-                <div className="hero-copy">
-                  <span className={`status-badge ${submission.status === "submitted" ? "status-badge--done" : ""}`}>
+              <section className="relative mb-7 grid min-h-[310px] grid-cols-1 overflow-hidden rounded-2xl bg-gradient-to-br from-[#c01810] via-[#e32219] to-[#9a100a] text-white shadow-lg md:grid-cols-[1.35fr_0.65fr]">
+                <div className="relative z-10 p-7 md:p-11">
+                  <span className={`mb-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest ${submission.status === "submitted" ? "border-white bg-white text-emerald-600" : "border-white/40 bg-black/15"}`}>
                     ● {submission.status.replace("_", " ")}
                   </span>
-                  <h2>{version.name}</h2>
+                  <h2 className="mb-3 text-3xl font-extrabold tracking-tight md:text-4xl">{version.name}</h2>
                   <p>Approved persistent question mappings preserve reliable prior-year responses for review.</p>
-                  <button className="button button--ink" onClick={() => setView("report")}>
+                  <button className="mt-6 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-black hover:shadow-md" onClick={() => setView("report")}>
                     {submission.status === "submitted" ? "View submission" : "Continue reporting"}
                     <ArrowRight size={16} aria-hidden="true" />
                   </button>
                 </div>
-                <div className="progress-art">
+                <div className="relative z-10 grid place-items-center content-center bg-black/10 p-7">
                   <div
-                    className="progress-ring"
-                    style={{ "--progress": `${progress * 3.6}deg` } as React.CSSProperties}
+                    className="grid size-[170px] place-items-center rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.15)]" style={{ background: `conic-gradient(white ${progress * 3.6}deg, rgba(255,255,255,0.22) 0)` }}
+                    
                   >
-                    <div>
-                      <strong>{progress}%</strong>
-                      <span>complete</span>
+                    <div className="flex flex-col items-center justify-center rounded-full bg-[#d81e16] size-[140px]">
+                      <strong className="text-4xl font-extrabold tracking-tight">{progress}%</strong>
+                      <span className="text-xs font-semibold uppercase tracking-wider opacity-90">complete</span>
                     </div>
                   </div>
-                  <p>{answered} of {visible.length} responses completed</p>
+                  <p className="mt-6 text-sm font-semibold opacity-90">{answered} of {visible.length} responses completed</p>
                 </div>
               </section>
 
-              <section className="overview-grid">
-                <div className="section-card">
-                  <div className="section-card__head">
+              <section className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_330px]">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                  <div className="flex items-center justify-between border-b border-slate-200 p-5 md:px-6">
                     <div>
-                      <p className="eyebrow">Reporting sections</p>
-                      <h3>Section progress</h3>
+                      <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-slate-500">Reporting sections</p>
+                      <h3 className="text-lg font-bold text-slate-900">Section progress</h3>
                     </div>
-                    <span>{sections.length} sections</span>
+                    <span className="text-sm font-semibold text-slate-500">{sections.length} sections</span>
                   </div>
-                  <div className="section-list">
+                  <div className="grid grid-cols-1 sm:grid-cols-2">
                     {sections.map((s) => (
-                      <button key={s.key} onClick={() => setView("report")}>
-                        <span className="section-check">
+                      <button key={s.key} className="flex w-full flex-wrap items-center justify-between border-b border-r border-slate-100 p-5 text-left transition-colors hover:bg-slate-50" onClick={() => setView("report")}>
+                        <span className="grid size-9 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
                           {s.answered === s.total ? <Check size={16} aria-label="Complete" /> : `${Math.round((s.answered / s.total) * 100)}%`}
                         </span>
-                        <span>
-                          <strong>{s.title}</strong>
-                          <small>{s.answered} of {s.total} answered</small>
+                        <span className="flex flex-1 flex-col pl-4">
+                          <strong className="truncate text-sm font-bold text-slate-900">{s.title}</strong>
+                          <small className="text-xs font-semibold text-slate-500">{s.answered} of {s.total} answered</small>
                         </span>
-                        <span className="mini-progress">
-                          <i style={{ width: `${(s.answered / s.total) * 100}%` }} />
+                        <span className="col-start-2 mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-100">
+                          <i className="block h-full bg-[#d91f17] transition-all" style={{ width: `${(s.answered / s.total) * 100}%` }} />
                         </span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <aside className="info-card">
+                <aside className="flex flex-col justify-between overflow-hidden rounded-xl border border-emerald-700 bg-gradient-to-br from-emerald-800 via-emerald-700 to-emerald-600 p-7 text-white shadow-md">
                   <div>
-                    <span className="eyebrow info-card__eyebrow">
+                    <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-widest text-white/90">
                       Baseline data
                     </span>
-                    <div className="info-card__number">
+                    <div className="my-2 text-5xl font-extrabold leading-none">
                       {questions.filter((q) => q.carryForwardEnabled && isAnswered(answers[q.id])).length}
                     </div>
-                    <h3 className="info-card__title">responses prefilled</h3>
-                    <p className="info-card__copy">
+                    <h3 className="mb-2.5 mt-1.5 text-xl font-bold">responses prefilled</h3>
+                    <p className="text-sm leading-relaxed text-white/95">
                       Verified responses from prior reporting cycles are automatically carried forward for your review.
                     </p>
                   </div>
-                  <button className="button info-card__action" onClick={() => setView("report")}>
+                  <button className="mt-5 inline-flex w-fit items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-bold text-emerald-800 shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all hover:bg-slate-50" onClick={() => setView("report")}>
                     Review responses <ArrowRight size={16} aria-hidden="true" />
                   </button>
                 </aside>
               </section>
             </>
           ) : (
-            <div className="empty-state">
-              <h2>No published survey</h2>
-              <p>A new reporting cycle has not been opened yet.</p>
+            <div className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+              <h2 className="mb-2 text-xl font-bold text-slate-900">No published survey</h2>
+              <p className="text-slate-500">A new reporting cycle has not been opened yet.</p>
             </div>
           )}
         </div>
@@ -293,25 +293,25 @@ export function CompanyPortal({ session }: { session: Session }) {
       {/* ── History ── */}
       {view === "history" && (
         <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
-          <div className="page-intro">
+          <div className="mb-7 flex flex-wrap items-end justify-between gap-6">
             <div>
-              <p className="eyebrow eyebrow--red">Reporting archive</p>
+              <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#d91f17]">Reporting archive</p>
               <h1>Previous years</h1>
               <p>Review and reference historical submissions and validated transition plans.</p>
             </div>
           </div>
-          <div className="history-list">
+          <div className="grid overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             {versions.map((v) => {
               const s = submissions.find((x) => x.survey_version_id === v.id);
               return s ? (
-                <article key={v.id}>
-                  <span>{v.reporting_year}</span>
-                  <div>
-                    <h3>{v.name}</h3>
-                    <p>{s.submitted_at ? `Submitted ${formatDate(s.submitted_at)}` : `Last saved ${formatDate(s.updated_at)}`}</p>
+                <article key={v.id} className="flex flex-col items-start gap-4 border-b border-slate-100 p-5 transition-colors hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between md:p-6">
+                  <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold text-slate-700">{v.reporting_year}</span>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-slate-900">{v.name}</h3>
+                    <p className="text-sm text-slate-500">{s.submitted_at ? `Submitted ${formatDate(s.submitted_at)}` : `Last saved ${formatDate(s.updated_at)}`}</p>
                   </div>
-                  <strong>● {s.status}</strong>
-                  <button onClick={() => void open(v)}>View report <ArrowRight size={15} aria-hidden="true" /></button>
+                  <strong className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${s.status === "submitted" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>● {s.status}</strong>
+                  <button className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 transition-all hover:bg-slate-50 hover:text-[#d91f17]" onClick={() => void open(v)}>View report <ArrowRight size={15} aria-hidden="true" /></button>
                 </article>
               ) : null;
             })}

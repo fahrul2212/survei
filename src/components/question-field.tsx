@@ -10,23 +10,30 @@ export function QuestionField({ question, value, disabled, change, save }: {
 }) {
   const commitNumber = (raw: string) => raw ? Number(raw) : "";
 
+  const inputClasses = "w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10 disabled:cursor-not-allowed disabled:opacity-60";
+
   if (question.type === "yes_no") {
     return (
-      <div className="choice-row">
+      <div className="flex gap-3 sm:max-w-[320px]">
         {["Yes", "No"].map((option) => {
           const Icon = option === "Yes" ? Check : X;
+          const isSelected = value === option;
           return (
             <button
               key={option}
               type="button"
               disabled={disabled}
-              className={value === option ? "selected" : ""}
+              className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-lg border-2 font-semibold transition-all ${
+                isSelected
+                  ? "border-[#d91f17] bg-red-50 text-[#d91f17]"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+              } disabled:cursor-not-allowed disabled:opacity-50`}
               onClick={() => {
                 change(option);
                 save(option);
               }}
             >
-              <Icon size={17} aria-hidden="true" />
+              <Icon size={18} aria-hidden="true" />
               {option}
             </button>
           );
@@ -44,6 +51,7 @@ export function QuestionField({ question, value, disabled, change, save }: {
           change(event.target.value);
           save(event.target.value);
         }}
+        className={inputClasses}
       >
         <option value="">Select an option…</option>
         {question.options.map((option) => <option key={option} value={option}>{option}</option>)}
@@ -54,24 +62,37 @@ export function QuestionField({ question, value, disabled, change, save }: {
   if (question.type === "multiple_choice") {
     const values = Array.isArray(value) ? value : [];
     return (
-      <div className="checkbox-grid">
-        {question.options.map((option) => (
-          <label key={option} className={values.includes(option) ? "checked" : ""}>
-            <input
-              type="checkbox"
-              disabled={disabled}
-              checked={values.includes(option)}
-              onChange={() => {
-                const next = values.includes(option)
-                  ? values.filter((item) => item !== option)
-                  : [...values, option];
-                change(next);
-                save(next);
-              }}
-            />
-            <span>{option}</span>
-          </label>
-        ))}
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        {question.options.map((option) => {
+          const isChecked = values.includes(option);
+          return (
+            <label
+              key={option}
+              className={`flex cursor-pointer items-start gap-3 rounded-lg border-2 p-3.5 transition-all ${
+                isChecked
+                  ? "border-[#d91f17] bg-red-50"
+                  : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+              } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
+            >
+              <input
+                type="checkbox"
+                disabled={disabled}
+                checked={isChecked}
+                className="mt-0.5 size-4 shrink-0 rounded border-slate-300 text-[#d91f17] focus:ring-[#d91f17]/20 disabled:cursor-not-allowed"
+                onChange={() => {
+                  const next = isChecked
+                    ? values.filter((item) => item !== option)
+                    : [...values, option];
+                  change(next);
+                  save(next);
+                }}
+              />
+              <span className={`text-[15px] font-medium leading-tight ${isChecked ? "text-[#d91f17]" : "text-slate-700"}`}>
+                {option}
+              </span>
+            </label>
+          );
+        })}
       </div>
     );
   }
@@ -85,6 +106,7 @@ export function QuestionField({ question, value, disabled, change, save }: {
         value={valueAsText(value)}
         onChange={(event) => change(event.target.value)}
         onBlur={(event) => save(event.target.value)}
+        className={`${inputClasses} resize-y leading-relaxed`}
       />
     );
   }
@@ -98,6 +120,7 @@ export function QuestionField({ question, value, disabled, change, save }: {
       value={valueAsText(value)}
       onChange={(event) => change(type === "number" ? commitNumber(event.target.value) : event.target.value)}
       onBlur={(event) => save(type === "number" ? commitNumber(event.target.value) : event.target.value)}
+      className={inputClasses}
     />
   );
 }
