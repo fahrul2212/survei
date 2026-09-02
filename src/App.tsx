@@ -151,27 +151,36 @@ function Login() {
   }
 
   return (
-    <main className="login-shell">
-      <section className="login-story">
+    <main className="grid min-h-[100dvh] grid-cols-1 md:grid-cols-2">
+      <section className="relative flex flex-col justify-between overflow-hidden bg-slate-900 p-8 text-white md:p-12 lg:p-16">
         <Logo inverse />
-        <div className="story-copy">
-          <h1>Annual climate reporting.</h1>
-          <p>Submit your Climate Transition Plan securely — pre-filled from last year's verified data.</p>
+        <div className="z-10 py-12">
+          <h1 className="mb-4 text-4xl font-extrabold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">Annual climate reporting.</h1>
+          <p className="max-w-md text-lg leading-relaxed text-slate-300">Submit your Climate Transition Plan securely — pre-filled from last year's verified data.</p>
         </div>
-        <div className="orbit"><span /><span /><span /></div>
-        <p className="story-footer">The Scandinavian Textile Initiative for Climate Action</p>
+        
+        {/* Abstract animated orbit decoration */}
+        <div className="absolute right-[-10%] top-[10%] h-[600px] w-[600px] opacity-20 pointer-events-none">
+          <span className="absolute inset-0 rounded-full border border-white/20" />
+          <span className="absolute inset-4 rounded-full border border-white/30" />
+          <span className="absolute inset-8 rounded-full border border-white/40" />
+        </div>
+        
+        <p className="z-10 text-xs font-semibold uppercase tracking-wider text-slate-400">The Scandinavian Textile Initiative for Climate Action</p>
       </section>
-      <section className="login-panel">
-        <div className="login-card">
-          <p className="eyebrow eyebrow--red">Secure reporting portal</p>
-          <h2>{reset ? "Reset password" : "Welcome back"}</h2>
-          <p className="muted">
+      
+      <section className="flex items-center justify-center bg-slate-50 p-6 md:p-12">
+        <div className="w-full max-w-[420px]">
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#d91f17]">Secure reporting portal</p>
+          <h2 className="mb-2 text-3xl font-extrabold tracking-tight text-slate-900">{reset ? "Reset password" : "Welcome back"}</h2>
+          <p className="mb-8 text-slate-500">
             {reset
               ? "We will send a secure reset link to your email."
               : "Use the account included in your STICA invitation."}
           </p>
-          <form onSubmit={submit}>
-            <label>
+          
+          <form onSubmit={submit} className="flex flex-col gap-5">
+            <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
               Work email
               <input
                 type="email"
@@ -179,39 +188,59 @@ function Login() {
                 placeholder="name@company.com"
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
               />
             </label>
+            
             {!reset && (
-              <label>
+              <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                 Password
-                <div className="password-field">
+                <div className="relative">
                   <input
                     type={showPw ? "text" : "password"}
                     value={password}
                     placeholder="Enter your password"
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white py-3 pl-4 pr-16 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPw(!showPw)}
-                    className="password-toggle"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] font-bold text-slate-400 hover:text-[#d91f17]"
                   >
                     {showPw ? "Hide" : "Show"}
                   </button>
                 </div>
               </label>
             )}
-            {error && <p className="form-error">{error}</p>}
-            {message && <p className="form-success">{message}</p>}
-            <button className="button button--primary" disabled={busy}>
+            
+            {error && (
+              <p className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-[13px] font-semibold text-red-700">
+                {error}
+              </p>
+            )}
+            
+            {message && (
+              <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-[13px] font-semibold text-emerald-700">
+                {message}
+              </p>
+            )}
+            
+            <Button disabled={busy} className="mt-2 h-12 text-[15px]">
               {busy ? "Please wait…" : reset ? "Send reset link" : "Sign in to portal"}
-            </button>
+            </Button>
           </form>
-          <button className="text-button login-switch" onClick={() => setReset(!reset)}>
-            {reset ? "Return to sign in" : "Forgot your password?"}
-          </button>
-          <p className="login-note">Company data is isolated with database row-level security.</p>
+          
+          <div className="mt-8 text-center">
+            <button 
+              className="text-sm font-semibold text-slate-500 hover:text-[#d91f17]" 
+              onClick={() => setReset(!reset)}
+            >
+              {reset ? "Return to sign in" : "Forgot your password?"}
+            </button>
+            <p className="mt-8 text-xs font-medium text-slate-400">Company data is isolated with database row-level security.</p>
+          </div>
         </div>
       </section>
     </main>
@@ -303,61 +332,62 @@ function Report({
   }
 
   return (
-    <div className="report-layout">
+    <div className="grid min-h-[calc(100vh-64px)] grid-cols-1 bg-slate-50 md:grid-cols-[320px_minmax(0,1fr)] lg:grid-cols-[350px_minmax(0,1fr)]">
       {/* Submit confirmation dialog */}
       {confirmSubmit && (
-        <div className="dialog-backdrop" role="presentation" onMouseDown={() => setConfirmSubmit(false)}>
-          <section className="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="submit-modal-title">
-            <p className="eyebrow eyebrow--red">Final submission</p>
-            <h2 id="submit-modal-title">Submit {version.reporting_year} Report?</h2>
-            <p>
-              You have completed <strong>{answered} of {visible.length}</strong> questions ({Math.round((answered / visible.length) * 100)}%).
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm" role="presentation" onMouseDown={() => setConfirmSubmit(false)}>
+          <section className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl sm:p-8" role="alertdialog" aria-modal="true" aria-labelledby="submit-modal-title" onMouseDown={(e) => e.stopPropagation()}>
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#d91f17]">Final submission</p>
+            <h2 id="submit-modal-title" className="mb-4 text-2xl font-bold text-slate-900">Submit {version.reporting_year} Report?</h2>
+            <p className="mb-6 text-[15px] leading-relaxed text-slate-600">
+              You have completed <strong className="font-semibold text-slate-900">{answered} of {visible.length}</strong> questions ({Math.round((answered / visible.length) * 100)}%).
             </p>
-            <div className="confirm-dialog__question confirm-dialog__question--spaced">
-              <span>Once submitted, your report is locked for review. An administrator must reopen it if any revisions are needed.</span>
+            <div className="mb-8 rounded-lg bg-amber-50 p-4">
+              <span className="text-sm font-medium text-amber-800">Once submitted, your report is locked for review. An administrator must reopen it if any revisions are needed.</span>
             </div>
-            <div className="confirm-dialog__actions">
-              <button type="button" className="button button--secondary" onClick={() => setConfirmSubmit(false)}>
+            <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
+              <Button variant="secondary" onClick={() => setConfirmSubmit(false)}>
                 Continue editing
-              </button>
-              <button
-                type="button"
-                className="button button--primary"
+              </Button>
+              <Button
                 onClick={async () => {
                   setConfirmSubmit(false);
                   await submit();
                 }}
               >
                 Confirm &amp; submit report
-              </button>
+              </Button>
             </div>
           </section>
         </div>
       )}
 
-      <aside className="report-outline">
-        <button className="back-link" onClick={back}>Back to overview</button>
-        <div className="report-header-row">
-          <p className="eyebrow eyebrow--tight">Annual report {version.reporting_year}</p>
-          <span className="live-autosave-pill">
-            {readOnly ? <><LockKeyhole size={13} /> Read only</> : saving ? <><Clock3 size={13} /> Saving…</> : <><Check size={13} /> Saved</>}
+      <aside className="sticky top-[64px] flex h-[calc(100vh-64px)] flex-col overflow-y-auto border-r border-slate-200 bg-white p-5 md:p-6">
+        <button className="mb-4 inline-flex w-fit items-center text-sm font-semibold text-slate-500 hover:text-slate-900" onClick={back}>
+          <ArrowLeft size={16} className="mr-1.5" /> Back to overview
+        </button>
+        <div className="mb-1 flex items-center justify-between gap-3">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Annual report {version.reporting_year}</p>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+            {readOnly ? <><LockKeyhole size={12} /> Read only</> : saving ? <><Clock3 size={12} /> Saving…</> : <><Check size={12} /> Saved</>}
           </span>
         </div>
-        <h2>{active.sectionTitle}</h2>
-        <div className="outline-progress">
-          <span>
-            <i style={{ width: `${visible.length ? (answered / visible.length) * 100 : 0}%` }} />
-          </span>
-          <small>{answered} of {visible.length} answered ({visible.length ? Math.round((answered / visible.length) * 100) : 0}%)</small>
+        <h2 className="mb-3.5 text-xl font-bold leading-tight text-slate-900">{active.sectionTitle}</h2>
+        
+        <div className="mb-4">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+            <div className="h-full rounded-full bg-gradient-to-r from-[#e32219] to-[#c01810] transition-all duration-300" style={{ width: `${visible.length ? (answered / visible.length) * 100 : 0}%` }} />
+          </div>
+          <small className="mt-1.5 block text-xs font-semibold text-slate-500">{answered} of {visible.length} answered ({visible.length ? Math.round((answered / visible.length) * 100) : 0}%)</small>
         </div>
 
         {/* Section Filter */}
         {sectionKeys.length > 1 && (
-          <div className="section-filter-wrap">
+          <div className="mb-2">
             <select
               value={selectedSection}
               onChange={(e) => setSelectedSection(e.target.value)}
-              className="section-filter-select"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-[#d91f17] focus:ring-1 focus:ring-[#d91f17]"
             >
               <option value="all">All sections ({visible.length} questions)</option>
               {sectionKeys.map(([k, t]) => (
@@ -367,29 +397,38 @@ function Report({
           </div>
         )}
 
-        <div className="palette-panel">
-          <div className="palette-header">
+        <div className="mt-2 flex min-h-0 flex-1 flex-col">
+          <div className="flex items-center justify-between border-b border-slate-200 py-2 text-xs font-bold text-slate-700">
             <span>Question navigator</span>
-            <strong>{answered}/{visible.length}</strong>
+            <strong className="text-[#d91f17]">{answered}/{visible.length}</strong>
           </div>
-          <div className="palette-legend" aria-label="Question status legend">
-            <span><i className="legend-dot legend-dot--answered" />Answered</span>
-            <span><i className="legend-dot" />Unanswered</span>
-            <span><i className="legend-dot legend-dot--active" />Current</span>
+          <div className="flex flex-wrap gap-x-3 gap-y-2 py-2.5 text-[11px] font-semibold text-slate-500" aria-label="Question status legend">
+            <span className="flex items-center gap-1.5"><i className="size-2 rounded-full bg-emerald-500" />Answered</span>
+            <span className="flex items-center gap-1.5"><i className="size-2 rounded-full bg-slate-200" />Unanswered</span>
+            <span className="flex items-center gap-1.5"><i className="size-2 rounded-full bg-[#d91f17]" />Current</span>
           </div>
-          <div className="question-index" role="navigation" aria-label="Question navigator" tabIndex={0}>
+          <div className="grid min-h-0 flex-1 grid-cols-5 content-start gap-1.5 overflow-y-auto pb-5 pt-1 pr-1" role="navigation" aria-label="Question navigator" tabIndex={0}>
             {filteredVisible.map((q) => {
               const overallIdx = visible.indexOf(q);
+              const isQAnswered = isAnswered(answers[q.id]);
+              const isActive = q.id === active.id;
+              
               return (
                 <button
                   key={q.id}
-                  className={`${q.id === active.id ? "active " : ""}${isAnswered(answers[q.id]) ? "answered" : "unanswered"}`}
-                  aria-label={`Question ${overallIdx + 1}, ${isAnswered(answers[q.id]) ? "answered" : "not answered"}: ${q.prompt}`}
+                  className={`relative grid aspect-square w-full place-items-center rounded-lg border-[1.5px] text-sm font-bold transition-all hover:-translate-y-0.5 hover:shadow-sm ${
+                    isActive
+                      ? "z-10 scale-105 border-[#d91f17] bg-[#d91f17] text-white shadow-md shadow-red-500/20"
+                      : isQAnswered
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                  }`}
+                  aria-label={`Question ${overallIdx + 1}, ${isQAnswered ? "answered" : "not answered"}: ${q.prompt}`}
                   title={`${overallIdx + 1}. ${q.prompt}`}
                   onClick={() => setActiveId(q.id)}
                 >
                   <span>{overallIdx + 1}</span>
-                  <div>
+                  <div className="hidden">
                     <strong>{q.stableKey}</strong>
                     <small>{q.sectionTitle}</small>
                   </div>
@@ -400,62 +439,72 @@ function Report({
         </div>
       </aside>
 
-      <section className="question-stage">
-        <div className="question-card" key={active.id}>
-          <div className="question-meta">
-            <span>Question {index + 1} of {visible.length}</span>
-            <div className="question-meta-actions">
-              <span className="question-save-indicator">
+      <section className="grid place-items-center p-6 md:p-14 lg:p-20">
+        <div className="w-full max-w-[840px] rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-10 lg:p-12" key={active.id}>
+          <div className="mb-6 flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Question {index + 1} of {visible.length}</span>
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
                 {readOnly ? <><LockKeyhole size={13} /> Submitted · read only</> : saving ? <><Clock3 size={13} /> Saving securely…</> : <><Check size={13} /> All changes saved</>}
               </span>
-              <code>{active.stableKey}</code>
+              <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-bold text-slate-600">{active.stableKey}</code>
             </div>
           </div>
-          <p className="section-kicker">{active.sectionTitle} / {active.category}</p>
-          <h1>{active.prompt}</h1>
-          {active.helpText && <p className="question-help">{active.helpText}</p>}
+          
+          <p className="mb-3 text-[13px] font-bold uppercase tracking-wider text-[#d91f17]">{active.sectionTitle} / {active.category}</p>
+          <h1 className="mb-4 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-4xl">{active.prompt}</h1>
+          
+          {active.helpText && <p className="mb-6 text-[15px] leading-relaxed text-slate-600">{active.helpText}</p>}
+          
           {active.carryForwardEnabled && isAnswered(answers[active.id]) && !readOnly && (
-            <div className="previous-answer">
-              <span><Check size={14} /> Prefilled from previous verified report</span>
-              <p>Please review and confirm this response remains accurate, or update it below.</p>
+            <div className="mb-8 rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <span className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-700">
+                <Check size={14} className="text-blue-500" /> Prefilled from previous verified report
+              </span>
+              <p className="text-sm text-blue-900">Please review and confirm this response remains accurate, or update it below.</p>
             </div>
           )}
-          <label className="answer-label">
-            Your answer {active.required && <em>Required</em>}
+          
+          <label className="mb-3 block text-sm font-bold text-slate-900">
+            Your answer {active.required && <em className="ml-1 text-xs font-normal not-italic text-slate-400">Required</em>}
           </label>
-          <QuestionField
-            question={active}
-            value={answers[active.id]}
-            disabled={readOnly}
-            change={(v) => setAnswers((a) => ({ ...a, [active.id]: v }))}
-            save={(v) => void commit(v)}
-          />
-          <div className="question-actions">
-            <button
-              className="button button--secondary"
+          
+          <div className="mb-10">
+            <QuestionField
+              question={active}
+              value={answers[active.id]}
+              disabled={readOnly}
+              change={(v) => setAnswers((a) => ({ ...a, [active.id]: v }))}
+              save={(v) => void commit(v)}
+            />
+          </div>
+          
+          <div className="flex flex-col-reverse justify-between gap-4 border-t border-slate-200 pt-6 sm:flex-row sm:items-center">
+            <Button
+              variant="secondary"
               disabled={index === 0}
               onClick={() => setActiveId(visible[index - 1].id)}
             >
               <ArrowLeft size={16} aria-hidden="true" /> Previous
             </button>
+            
             {index < visible.length - 1 ? (
-              <button
-                className="button button--primary"
+              <Button
                 onClick={async () => {
                   await commit(answers[active.id] ?? null);
                   setActiveId(visible[index + 1].id);
                 }}
               >
                 Save &amp; next <ArrowRight size={16} aria-hidden="true" />
-              </button>
+              </Button>
             ) : readOnly ? (
-              <button className="button button--secondary" onClick={() => print()}>
+              <Button variant="secondary" onClick={() => print()}>
                 <Printer size={16} aria-hidden="true" /> Print / save PDF
-              </button>
+              </Button>
             ) : (
-              <button className="button button--primary" onClick={() => setConfirmSubmit(true)}>
+              <Button onClick={() => setConfirmSubmit(true)}>
                 Review &amp; submit <Check size={16} aria-hidden="true" />
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -517,23 +566,26 @@ function AccountSettings({ session }: { session: Session }) {
 
   return (
     <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
-      <div className="page-intro">
+      <div className="mb-10 flex flex-col items-start gap-3">
         <div>
-          <p className="eyebrow eyebrow--red">Your profile</p>
-          <h1>Account settings</h1>
-          <p className="muted">{session.user.email}</p>
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#d91f17]">Your profile</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Account settings</h1>
+          <p className="mt-2 text-slate-500">{session.user.email}</p>
         </div>
       </div>
 
-      <section className="two-column-admin two-column-admin--narrow">
-        <form className="panel-form" onSubmit={saveName}>
-          <h3>Display name</h3>
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <form className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" onSubmit={saveName}>
+          <h3 className="text-xl font-bold text-slate-900">Display name</h3>
           {nameNotice && (
-            <p className={nameNotice.kind === "error" ? "form-error" : "form-success"}>{nameNotice.message}</p>
+            <p className={`rounded-lg px-3.5 py-2.5 text-[13px] font-semibold ${nameNotice.kind === "error" ? "border border-red-200 bg-red-50 text-red-700" : "border border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
+              {nameNotice.message}
+            </p>
           )}
-          <label>
+          <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
             Full name
             <input
+              className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10 disabled:cursor-not-allowed disabled:opacity-60"
               value={name}
               placeholder={nameLoaded ? "Your full name" : "Loading…"}
               disabled={!nameLoaded || nameBusy}
@@ -541,27 +593,35 @@ function AccountSettings({ session }: { session: Session }) {
               required
             />
           </label>
-          <button className="button button--primary" disabled={!nameLoaded || nameBusy}>
+          <Button disabled={!nameLoaded || nameBusy}>
             {nameBusy ? "Saving…" : "Save display name"}
-          </button>
+          </Button>
         </form>
 
-        <form className="panel-form" onSubmit={changePassword}>
-          <h3>Change password</h3>
+        <form className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" onSubmit={changePassword}>
+          <h3 className="text-xl font-bold text-slate-900">Change password</h3>
           {pwNotice && (
-            <p className={pwNotice.kind === "error" ? "form-error" : "form-success"}>{pwNotice.message}</p>
+            <p className={`rounded-lg px-3.5 py-2.5 text-[13px] font-semibold ${pwNotice.kind === "error" ? "border border-red-200 bg-red-50 text-red-700" : "border border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
+              {pwNotice.message}
+            </p>
           )}
-          <label>
+          <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
             New password
-            <input type="password" value={password} minLength={8} placeholder="Min. 8 characters" onChange={(e) => setPassword(e.target.value)} required />
+            <input 
+              className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
+              type="password" value={password} minLength={8} placeholder="Min. 8 characters" onChange={(e) => setPassword(e.target.value)} required 
+            />
           </label>
-          <label>
+          <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
             Confirm password
-            <input type="password" value={confirm} placeholder="Repeat new password" onChange={(e) => setConfirm(e.target.value)} required />
+            <input 
+              className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
+              type="password" value={confirm} placeholder="Repeat new password" onChange={(e) => setConfirm(e.target.value)} required 
+            />
           </label>
-          <button className="button button--primary" disabled={pwBusy}>
+          <Button disabled={pwBusy}>
             {pwBusy ? "Saving…" : "Change password"}
-          </button>
+          </Button>
         </form>
       </section>
     </div>
@@ -1910,23 +1970,24 @@ function AdminPortal({ session }: { session: Session }) {
           {/* Create year */}
           {surveyView === "create-year" && (
             <>
-              <button className="back-link builder-back" onClick={() => setSurveyView("overview")}>
-                Back to reporting years
+              <button className="mb-4 inline-flex w-fit items-center text-sm font-semibold text-slate-500 hover:text-slate-900" onClick={() => setSurveyView("overview")}>
+                <ArrowLeft size={16} className="mr-1.5" /> Back to reporting years
               </button>
-              <div className="page-intro builder-subpage-intro">
+              <div className="mb-10 flex flex-col items-start gap-3">
                 <div>
-                  <p className="eyebrow eyebrow--red">New reporting cycle</p>
-                  <h1>Create reporting year</h1>
-                  <p>Start empty or clone an existing year. You can review every question before publishing.</p>
+                  <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#d91f17]">New reporting cycle</p>
+                  <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Create reporting year</h1>
+                  <p className="mt-2 text-slate-500">Start empty or clone an existing year. You can review every question before publishing.</p>
                 </div>
               </div>
-              <form className="panel-form builder-create-page" onSubmit={createYear}>
-                <div className="form-guidance" role="note">
-                  <strong>Draft first, publish when ready</strong>
-                  <span>Creating a year creates an editable draft. It will not be visible to companies until you publish it.</span>
+              <form className="flex flex-col gap-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" onSubmit={createYear}>
+                <div className="flex flex-col gap-1 rounded-xl border border-blue-200 bg-blue-50 p-4" role="note">
+                  <strong className="text-[13px] font-bold uppercase tracking-wider text-blue-700">Draft first, publish when ready</strong>
+                  <span className="text-[15px] font-medium text-blue-900">Creating a year creates an editable draft. It will not be visible to companies until you publish it.</span>
                 </div>
-                <div className="form-grid">
-                  <label>
+                
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                     Year
                     <input
                       name="year"
@@ -1934,34 +1995,37 @@ function AdminPortal({ session }: { session: Session }) {
                       value={yearDraft.year}
                       onChange={(e) => setYearDraft({ year: e.target.value, name: `Climate Transition Plan Annual Report ${e.target.value}` })}
                       required
+                      className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                     />
                   </label>
-                  <label>
+                  <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                     Name
                     <input
                       name="name"
                       value={yearDraft.name}
                       onChange={(e) => setYearDraft({ ...yearDraft, name: e.target.value })}
                       required
+                      className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                     />
                   </label>
-                  <label>Opens<input name="opens" type="datetime-local" /></label>
-                  <label>Closes<input name="closes" type="datetime-local" /></label>
+                  <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">Opens<input name="opens" type="datetime-local" className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10" /></label>
+                  <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">Closes<input name="closes" type="datetime-local" className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10" /></label>
                 </div>
-                <label>
+                
+                <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                   Clone from existing year
-                  <select name="clone">
+                  <select name="clone" className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10">
                     <option value="">Start empty</option>
                     {versions.map((v) => (
                       <option key={v.id} value={v.id}>{v.reporting_year} · {v.name}</option>
                     ))}
                   </select>
                 </label>
-                <div className="builder-form-actions">
-                  <button type="button" className="button button--secondary" onClick={() => setSurveyView("overview")} disabled={busy}>Cancel</button>
-                  <button className="button button--ink" disabled={busy} aria-busy={busy}>
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <Button variant="secondary" onClick={() => setSurveyView("overview")} disabled={busy}>Cancel</Button>
+                  <Button disabled={busy}>
                     {busy ? "Creating draft…" : "Create draft cycle"}
-                  </button>
+                  </Button>
                 </div>
               </form>
             </>
@@ -2172,9 +2236,9 @@ function AdminPortal({ session }: { session: Session }) {
                   <p>Reporting year {selectedVersion.reporting_year}. Persistent IDs keep historical answers mapped across years.</p>
                 </div>
               </div>
-              <form className="panel-form question-builder question-editor-page" onSubmit={saveQ}>
-                <div className="form-grid">
-                  <label>
+              <form className="flex flex-col gap-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" onSubmit={saveQ}>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                     Persistent ID
                     <input
                       value={form.stableKey}
@@ -2184,37 +2248,42 @@ function AdminPortal({ session }: { session: Session }) {
                       placeholder="e.g. GOV-016"
                       title="Use an uppercase category prefix, a hyphen, and at least three digits."
                       required
+                      className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
                     />
                   </label>
-                  <label>
+                  <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                     Category
                     <input
                       value={form.category}
                       onChange={(e) => setForm({ ...form, category: e.target.value })}
                       placeholder="e.g. Governance, strategy and targets"
                       required
+                      className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                     />
                   </label>
-                  <label>
+                  <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                     Section key
                     <input
                       value={form.sectionKey}
                       onChange={(e) => setForm({ ...form, sectionKey: e.target.value })}
                       placeholder="e.g. governance-targets"
                       required
+                      className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                     />
                   </label>
-                  <label>
+                  <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                     Section title
                     <input
                       value={form.sectionTitle}
                       onChange={(e) => setForm({ ...form, sectionTitle: e.target.value })}
                       placeholder="e.g. Governance targets"
                       required
+                      className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                     />
                   </label>
                 </div>
-                <label>
+                
+                <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                   Question prompt
                   <textarea
                     rows={4}
@@ -2222,72 +2291,94 @@ function AdminPortal({ session }: { session: Session }) {
                     onChange={(e) => setForm({ ...form, prompt: e.target.value })}
                     placeholder="Write the question prompt clearly as companies will see it."
                     required
+                    className="w-full resize-y rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                   />
                 </label>
-                <label>
+                <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                   Help text / Guidance
                   <textarea
                     value={form.help}
                     onChange={(e) => setForm({ ...form, help: e.target.value })}
                     placeholder="Optional definitions, calculation methodologies, or reporting boundaries."
+                    className="w-full resize-y rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                   />
                 </label>
-                <div className="form-grid">
-                  <label>
+                
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                     Response type
-                    <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as QuestionType })}>
+                    <select 
+                      value={form.type} 
+                      onChange={(e) => setForm({ ...form, type: e.target.value as QuestionType })}
+                      className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
+                    >
                       {["text", "textarea", "number", "yes_no", "single_choice", "multiple_choice", "date"].map((x) => (
                         <option key={x} value={x}>{x.replace("_", " ")}</option>
                       ))}
                     </select>
                   </label>
-                  <label className="checkbox-label checkbox-label--aligned">
+                  <label className="flex cursor-pointer items-center gap-3 self-end rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 transition-all hover:bg-slate-50 has-[:checked]:border-[#d91f17] has-[:checked]:bg-red-50">
                     <input
                       type="checkbox"
                       checked={form.required}
                       onChange={(e) => setForm({ ...form, required: e.target.checked })}
+                      className="size-4 rounded accent-[#d91f17]"
                     />
                     Required response
                   </label>
                 </div>
+                
                 {["single_choice", "multiple_choice"].includes(form.type) && (
-                  <label>
+                  <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                     Options (one per line)
                     <textarea
                       rows={4}
                       value={form.options}
                       onChange={(e) => setForm({ ...form, options: e.target.value })}
                       placeholder={"Option one\nOption two\nOption three"}
+                      className="w-full resize-y rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                     />
                   </label>
                 )}
-                <fieldset className="mapping-fieldset">
-                  <legend className="fieldset-legend">Carry-forward mapping</legend>
-                  <p className="fieldset-help">Use when this question inherits validated answers from an approved previous-year question ID.</p>
-                  <label>
+                
+                <fieldset className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50 p-5">
+                  <div>
+                    <legend className="text-sm font-bold text-slate-900">Carry-forward mapping</legend>
+                    <p className="text-xs text-slate-500">Use when this question inherits validated answers from an approved previous-year question ID.</p>
+                  </div>
+                  <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                     Source question ID
                     <input
                       value={form.carry}
                       onChange={(e) => setForm({ ...form, carry: e.target.value.toUpperCase() })}
                       placeholder="Optional, e.g. GOV-015"
+                      className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                     />
                   </label>
                 </fieldset>
-                <fieldset className="mapping-fieldset">
-                  <legend className="fieldset-legend">Conditional visibility</legend>
-                  <p className="fieldset-help">Leave Depends on empty to show this question unconditionally.</p>
-                  <div className="form-grid">
-                    <label>
+                
+                <fieldset className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50 p-5">
+                  <div>
+                    <legend className="text-sm font-bold text-slate-900">Conditional visibility</legend>
+                    <p className="text-xs text-slate-500">Leave Depends on empty to show this question unconditionally.</p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                       Depends on question ID
                       <input
                         value={form.condition}
                         onChange={(e) => setForm({ ...form, condition: e.target.value.toUpperCase() })}
                         placeholder="e.g. GOV-001"
+                        className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                       />
                     </label>
-                    <label>
+                    <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                       Operator
-                      <select value={form.operator} onChange={(e) => setForm({ ...form, operator: e.target.value })}>
+                      <select 
+                        value={form.operator} 
+                        onChange={(e) => setForm({ ...form, operator: e.target.value })}
+                        className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
+                      >
                         <option value="equals">Equals</option>
                         <option value="not_equals">Not equals</option>
                         <option value="contains">Contains</option>
@@ -2296,28 +2387,29 @@ function AdminPortal({ session }: { session: Session }) {
                     </label>
                   </div>
                   {form.operator !== "is_answered" && (
-                    <label className="expected-value-field">
+                    <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                       Expected value
                       <input
                         value={form.expected}
                         onChange={(e) => setForm({ ...form, expected: e.target.value })}
                         placeholder="Value that makes this question visible"
+                        className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                       />
                     </label>
                   )}
                 </fieldset>
-                <div className="builder-form-actions">
-                  <button
-                    type="button"
-                    className="button button--secondary"
+                
+                <div className="mt-2 flex items-center justify-end gap-3 border-t border-slate-200 pt-6">
+                  <Button
+                    variant="secondary"
                     onClick={() => { setForm(EMPTY_Q); setSurveyView("workspace"); }}
                     disabled={busy}
                   >
                     Cancel
-                  </button>
-                  <button className="button button--primary" disabled={busy} aria-busy={busy}>
+                  </Button>
+                  <Button disabled={busy}>
                     {busy ? "Saving question…" : form.id ? "Save revision" : "Add question"}
-                  </button>
+                  </Button>
                 </div>
               </form>
             </>
@@ -2403,96 +2495,119 @@ function AdminPortal({ session }: { session: Session }) {
       {/* ══════════════════════════ DATA ═════════════════════════════════════ */}
       {view === "data" && (
         <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
-          <div className="page-intro">
+          <div className="mb-10 flex flex-col items-start gap-3">
             <div>
-              <p className="eyebrow eyebrow--red">Portable reporting data</p>
-              <h1>Import &amp; export</h1>
-              <p>Export responses to Excel, generate longitudinal pivot tables, or bulk-import historical responses.</p>
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#d91f17]">Portable reporting data</p>
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Import &amp; export</h1>
+              <p className="mt-2 text-slate-500">Export responses to Excel, generate longitudinal pivot tables, or bulk-import historical responses.</p>
             </div>
           </div>
 
-          <section className="data-grid">
+          <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Import */}
-            <form className="panel-form" onSubmit={importHistory}>
-              <h3>Historical Excel / CSV import</h3>
-              <p className="muted import-help">
-                Required headers: <code>company_name, company_slug, reporting_year, question_key, answer</code>
+            <form className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" onSubmit={importHistory}>
+              <h3 className="text-xl font-bold text-slate-900">Historical Excel / CSV import</h3>
+              <p className="text-sm text-slate-500">
+                Required headers: <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-bold text-slate-600">company_name, company_slug, reporting_year, question_key, answer</code>
               </p>
-              <div className="file-dropzone">
+              <div className="relative mt-2">
                 <input
                   name="historyFile"
                   type="file"
                   accept=".xlsx,.csv"
                   required
                   onChange={(e) => setImportFileName(e.target.files?.[0]?.name ?? "")}
-                  className="visually-hidden"
+                  className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
                   id="file-upload"
                 />
-                <label htmlFor="file-upload" className="file-dropzone__label">
-                  <span className="file-dropzone__icon">📂</span>
-                  <strong>{importFileName ? importFileName : "Click to select .xlsx or .csv file"}</strong>
-                  <span className="file-dropzone__hint">Supports Excel workbooks and UTF-8 CSV</span>
+                <label htmlFor="file-upload" className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition-colors ${importFileName ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100'}`}>
+                  <span className="text-3xl">📂</span>
+                  <strong className={`text-sm font-bold ${importFileName ? 'text-emerald-700' : 'text-slate-700'}`}>
+                    {importFileName ? importFileName : "Click to select .xlsx or .csv file"}
+                  </strong>
+                  <span className="text-xs font-semibold text-slate-500">Supports Excel workbooks and UTF-8 CSV</span>
                 </label>
               </div>
-              <button className="button button--ink" disabled={busy || !importFileName}>
-                {busy ? "Importing data…" : "Import historical responses"}
-              </button>
+              <div className="mt-auto pt-2 text-right">
+                <Button disabled={busy || !importFileName}>
+                  {busy ? "Importing data…" : "Import historical responses"}
+                </Button>
+              </div>
             </form>
 
             {/* Export */}
-            <div className="panel-form">
-              <h3>Flexible export</h3>
-              <div className="export-format-toggle">
+            <div className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <h3 className="text-xl font-bold text-slate-900">Flexible export</h3>
+              
+              <div className="flex rounded-lg border border-slate-200 bg-slate-50 p-1">
                 <button
                   type="button"
-                  className={`toggle-btn ${exportFormat === "flat" ? "toggle-btn--active" : ""}`}
+                  className={`flex-1 rounded-md px-3 py-2 text-[13px] font-bold transition-all ${exportFormat === "flat" ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-900"}`}
                   onClick={() => setExportFormat("flat")}
                 >
                   Flat / long format
                 </button>
                 <button
                   type="button"
-                  className={`toggle-btn ${exportFormat === "pivot" ? "toggle-btn--active" : ""}`}
+                  className={`flex-1 rounded-md px-3 py-2 text-[13px] font-bold transition-all ${exportFormat === "pivot" ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-900"}`}
                   onClick={() => setExportFormat("pivot")}
                 >
                   Pivot / matrix format
                 </button>
               </div>
-              <p className="export-format-desc">
+              
+              <p className="text-[13px] font-semibold text-slate-500">
                 {exportFormat === "flat"
                   ? "One row per answer — ideal for data warehousing and statistical analysis."
                   : "One row per company per year, columns per question — ideal for comparisons and board reporting."}
               </p>
-              <div className="form-grid">
-                <label>
+              
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                   Year
-                  <select value={year} onChange={(e) => setYear(e.target.value)}>
+                  <select 
+                    value={year} 
+                    onChange={(e) => setYear(e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
+                  >
                     <option value="">All reporting years</option>
                     {years.map((y) => <option key={y} value={y}>{y}</option>)}
                   </select>
                 </label>
-                <label>
+                <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                   Company
-                  <select value={company} onChange={(e) => setCompany(e.target.value)}>
+                  <select 
+                    value={company} 
+                    onChange={(e) => setCompany(e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
+                  >
                     <option value="">All companies</option>
                     {orgs.map((o) => <option key={o.id} value={o.slug}>{o.name}</option>)}
                   </select>
                 </label>
               </div>
-              <label>
+              
+              <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                 Question ID filter
-                <input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="e.g. GOV-001 (Optional)" />
+                <input 
+                  value={question} 
+                  onChange={(e) => setQuestion(e.target.value)} 
+                  placeholder="e.g. GOV-001 (Optional)"
+                  className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
+                />
               </label>
-              <button className="button button--secondary" onClick={() => void prepare()} disabled={busy}>
+              
+              <Button variant="secondary" onClick={() => void prepare()} disabled={busy}>
                 {busy ? "Preparing preview…" : "Preview export data"}
-              </button>
-              <div className="export-actions">
-                <button className="button button--primary" onClick={() => void downloadExport()} disabled={busy}>
+              </Button>
+              
+              <div className="mt-2 flex flex-col justify-end gap-3 border-t border-slate-200 pt-6 sm:flex-row">
+                <Button variant="secondary" onClick={() => print()}>
+                  <Printer size={16} aria-hidden="true" className="mr-1.5" /> Print / PDF
+                </Button>
+                <Button onClick={() => void downloadExport()} disabled={busy}>
                   {busy ? "Generating file…" : `⬇️ Download Excel (${exportFormat})`}
-                </button>
-                <button className="button button--secondary" onClick={() => print()}>
-                  <Printer size={16} aria-hidden="true" /> Print / PDF
-                </button>
+                </Button>
               </div>
             </div>
           </section>
