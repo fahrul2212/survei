@@ -1,6 +1,6 @@
 import { ArrowLeft, Eye, EyeOff, Plus, Send, XCircle } from "lucide-react";
 import { surveyDisplayTitle, type SurveyVersion } from "../../lib/portal";
-import { Button, PageHeader } from "../ui";
+import { Button, PageHeader, StatusBadge } from "../ui";
 
 export function SurveyWorkspaceHeader({
   version,
@@ -38,8 +38,7 @@ export function SurveyWorkspaceHeader({
         meta={(
           <>
             <span>{questionCount} {questionCount === 1 ? "question" : "questions"}</span>
-            <span aria-hidden="true">·</span>
-            <span className={`status-chip status-chip--${version.status}`}>{version.status}</span>
+            <StatusBadge status={version.status} />
           </>
         )}
         actions={(

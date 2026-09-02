@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, CalendarDays, Check, FileClock, ShieldCheck } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import {
   evaluateVisibility,
@@ -14,7 +14,7 @@ import {
   type SurveyQuestion,
   type SurveyVersion,
 } from "../lib/portal";
-import { Loading, NoticeBar, Shell, type Notice, Logo, Button } from "../components/ui";
+import { EmptyState, Loading, NoticeBar, PageContainer, PageHeader, Shell, StatusBadge, type Notice, Logo, Button } from "../components/ui";
 import { AccountSettings } from "./AccountSettings";
 import { Report } from "./Report";
 
@@ -29,6 +29,7 @@ export function CompanyPortal({ session }: { session: Session }) {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [questions, setQuestions] = useState<SurveyQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<number, JsonAnswer>>({});
+  const [answerProvenance, setAnswerProvenance] = useState<Record<number, AnswerRecord["provenance"]>>({});
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<Notice>(null);
 
@@ -58,7 +59,9 @@ export function CompanyPortal({ session }: { session: Session }) {
     setVersion(v);
     setSubmission(s);
     setQuestions((qr.data ?? []).map(parseSurveyQuestion));
-    setAnswers(Object.fromEntries(((ar.data ?? []) as AnswerRecord[]).map((a) => [a.survey_question_id, a.value])));
+    const answerRows = (ar.data ?? []) as AnswerRecord[];
+    setAnswers(Object.fromEntries(answerRows.map((a) => [a.survey_question_id, a.value])));
+    setAnswerProvenance(Object.fromEntries(answerRows.map((a) => [a.survey_question_id, a.provenance])));
   }, []);
 
   const load = useCallback(async () => {
@@ -120,7 +123,11 @@ export function CompanyPortal({ session }: { session: Session }) {
       { submission_id: submission.id, survey_question_id: q.id, value: v, provenance: "manual", updated_by: session.user.id },
       { onConflict: "submission_id,survey_question_id" },
     );
-    if (r.error) setNotice({ kind: "error", message: r.error.message });
+    if (r.error) {
+      setNotice({ kind: "error", message: r.error.message });
+      throw r.error;
+    }
+    setAnswerProvenance((current) => ({ ...current, [q.id]: "manual" }));
   }
 
   async function submit() {
@@ -179,7 +186,9 @@ export function CompanyPortal({ session }: { session: Session }) {
           submission={submission}
           questions={questions}
           answers={answers}
+          answerProvenance={answerProvenance}
           setAnswers={setAnswers}
+          setAnswerProvenance={setAnswerProvenance}
           save={save}
           submit={submit}
           back={() => setView("overview")}
@@ -188,40 +197,38 @@ export function CompanyPortal({ session }: { session: Session }) {
 
       {/* ── Overview ── */}
       {view === "overview" && (
-        <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
-          <div className="mb-7 flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#d91f17]">Company climate action programme</p>
-              <h1>{org.name}</h1>
-              <p>
-                {version
-                  ? `Your ${version.reporting_year} report is ${submission?.status ?? "not started"}.`
-                  : "No reporting cycle is open."}
-              </p>
-            </div>
+        <PageContainer className="animate-[rise_0.4s_ease_both]">
+          <PageHeader
+            eyebrow="Company climate action programme"
+            title={org.name}
+            description={version ? `Your ${version.reporting_year} report is ready for review.` : "No reporting cycle is open."}
+            meta={version && submission ? <StatusBadge status={submission.status} /> : undefined}
+          />
+          <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
             {version?.closes_at && (
-              <div className="grid min-w-[200px] gap-1 rounded-lg border border-slate-200 border-l-4 border-l-[#d91f17] bg-white p-3 px-4 shadow-sm">
-                <span>Submission deadline</span>
-                <strong>{formatDate(version.closes_at)}</strong>
+              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <CalendarDays size={18} className="text-[#d91f17]" aria-hidden="true" />
+                <span className="grid gap-0.5">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Submission deadline</span>
+                  <strong className="text-sm text-slate-900">{formatDate(version.closes_at)}</strong>
+                </span>
               </div>
             )}
           </div>
 
           {version && submission ? (
             <>
-              <section className="relative mb-7 grid min-h-[310px] grid-cols-1 overflow-hidden rounded-2xl bg-gradient-to-br from-[#c01810] via-[#e32219] to-[#9a100a] text-white shadow-lg md:grid-cols-[1.35fr_0.65fr]">
+              <section className="relative mb-7 grid min-h-[310px] grid-cols-1 overflow-hidden rounded-2xl bg-[#d91f17] text-white shadow-lg md:grid-cols-[1.35fr_0.65fr]">
                 <div className="relative z-10 p-7 md:p-11">
-                  <span className={`mb-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest ${submission.status === "submitted" ? "border-white bg-white text-emerald-600" : "border-white/40 bg-black/15"}`}>
-                    ● {submission.status.replace("_", " ")}
-                  </span>
+                  <StatusBadge status={submission.status} inverse />
                   <h2 className="mb-3 text-3xl font-extrabold tracking-tight md:text-4xl">{version.name}</h2>
-                  <p>Approved persistent question mappings preserve reliable prior-year responses for review.</p>
+                  <p className="max-w-xl text-white/90">Review the responses carried forward from your last verified report, update anything that changed, then submit when the report is complete.</p>
                   <button className="mt-6 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-black hover:shadow-md" onClick={() => setView("report")}>
                     {submission.status === "submitted" ? "View submission" : "Continue reporting"}
                     <ArrowRight size={16} aria-hidden="true" />
                   </button>
                 </div>
-                <div className="relative z-10 grid place-items-center content-center bg-black/10 p-7">
+                  <div className="relative z-10 grid place-items-center content-center border-t border-white/15 bg-black/10 p-7 md:border-l md:border-t-0">
                   <div
                     className="grid size-[170px] place-items-center rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.15)]" style={{ background: `conic-gradient(white ${progress * 3.6}deg, rgba(255,255,255,0.22) 0)` }}
                     
@@ -262,13 +269,13 @@ export function CompanyPortal({ session }: { session: Session }) {
                   </div>
                 </div>
 
-                <aside className="flex flex-col justify-between overflow-hidden rounded-xl border border-emerald-700 bg-gradient-to-br from-emerald-800 via-emerald-700 to-emerald-600 p-7 text-white shadow-md">
+                  <aside className="flex flex-col justify-between overflow-hidden rounded-xl border border-emerald-700 bg-emerald-800 p-7 text-white shadow-md">
                   <div>
                     <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-widest text-white/90">
                       Baseline data
                     </span>
                     <div className="my-2 text-5xl font-extrabold leading-none">
-                      {questions.filter((q) => q.carryForwardEnabled && isAnswered(answers[q.id])).length}
+                      {questions.filter((q) => isAnswered(answers[q.id]) && (answerProvenance[q.id] === "prefilled" || answerProvenance[q.id] === "historical_import")).length}
                     </div>
                     <h3 className="mb-2.5 mt-1.5 text-xl font-bold">responses prefilled</h3>
                     <p className="text-sm leading-relaxed text-white/95">
@@ -282,24 +289,17 @@ export function CompanyPortal({ session }: { session: Session }) {
               </section>
             </>
           ) : (
-            <div className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
-              <h2 className="mb-2 text-xl font-bold text-slate-900">No published survey</h2>
-              <p className="text-slate-500">A new reporting cycle has not been opened yet.</p>
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50">
+              <EmptyState icon={FileClock} title="No published survey" description="A new reporting cycle has not been opened yet. STICA will notify you when the next cycle is ready." />
             </div>
           )}
-        </div>
+        </PageContainer>
       )}
 
       {/* ── History ── */}
       {view === "history" && (
-        <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
-          <div className="mb-7 flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#d91f17]">Reporting archive</p>
-              <h1>Previous years</h1>
-              <p>Review and reference historical submissions and validated transition plans.</p>
-            </div>
-          </div>
+        <PageContainer className="animate-[rise_0.4s_ease_both]">
+          <PageHeader eyebrow="Reporting archive" title="Previous years" description="Review and reference historical submissions and validated transition plans." />
           <div className="grid overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             {versions.map((v) => {
               const s = submissions.find((x) => x.survey_version_id === v.id);
@@ -310,13 +310,18 @@ export function CompanyPortal({ session }: { session: Session }) {
                     <h3 className="text-lg font-bold text-slate-900">{v.name}</h3>
                     <p className="text-sm text-slate-500">{s.submitted_at ? `Submitted ${formatDate(s.submitted_at)}` : `Last saved ${formatDate(s.updated_at)}`}</p>
                   </div>
-                  <strong className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${s.status === "submitted" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>● {s.status}</strong>
+                  <StatusBadge status={s.status} />
                   <button className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 transition-all hover:bg-slate-50 hover:text-[#d91f17]" onClick={() => void open(v)}>View report <ArrowRight size={15} aria-hidden="true" /></button>
                 </article>
               ) : null;
             })}
           </div>
-        </div>
+          {versions.every((v) => !submissions.some((s) => s.survey_version_id === v.id)) && (
+            <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50">
+              <EmptyState icon={ShieldCheck} title="No previous submissions yet" description="Submitted reports will appear here for reference across reporting years." />
+            </div>
+          )}
+        </PageContainer>
       )}
 
       {/* ── Account ── */}

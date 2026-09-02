@@ -10,6 +10,8 @@ import { cn } from "../lib/cn";
 type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
 type ButtonSize = "default" | "small" | "icon";
 
+export type ReportingStatus = "not_started" | "draft" | "reopened" | "submitted" | "published" | "closed";
+
 const buttonVariants: Record<ButtonVariant, string> = {
   primary:
     "border-transparent bg-[#d91f17] text-white shadow-sm hover:bg-[#b81711] disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none",
@@ -90,6 +92,56 @@ export function PageHeader({
       </div>
       {actions && <div className="page-actions flex max-w-full flex-wrap items-center gap-2.5 max-[560px]:w-full">{actions}</div>}
     </header>
+  );
+}
+
+export function PageContainer({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cn("mx-auto w-full max-w-[1400px] px-4 py-8 md:px-8 lg:px-12 lg:pb-20", className)}>{children}</div>;
+}
+
+const statusLabels: Record<ReportingStatus, string> = {
+  not_started: "Not started",
+  draft: "In progress",
+  reopened: "Reopened",
+  submitted: "Submitted",
+  published: "Published",
+  closed: "Closed",
+};
+
+const statusClasses: Record<ReportingStatus, string> = {
+  not_started: "border-slate-200 bg-slate-50 text-slate-600",
+  draft: "border-blue-200 bg-blue-50 text-blue-700",
+  reopened: "border-amber-200 bg-amber-50 text-amber-800",
+  submitted: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  published: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  closed: "border-slate-200 bg-slate-100 text-slate-700",
+};
+
+export function StatusBadge({ status, inverse = false }: { status: ReportingStatus; inverse?: boolean }) {
+  return (
+    <span className={cn(
+      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em]",
+      inverse ? "border-white/35 bg-white/10 text-white" : statusClasses[status],
+    )}>
+      <span aria-hidden="true" className={cn("size-1.5 rounded-full", inverse ? "bg-white" : status === "submitted" || status === "published" ? "bg-emerald-500" : status === "reopened" ? "bg-amber-500" : status === "draft" ? "bg-blue-500" : "bg-slate-400")} />
+      {statusLabels[status]}
+    </span>
+  );
+}
+
+export function ProgressBar({ value, label = "Progress", tone = "red" }: { value: number; label?: string; tone?: "red" | "dark" | "emerald" }) {
+  const safeValue = Math.min(100, Math.max(0, Math.round(value)));
+  const fill = tone === "emerald" ? "bg-emerald-500" : tone === "dark" ? "bg-slate-900" : "bg-[#d91f17]";
+  return (
+    <div className="min-w-0">
+      <div className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-500">
+        <span>{label}</span>
+        <span className="tabular-nums text-slate-900">{safeValue}%</span>
+      </div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={safeValue}>
+        <div className={cn("h-full rounded-full transition-[width] duration-300", fill)} style={{ width: `${safeValue}%` }} />
+      </div>
+    </div>
   );
 }
 

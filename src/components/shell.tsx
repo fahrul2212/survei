@@ -199,8 +199,7 @@ export function Shell({
 
           {/* Status pill — hidden on small screens */}
           <div className="hidden flex-1 items-center gap-2.5 min-w-0 md:flex">
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative flex size-2" aria-hidden="true">
               <span className="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
             </span>
             <span className="text-slate-500">Secure portal connected</span>
@@ -254,4 +253,3 @@ export function Shell({
     </div>
   );
 }
-

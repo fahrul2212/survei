@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { Button, SearchField } from "../ui";
+import { ArrowRight, CheckCircle2, ClipboardList, Clock3, UsersRound } from "lucide-react";
+import { Button, EmptyState, PageContainer, PageHeader, ProgressBar, SearchField, StatusBadge } from "../ui";
 import type { Organization, ProgressRow, SurveyVersion } from "../../lib/portal";
 
 export function AdminDashboard({
@@ -41,33 +42,52 @@ export function AdminDashboard({
   const notStarted = currentRows.filter((r) => r.status === "not_started").length;
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
-      <div className="mb-10">
-        <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#d91f17]">Platform administration</p>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Reporting progress</h1>
-        <p className="mt-2 text-slate-500">Monitor company completion rates and submission statuses for the current year.</p>
-      </div>
+    <PageContainer className="animate-[rise_0.4s_ease_both]">
+      <PageHeader
+        eyebrow="Platform administration"
+        title="Reporting progress"
+        description={current ? `A clear view of company participation for the ${current.reporting_year} reporting cycle.` : "Create and publish a reporting year to start monitoring company participation."}
+        actions={<Button icon={ClipboardList} variant="primary" onClick={() => setView("surveys")}>{current ? "Manage survey" : "Create reporting year"}</Button>}
+      />
+
+      {current && (
+        <section className="mb-8 flex flex-col gap-4 rounded-xl border border-red-100 bg-red-50 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="flex items-start gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-white text-[#d91f17] shadow-sm"><Clock3 size={19} aria-hidden="true" /></span>
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-[#b81711]">Current reporting cycle</p>
+              <h2 className="mt-1 text-lg font-bold text-slate-900">{current.reporting_year} · {current.name}</h2>
+              <p className="mt-1 text-sm text-slate-600">{submitted} of {currentRows.length} companies have submitted.</p>
+            </div>
+          </div>
+          <Button variant="secondary" onClick={() => setView("companies")}>Review companies <ArrowRight size={15} aria-hidden="true" /></Button>
+        </section>
+      )}
 
       <section className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
-        <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+        <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+          <UsersRound size={18} className="mb-3 text-slate-400" aria-hidden="true" />
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Companies</span>
           <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
             {orgs.filter((o) => o.is_active).length}
           </strong>
         </article>
-        <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+        <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+          <CheckCircle2 size={18} className="mb-3 text-emerald-600" aria-hidden="true" />
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Submitted</span>
           <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
             {submitted}
           </strong>
         </article>
-        <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+        <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+          <Clock3 size={18} className="mb-3 text-blue-600" aria-hidden="true" />
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">In progress</span>
           <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
             {inProgress}
           </strong>
         </article>
-        <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md md:p-5">
+        <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+          <ClipboardList size={18} className="mb-3 text-slate-400" aria-hidden="true" />
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Not started</span>
           <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
             {notStarted}
@@ -118,6 +138,14 @@ export function AdminDashboard({
         </div>
 
         <div className="w-full overflow-x-auto">
+          {filteredDashboardRows.length === 0 && currentRows.length === 0 ? (
+            <EmptyState
+              icon={ClipboardList}
+              title="No company progress yet"
+              description="Once a reporting cycle is published and companies begin responding, their progress will appear here."
+              action={<Button variant="primary" onClick={() => setView("companies")}>Review companies</Button>}
+            />
+          ) : (
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="hidden border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500 md:table-header-group">
               <tr>
@@ -141,22 +169,11 @@ export function AdminDashboard({
                   </td>
                   <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Progress</span>
-                    <div className="flex items-center gap-3 text-[13px] font-semibold text-slate-900">
-                      <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-100">
-                        <div className="h-full bg-slate-900 transition-all duration-500" style={{ width: `${r.completion_percent}%` }} />
-                      </div>
-                      <span className="w-9">{r.completion_percent}%</span>
-                    </div>
+                      <div className="w-full max-w-[220px]"><ProgressBar value={r.completion_percent} label="Completion" tone="dark" /></div>
                   </td>
                   <td className="mb-2 flex flex-col md:mb-0 md:p-4 md:align-middle">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Status</span>
-                    <span className={`inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                      r.status === "submitted" ? "bg-emerald-100 text-emerald-700" :
-                      r.status === "not_started" ? "bg-slate-100 text-slate-500" :
-                      "bg-blue-100 text-blue-700"
-                    }`}>
-                      {r.status.replace("_", " ")}
-                    </span>
+                    <StatusBadge status={r.status} />
                   </td>
                   <td className="flex flex-col border-t border-slate-100 pt-3 md:table-cell md:border-0 md:p-4 md:pt-4 md:align-middle">
                     <span className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 md:hidden">Action</span>
@@ -177,8 +194,9 @@ export function AdminDashboard({
               )}
             </tbody>
           </table>
+          )}
         </div>
       </section>
-    </div>
+    </PageContainer>
   );
 }

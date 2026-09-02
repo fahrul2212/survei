@@ -31,21 +31,16 @@ export function Login() {
 
   return (
     <main className="grid min-h-[100dvh] grid-cols-1 md:grid-cols-2">
-      <section className="relative flex flex-col justify-between overflow-hidden bg-slate-900 p-8 text-white md:p-12 lg:p-16">
+      <section className="relative flex flex-col justify-between overflow-hidden bg-[#d91f17] p-8 text-white md:p-12 lg:p-16">
         <Logo inverse />
         <div className="z-10 py-12">
           <h1 className="mb-4 text-4xl font-extrabold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">Annual climate reporting.</h1>
-          <p className="max-w-md text-lg leading-relaxed text-slate-300">Submit your Climate Transition Plan securely — pre-filled from last year's verified data.</p>
+          <p className="max-w-md text-lg leading-relaxed text-white/85">Submit your Climate Transition Plan securely — pre-filled from last year's verified data.</p>
         </div>
         
-        {/* Abstract animated orbit decoration */}
-        <div className="absolute right-[-10%] top-[10%] h-[600px] w-[600px] opacity-20 pointer-events-none">
-          <span className="absolute inset-0 rounded-full border border-white/20" />
-          <span className="absolute inset-4 rounded-full border border-white/30" />
-          <span className="absolute inset-8 rounded-full border border-white/40" />
-        </div>
+        <div className="pointer-events-none absolute bottom-[-180px] right-[-100px] size-[430px] rounded-full border border-white/20" aria-hidden="true" />
         
-        <p className="z-10 text-xs font-semibold uppercase tracking-wider text-slate-400">The Scandinavian Textile Initiative for Climate Action</p>
+        <p className="z-10 max-w-sm text-xs font-semibold uppercase tracking-wider text-white/70">The Scandinavian Textile Initiative for Climate Action</p>
       </section>
       
       <section className="flex items-center justify-center bg-slate-50 p-6 md:p-12">

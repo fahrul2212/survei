@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Clock3, LockKeyhole, Printer } from "lucide-react";
-import { Button, QuestionField } from "../components/ui";
+import { ArrowLeft, ArrowRight, Check, Clock3, Info, ListX, LockKeyhole, Printer, RotateCcw, TriangleAlert } from "lucide-react";
+import { Button, EmptyState, QuestionField } from "../components/ui";
 import { evaluateVisibility, isAnswered, type JsonAnswer, type Submission, type SurveyQuestion, type SurveyVersion } from "../lib/portal";
 
 export function Report({
@@ -8,7 +8,9 @@ export function Report({
   submission,
   questions,
   answers,
+  answerProvenance,
   setAnswers,
+  setAnswerProvenance,
   save,
   submit,
   back,
@@ -17,7 +19,9 @@ export function Report({
   submission: Submission;
   questions: SurveyQuestion[];
   answers: Record<number, JsonAnswer>;
+  answerProvenance: Record<number, "manual" | "prefilled" | "historical_import">;
   setAnswers: React.Dispatch<React.SetStateAction<Record<number, JsonAnswer>>>;
+  setAnswerProvenance: React.Dispatch<React.SetStateAction<Record<number, "manual" | "prefilled" | "historical_import">>>;
   save: (q: SurveyQuestion, v: JsonAnswer) => Promise<void>;
   submit: () => Promise<void>;
   back: () => void;
@@ -25,11 +29,10 @@ export function Report({
   const visible = questions.filter((q) => evaluateVisibility(q, questions, answers));
   const [activeId, setActiveId] = useState(visible[0]?.id ?? 0);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [selectedSection, setSelectedSection] = useState<string>("all");
 
-  const active = visible.find((q) => q.id === activeId) ?? visible[0];
-  const index = visible.indexOf(active);
   const readOnly = submission.status === "submitted";
   const answered = visible.filter((q) => isAnswered(answers[q.id])).length;
 
@@ -46,41 +49,52 @@ export function Report({
     return visible.filter((q) => q.sectionKey === selectedSection);
   }, [selectedSection, visible]);
 
+  const navigationQuestions = selectedSection === "all" ? visible : filteredVisible;
+  const active = navigationQuestions.find((q) => q.id === activeId) ?? navigationQuestions[0];
+  const index = navigationQuestions.indexOf(active);
+  const overallIndex = visible.indexOf(active);
+
   useEffect(() => {
-    if (active && !visible.some((q) => q.id === activeId)) setActiveId(active.id);
-  }, [active, activeId, visible]);
+    if (active && !navigationQuestions.some((q) => q.id === activeId)) setActiveId(active.id);
+  }, [active, activeId, navigationQuestions]);
 
   // Keyboard navigation
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
-        if (index < visible.length - 1) {
-          void commit(answers[active.id] ?? null);
-          setActiveId(visible[index + 1].id);
+        if (index < navigationQuestions.length - 1) {
+          void commit(answers[active.id] ?? null).then((saved) => {
+            if (saved) setActiveId(navigationQuestions[index + 1].id);
+          });
         }
       }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [active, answers, index, visible]);
+  }, [active, answers, index, navigationQuestions]);
 
   if (!active) {
     return (
       <div className="grid min-h-[calc(100vh-64px)] place-items-center p-6 bg-slate-50">
-        <div className="flex flex-col items-center justify-center gap-4 text-center">
-          <h2 className="text-2xl font-bold text-slate-900">No visible questions</h2>
-          <Button variant="secondary" onClick={back}>Back to overview</Button>
-        </div>
+        <EmptyState icon={ListX} title="No visible questions" description="This section has no questions available for your current answers." action={<Button variant="secondary" onClick={back}>Back to overview</Button>} />
       </div>
     );
   }
 
-  async function commit(v: JsonAnswer) {
-    if (readOnly) return;
+  async function commit(v: JsonAnswer): Promise<boolean> {
+    if (readOnly) return true;
     setSaving(true);
-    await save(active, v);
-    setSaving(false);
+    setSaveError(false);
+    try {
+      await save(active, v);
+      return true;
+    } catch {
+      setSaveError(true);
+      return false;
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -121,14 +135,14 @@ export function Report({
         <div className="mb-1 flex items-center justify-between gap-3">
           <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Annual report {version.reporting_year}</p>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">
-            {readOnly ? <><LockKeyhole size={12} /> Read only</> : saving ? <><Clock3 size={12} /> Saving…</> : <><Check size={12} /> Saved</>}
+            {readOnly ? <><LockKeyhole size={12} /> Read only</> : saving ? <><Clock3 size={12} /> Saving…</> : saveError ? <><TriangleAlert size={12} /> Save failed</> : <><Check size={12} /> Saved</>}
           </span>
         </div>
         <h2 className="mb-3.5 text-xl font-bold leading-tight text-slate-900">{active.sectionTitle}</h2>
         
         <div className="mb-4">
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full rounded-full bg-gradient-to-r from-[#e32219] to-[#c01810] transition-all duration-300" style={{ width: `${visible.length ? (answered / visible.length) * 100 : 0}%` }} />
+            <div className="h-full rounded-full bg-[#d91f17] transition-[width] duration-300" style={{ width: `${visible.length ? (answered / visible.length) * 100 : 0}%` }} />
           </div>
           <small className="mt-1.5 block text-xs font-semibold text-slate-500">{answered} of {visible.length} answered ({visible.length ? Math.round((answered / visible.length) * 100) : 0}%)</small>
         </div>
@@ -160,7 +174,7 @@ export function Report({
             <span className="flex items-center gap-1.5"><i className="size-2 rounded-full bg-[#d91f17]" />Current</span>
           </div>
           <div className="grid min-h-0 flex-1 grid-cols-5 content-start gap-1.5 overflow-y-auto pb-5 pt-1 pr-1" role="navigation" aria-label="Question navigator" tabIndex={0}>
-            {filteredVisible.map((q) => {
+            {navigationQuestions.map((q) => {
               const overallIdx = visible.indexOf(q);
               const isQAnswered = isAnswered(answers[q.id]);
               const isActive = q.id === active.id;
@@ -194,10 +208,10 @@ export function Report({
       <section className="grid place-items-center p-6 md:p-14 lg:p-20">
         <div className="w-full max-w-[840px] rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-10 lg:p-12" key={active.id}>
           <div className="mb-6 flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Question {index + 1} of {visible.length}</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Question {overallIndex + 1} of {visible.length}</span>
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
-                {readOnly ? <><LockKeyhole size={13} /> Submitted · read only</> : saving ? <><Clock3 size={13} /> Saving securely…</> : <><Check size={13} /> All changes saved</>}
+                {readOnly ? <><LockKeyhole size={13} /> Submitted · read only</> : saving ? <><Clock3 size={13} /> Saving securely…</> : saveError ? <><TriangleAlert size={13} /> Could not save</> : <><Check size={13} /> All changes saved</>}
               </span>
               <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-bold text-slate-600">{active.stableKey}</code>
             </div>
@@ -208,12 +222,13 @@ export function Report({
           
           {active.helpText && <p className="mb-6 text-[15px] leading-relaxed text-slate-600">{active.helpText}</p>}
           
-          {active.carryForwardEnabled && isAnswered(answers[active.id]) && !readOnly && (
+          {(answerProvenance[active.id] === "prefilled" || answerProvenance[active.id] === "historical_import") && !readOnly && (
             <div className="mb-8 rounded-xl border border-blue-200 bg-blue-50 p-4">
               <span className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-700">
-                <Check size={14} className="text-blue-500" /> Prefilled from previous verified report
+                {answerProvenance[active.id] === "historical_import" ? <Info size={14} className="text-blue-500" /> : <RotateCcw size={14} className="text-blue-500" />}
+                {answerProvenance[active.id] === "historical_import" ? "Imported historical response" : "Prefilled from previous verified report"}
               </span>
-              <p className="text-sm text-blue-900">Please review and confirm this response remains accurate, or update it below.</p>
+              <p className="text-sm text-blue-900">Please review this response and update it if your company’s current position has changed.</p>
             </div>
           )}
           
@@ -226,7 +241,10 @@ export function Report({
               question={active}
               value={answers[active.id]}
               disabled={readOnly}
-              change={(v) => setAnswers((a) => ({ ...a, [active.id]: v }))}
+              change={(v) => {
+                setAnswers((a) => ({ ...a, [active.id]: v }));
+                setAnswerProvenance((current) => ({ ...current, [active.id]: "manual" }));
+              }}
               save={(v) => void commit(v)}
             />
           </div>
@@ -235,16 +253,16 @@ export function Report({
             <Button
               variant="secondary"
               disabled={index === 0}
-              onClick={() => setActiveId(visible[index - 1].id)}
+              onClick={() => setActiveId(navigationQuestions[index - 1].id)}
             >
               <ArrowLeft size={16} aria-hidden="true" className="mr-1.5" /> Previous
             </Button>
             
-            {index < visible.length - 1 ? (
+            {index < navigationQuestions.length - 1 ? (
               <Button
                 onClick={async () => {
-                  await commit(answers[active.id] ?? null);
-                  setActiveId(visible[index + 1].id);
+                  const saved = await commit(answers[active.id] ?? null);
+                  if (saved) setActiveId(navigationQuestions[index + 1].id);
                 }}
               >
                 Save &amp; next <ArrowRight size={16} aria-hidden="true" className="ml-1.5" />

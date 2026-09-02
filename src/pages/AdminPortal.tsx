@@ -6,11 +6,13 @@ import {
   Check,
   ClipboardPlus,
   Clock3,
+  FileSpreadsheet,
   LockKeyhole,
   Plus,
   Printer,
   RotateCcw,
   Send,
+  UploadCloud,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import {
@@ -40,6 +42,7 @@ import {
   Loading,
   Logo,
   NoticeBar,
+  PageContainer,
   PageHeader,
   QuestionField,
   SearchField,
@@ -431,14 +434,8 @@ export function AdminPortal({ session }: { session: Session }) {
 
       {/* ══════════════════════════ DATA ═════════════════════════════════════ */}
       {view === "data" && (
-        <div className="mx-auto w-full max-w-[1400px] animate-[rise_0.4s_ease_both] px-4 py-8 md:px-8 lg:px-12 lg:pb-20">
-          <div className="mb-10 flex flex-col items-start gap-3">
-            <div>
-              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#d91f17]">Portable reporting data</p>
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Import &amp; export</h1>
-              <p className="mt-2 text-slate-500">Export responses to Excel, generate longitudinal pivot tables, or bulk-import historical responses.</p>
-            </div>
-          </div>
+        <PageContainer className="animate-[rise_0.4s_ease_both]">
+          <PageHeader eyebrow="Portable reporting data" title="Import & export" description="Move historical responses into STICA and export clean datasets for analysis." />
 
           <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Import */}
@@ -458,7 +455,7 @@ export function AdminPortal({ session }: { session: Session }) {
                   id="file-upload"
                 />
                 <label htmlFor="file-upload" className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition-colors ${importFileName ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100'}`}>
-                  <span className="text-3xl">📂</span>
+                   <UploadCloud size={28} className={importFileName ? "text-emerald-600" : "text-slate-400"} aria-hidden="true" />
                   <strong className={`text-sm font-bold ${importFileName ? 'text-emerald-700' : 'text-slate-700'}`}>
                     {importFileName ? importFileName : "Click to select .xlsx or .csv file"}
                   </strong>
@@ -466,7 +463,7 @@ export function AdminPortal({ session }: { session: Session }) {
                 </label>
               </div>
               <div className="mt-auto pt-2 text-right">
-                <Button disabled={busy || !importFileName}>
+                 <Button icon={UploadCloud} disabled={busy || !importFileName}>
                   {busy ? "Importing data…" : "Import historical responses"}
                 </Button>
               </div>
@@ -542,8 +539,8 @@ export function AdminPortal({ session }: { session: Session }) {
                 <Button variant="secondary" onClick={() => print()}>
                   <Printer size={16} aria-hidden="true" className="mr-1.5" /> Print / PDF
                 </Button>
-                <Button onClick={() => void downloadExport()} disabled={busy}>
-                  {busy ? "Generating file…" : `⬇️ Download Excel (${exportFormat})`}
+                 <Button icon={FileSpreadsheet} onClick={() => void downloadExport()} disabled={busy}>
+                   {busy ? "Generating file…" : `Download Excel (${exportFormat})`}
                 </Button>
               </div>
             </div>
@@ -600,7 +597,7 @@ export function AdminPortal({ session }: { session: Session }) {
               </div>
             </section>
           )}
-        </div>
+        </PageContainer>
       )}
 
       {/* ══════════════════════════ ANALYTICS ════════════════════════════════ */}
