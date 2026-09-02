@@ -260,6 +260,25 @@ a svg {
 }
 
 @media (max-width: 560px) {
+  .sidebar nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .sidebar nav button {
+    width: 100%;
+    min-height: 40px;
+    padding-inline: 6px;
+    white-space: normal;
+  }
+
+  .sidebar nav button .nav-item-label {
+    justify-content: center;
+    width: 100%;
+    line-height: 1.15;
+  }
+
   .page-actions > button {
     flex: 1 1 auto;
   }

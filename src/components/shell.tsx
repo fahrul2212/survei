@@ -49,6 +49,7 @@ export function Shell({ admin, view, setView, items, user, name, children }: {
   children: ReactNode;
 }) {
   const accountLabel = admin ? "Administrator" : "Company account";
+  const visibleName = admin ? "Administrator" : name;
 
   return (
     <div className="app-shell">
@@ -90,7 +91,7 @@ export function Shell({ admin, view, setView, items, user, name, children }: {
             <div className="profile-chip" aria-label={`${name}, ${user.email ?? ""}`} title={user.email ?? name}>
               <span className="profile-avatar" aria-hidden="true">{initials(name)}</span>
               <div>
-                <strong>{name}</strong>
+                <strong>{visibleName}</strong>
                 <small>{accountLabel}</small>
               </div>
             </div>
