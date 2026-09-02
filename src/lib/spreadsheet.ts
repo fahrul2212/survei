@@ -9,6 +9,8 @@ type Cell = {
   wrap?: boolean;
 };
 
+// ── Flat / long-format export ─────────────────────────────────────────────────
+
 export async function exportResponsesXlsx(rows: ExportRow[], fileName: string): Promise<void> {
   const module = await import("write-excel-file/browser");
   const writeXlsx = module.default as unknown as (
@@ -65,6 +67,71 @@ export async function exportResponsesXlsx(rows: ExportRow[], fileName: string): 
     columns: [12, 24, 20, 18, 14, 20, 22, 8, 16, 22, 52, 16, 44, 18, 20].map((width) => ({ width })),
   });
 }
+
+// ── Pivot / wide-format export ────────────────────────────────────────────────
+// One row per company per year, one column per question_key.
+
+export async function exportPivotXlsx(rows: ExportRow[], fileName: string): Promise<void> {
+  const module = await import("write-excel-file/browser");
+  const writeXlsx = module.default as unknown as (
+    data: Cell[][],
+    options: { fileName: string; columns: Array<{ width: number }> },
+  ) => Promise<void>;
+
+  if (rows.length === 0) {
+    await writeXlsx([[{ value: "No data" }]], { fileName, columns: [{ width: 20 }] });
+    return;
+  }
+
+  // Collect ordered unique question keys (preserve display_order sort)
+  const questionKeys = [...new Set(
+    [...rows].sort((a, b) => a.display_order - b.display_order).map((r) => r.question_key),
+  )];
+
+  // Fixed meta columns
+  const metaHeaders = ["Year", "Company", "Company slug", "External ref", "Status", "Submitted at"];
+  const allHeaders = [...metaHeaders, ...questionKeys];
+
+  const headerRow: Cell[] = allHeaders.map((value) => ({
+    value,
+    fontWeight: "bold",
+    backgroundColor: "E32219",
+    color: "FFFFFF",
+    wrap: true,
+  }));
+
+  // Group rows by (reporting_year, company_slug)
+  type PivotKey = string;
+  const groups = new Map<PivotKey, { meta: ExportRow; answers: Map<string, string> }>();
+
+  for (const row of rows) {
+    const key: PivotKey = `${row.reporting_year}||${row.company_slug}`;
+    if (!groups.has(key)) {
+      groups.set(key, { meta: row, answers: new Map() });
+    }
+    groups.get(key)!.answers.set(row.question_key, valueAsText(row.answer));
+  }
+
+  const dataRows: Cell[][] = [...groups.values()].map(({ meta, answers }) => [
+    { value: meta.reporting_year },
+    { value: meta.company_name },
+    { value: meta.company_slug },
+    { value: meta.external_reference ?? "" },
+    { value: meta.status },
+    { value: meta.submitted_at ?? "" },
+    ...questionKeys.map((key) => ({ value: answers.get(key) ?? "", wrap: true })),
+  ]);
+
+  const metaWidths = [8, 28, 20, 18, 14, 20];
+  const questionWidths = questionKeys.map(() => 36);
+
+  await writeXlsx([headerRow, ...dataRows], {
+    fileName,
+    columns: [...metaWidths, ...questionWidths].map((width) => ({ width })),
+  });
+}
+
+// ── Import ────────────────────────────────────────────────────────────────────
 
 export async function readImportWorkbook(file: File): Promise<unknown[][]> {
   if (file.name.toLowerCase().endsWith(".csv")) {

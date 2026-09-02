@@ -127,6 +127,33 @@ export type HistoricalImportRow = {
   submitted_at?: string | null;
 };
 
+// ── New types added in admin-enhancements migration ───────────────────────────
+
+/** A company user returned by get_organization_members() RPC */
+export type MemberRow = {
+  user_id: string;
+  role: "member" | "company_admin";
+  full_name: string;
+  email: string;
+  created_at: string;
+};
+
+/** An audit event returned by get_audit_events() RPC */
+export type AuditEventRow = {
+  id: number;
+  organization_id: number | null;
+  organization_name: string | null;
+  actor_user_id: string | null;
+  actor_email: string;
+  event_type: string;
+  entity_type: string;
+  entity_id: string;
+  details: Record<string, unknown>;
+  occurred_at: string;
+};
+
+// ── Internal helpers ──────────────────────────────────────────────────────────
+
 type NestedQuestionRow = {
   id: number;
   survey_version_id: number;
@@ -242,6 +269,17 @@ export function formatDate(value: string | null | undefined): string {
     day: "2-digit",
     month: "short",
     year: "numeric",
+  }).format(new Date(value));
+}
+
+export function formatDateTime(value: string | null | undefined): string {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(new Date(value));
 }
 
