@@ -1,5 +1,5 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import type { Session, User } from "@supabase/supabase-js";
+import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./lib/supabase";
 import {
   evaluateVisibility,
@@ -23,6 +23,7 @@ import {
   type SurveyVersion,
 } from "./lib/portal";
 import { exportPivotXlsx, exportResponsesXlsx, readImportWorkbook } from "./lib/spreadsheet";
+import { Loading, Logo, NoticeBar, QuestionField, Shell, type Notice } from "./components/ui";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -33,8 +34,6 @@ const Q_PAGE_SIZE = 12;
 const ORG_PAGE_SIZE = 12;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-
-type Notice = { kind: "success" | "error"; message: string } | null;
 
 type QForm = {
   id: number | null;
@@ -96,110 +95,7 @@ async function allExports(filters: { year?: number; company?: string; question?:
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
-function NavIcon({ name }: { name: string }) {
-  switch (name) {
-    case "dashboard":
-    case "overview":
-      return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" />
-        </svg>
-      );
-    case "report":
-    case "surveys":
-      return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="16" x2="8" y1="13" y2="13" /><line x1="16" x2="8" y1="17" y2="17" /><line x1="10" x2="8" y1="9" y2="9" />
-        </svg>
-      );
-    case "history":
-      return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-        </svg>
-      );
-    case "companies":
-      return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" /><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" /><path d="M10 6h4" /><path d="M10 10h4" /><path d="M10 14h4" /><path d="M10 18h4" />
-        </svg>
-      );
-    case "data":
-      return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" />
-        </svg>
-      );
-    case "analytics":
-      return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" />
-        </svg>
-      );
-    case "audit":
-      return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-        </svg>
-      );
-    case "account":
-      return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-        </svg>
-      );
-    default:
-      return null;
-  }
-}
-
 // ── Shared components ─────────────────────────────────────────────────────────
-
-function Logo({ inverse = false }: { inverse?: boolean }) {
-  return (
-    <div className={`brand ${inverse ? "brand--inverse" : ""}`}>
-      <img src="/stica-logo.png" alt="STICA" />
-      <div>
-        <strong>STICA</strong>
-        <span>Climate Action</span>
-      </div>
-    </div>
-  );
-}
-
-function Loading({ text = "Loading secure reporting data" }: { text?: string }) {
-  return (
-    <main className="loading-screen">
-      <Logo />
-      <div className="loading-mark">
-        <span /><span /><span />
-      </div>
-      <p>{text}</p>
-    </main>
-  );
-}
-
-function NoticeBar({ notice, clear }: { notice: Notice; clear: () => void }) {
-  useEffect(() => {
-    if (!notice || notice.kind !== "success") return;
-    const timer = window.setTimeout(clear, 5000);
-    return () => window.clearTimeout(timer);
-  }, [notice, clear]);
-
-  if (!notice) return null;
-  return (
-    <div
-      className={`notice notice--${notice.kind}`}
-      role={notice.kind === "error" ? "alert" : "status"}
-      aria-live={notice.kind === "error" ? "assertive" : "polite"}
-    >
-      <span>{notice.message}</span>
-      <button type="button" onClick={clear} aria-label="Dismiss notification">
-        <span aria-hidden="true">×</span>
-      </button>
-    </div>
-  );
-}
 
 // ── Login ─────────────────────────────────────────────────────────────────────
 
@@ -264,7 +160,7 @@ function Login() {
             {!reset && (
               <label>
                 Password
-                <div style={{ position: "relative" }}>
+                <div className="password-field">
                   <input
                     type={showPw ? "text" : "password"}
                     value={password}
@@ -275,15 +171,7 @@ function Login() {
                   <button
                     type="button"
                     onClick={() => setShowPw(!showPw)}
-                    style={{
-                      position: "absolute",
-                      right: "12px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      color: "var(--text-muted)",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                    }}
+                    className="password-toggle"
                   >
                     {showPw ? "Hide" : "Show"}
                   </button>
@@ -308,184 +196,7 @@ function Login() {
 
 // ── Shell ─────────────────────────────────────────────────────────────────────
 
-function Shell({
-  admin,
-  view,
-  setView,
-  items,
-  user,
-  name,
-  children,
-}: {
-  admin?: boolean;
-  view: string;
-  setView: (v: string) => void;
-  items: Array<[string, string, string?]>;
-  user: User;
-  name: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="app-shell">
-      <aside className={`sidebar ${admin ? "sidebar--admin" : ""}`}>
-        <Logo inverse />
-        <p className="sidebar-role">{admin ? "Administrator" : "Company workspace"}</p>
-        <nav>
-          {items.map(([id, label, meta]) => (
-            <button key={id} className={view === id ? "active" : ""} onClick={() => setView(id)}>
-              <span style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <NavIcon name={id} />
-                {label}
-              </span>
-              {meta && <small>{meta}</small>}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-bottom">
-          <a href="https://sustainablefashionacademy.org/stica/" target="_blank" rel="noreferrer">
-            STICA guidance ↗
-          </a>
-          <button className="logout" onClick={() => void supabase?.auth.signOut()}>
-            Sign out
-          </button>
-        </div>
-      </aside>
-      <div className="workspace">
-        <header className="topbar">
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <span className="status-dot" />
-            <span style={{ color: "var(--text-secondary)" }}>Secure reporting portal connected</span>
-          </div>
-          <div className="topbar-actions">
-            <div className="profile-chip" aria-label={`${name}, ${user.email ?? ""}`} title={user.email ?? name}>
-              <span className="profile-avatar" aria-hidden="true">
-                <svg viewBox="0 0 24 24" focusable="false">
-                  <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8a7 7 0 0 0-14 0" />
-                </svg>
-              </span>
-              <div>
-                <strong>{name}</strong>
-                <small>{user.email}</small>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="topbar-logout"
-              onClick={() => void supabase?.auth.signOut()}
-              title="Sign out of portal"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" x2="9" y1="12" y2="12" />
-              </svg>
-              <span>Sign out</span>
-            </button>
-          </div>
-        </header>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 // ── QuestionField ─────────────────────────────────────────────────────────────
-
-function QuestionField({
-  question,
-  value,
-  disabled,
-  change,
-  save,
-}: {
-  question: SurveyQuestion;
-  value?: JsonAnswer;
-  disabled: boolean;
-  change: (v: JsonAnswer) => void;
-  save: (v: JsonAnswer) => void;
-}) {
-  if (question.type === "yes_no") {
-    return (
-      <div className="choice-row">
-        {["Yes", "No"].map((v) => (
-          <button
-            key={v}
-            type="button"
-            disabled={disabled}
-            className={value === v ? "selected" : ""}
-            onClick={() => { change(v); save(v); }}
-          >
-            {v === "Yes" ? "✓ " : "✕ "} {v}
-          </button>
-        ))}
-      </div>
-    );
-  }
-
-  if (question.type === "single_choice") {
-    return (
-      <select
-        disabled={disabled}
-        value={valueAsText(value)}
-        onChange={(e) => { change(e.target.value); save(e.target.value); }}
-      >
-        <option value="">Select an option…</option>
-        {question.options.map((v) => <option key={v} value={v}>{v}</option>)}
-      </select>
-    );
-  }
-
-  if (question.type === "multiple_choice") {
-    const values = Array.isArray(value) ? value : [];
-    return (
-      <div className="checkbox-grid">
-        {question.options.map((v) => (
-          <label key={v} className={values.includes(v) ? "checked" : ""}>
-            <input
-              type="checkbox"
-              disabled={disabled}
-              checked={values.includes(v)}
-              onChange={() => {
-                const next = values.includes(v) ? values.filter((x) => x !== v) : [...values, v];
-                change(next);
-                save(next);
-              }}
-            />
-            <span>{v}</span>
-          </label>
-        ))}
-      </div>
-    );
-  }
-
-  if (question.type === "textarea") {
-    return (
-      <textarea
-        rows={6}
-        disabled={disabled}
-        placeholder="Enter your detailed response…"
-        value={valueAsText(value)}
-        onChange={(e) => change(e.target.value)}
-        onBlur={(e) => save(e.target.value)}
-      />
-    );
-  }
-
-  return (
-    <input
-      disabled={disabled}
-      type={question.type === "number" ? "number" : question.type === "date" ? "date" : "text"}
-      placeholder={question.type === "number" ? "e.g. 1000" : "Enter answer…"}
-      value={valueAsText(value)}
-      onChange={(e) => change(
-        question.type === "number" && e.target.value ? Number(e.target.value) : e.target.value,
-      )}
-      onBlur={(e) => save(
-        question.type === "number" && e.target.value ? Number(e.target.value) : e.target.value,
-      )}
-    />
-  );
-}
 
 // ── Report (company survey view) ──────────────────────────────────────────────
 
@@ -578,7 +289,7 @@ function Report({
             <p>
               You have completed <strong>{answered} of {visible.length}</strong> questions ({Math.round((answered / visible.length) * 100)}%).
             </p>
-            <div className="confirm-dialog__question" style={{ margin: "16px 0" }}>
+            <div className="confirm-dialog__question confirm-dialog__question--spaced">
               <span>Once submitted, your report is locked for review. An administrator must reopen it if any revisions are needed.</span>
             </div>
             <div className="confirm-dialog__actions">
@@ -602,8 +313,8 @@ function Report({
 
       <aside className="report-outline">
         <button className="back-link" onClick={back}>Back to overview</button>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", marginBottom: "4px" }}>
-          <p className="eyebrow" style={{ margin: 0 }}>Annual report {version.reporting_year}</p>
+        <div className="report-header-row">
+          <p className="eyebrow eyebrow--tight">Annual report {version.reporting_year}</p>
           <span className="live-autosave-pill">
             {readOnly ? "🔒 Read only" : saving ? "⏳ Saving…" : "✓ Saved"}
           </span>
@@ -669,7 +380,7 @@ function Report({
         <div className="question-card" key={active.id}>
           <div className="question-meta">
             <span>Question {index + 1} of {visible.length}</span>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div className="question-meta-actions">
               <span className="question-save-indicator">
                 {readOnly ? "🔒 Submitted (Read only)" : saving ? "⏳ Saving securely…" : "✓ All changes saved"}
               </span>
@@ -1078,30 +789,18 @@ function CompanyPortal({ session }: { session: Session }) {
 
                 <aside className="info-card">
                   <div>
-                    <span className="eyebrow" style={{ display: "block", color: "rgba(255, 255, 255, 0.88)", marginBottom: "8px" }}>
+                    <span className="eyebrow info-card__eyebrow">
                       Baseline data
                     </span>
-                    <div style={{ fontFamily: "var(--font-display)", fontSize: "52px", fontWeight: 800, lineHeight: 1, color: "#ffffff", margin: "8px 0" }}>
+                    <div className="info-card__number">
                       {questions.filter((q) => q.carryForwardEnabled && isAnswered(answers[q.id])).length}
                     </div>
-                    <h3 style={{ color: "#ffffff", fontSize: "20px", margin: "6px 0 10px" }}>responses prefilled</h3>
-                    <p style={{ color: "rgba(255, 255, 255, 0.95)", fontSize: "14px", lineHeight: "1.6", margin: 0 }}>
+                    <h3 className="info-card__title">responses prefilled</h3>
+                    <p className="info-card__copy">
                       Verified responses from prior reporting cycles are automatically carried forward for your review.
                     </p>
                   </div>
-                  <button
-                    className="button"
-                    onClick={() => setView("report")}
-                    style={{
-                      marginTop: "20px",
-                      alignSelf: "flex-start",
-                      background: "#ffffff",
-                      color: "var(--green-dark)",
-                      fontWeight: 700,
-                      border: "none",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                    }}
-                  >
+                  <button className="button info-card__action" onClick={() => setView("report")}>
                     Review responses →
                   </button>
                 </aside>
@@ -1991,15 +1690,15 @@ function AdminPortal({ session }: { session: Session }) {
             <h2 id="members-modal-title">Members of {membersModalOrg.name}</h2>
             <p>Users who have access to this company's reporting workspace.</p>
             
-            <div style={{ margin: "20px 0" }}>
+            <div className="members-modal-body">
               {membersBusy && !orgMembersCache[membersModalOrg.id] ? (
-                <p style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>Loading members…</p>
+                <p className="members-empty members-empty--loading">Loading members…</p>
               ) : (orgMembersCache[membersModalOrg.id] ?? []).length === 0 ? (
-                <div style={{ textAlign: "center", padding: "24px", background: "var(--surface-subtle)", borderRadius: "var(--radius-md)" }}>
-                  <p style={{ margin: 0, color: "var(--text-muted)" }}>No linked users for this company.</p>
+                <div className="members-empty">
+                  <p>No linked users for this company.</p>
                 </div>
               ) : (
-                <div className="table-scroll" style={{ maxHeight: "320px", overflowY: "auto" }}>
+                <div className="table-scroll members-table-scroll">
                   <table className="members-table">
                     <thead>
                       <tr>
@@ -2162,28 +1861,22 @@ function AdminPortal({ session }: { session: Session }) {
                 <p className="eyebrow">Company status</p>
                 <h3>{current?.reporting_year ?? "No active year"}</h3>
               </div>
-              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <div className="table-toolbar">
                 <input
                   type="search"
                   placeholder="Search company or email…"
                   value={dashSearch}
                   onChange={(e) => setDashSearch(e.target.value)}
-                  style={{
-                    padding: "6px 14px",
-                    borderRadius: "var(--radius-sm)",
-                    border: "1px solid var(--line)",
-                    fontSize: "13px",
-                    width: "220px",
-                  }}
+                  className="dashboard-search"
                 />
-                <button className="button button--secondary" onClick={() => setView("data")} style={{ minHeight: "36px", padding: "0 14px" }}>
+                <button className="button button--secondary toolbar-button" onClick={() => setView("data")}>
                   Export data
                 </button>
               </div>
             </div>
 
             {/* Status Filter Tabs */}
-            <div style={{ display: "flex", gap: "8px", padding: "12px 24px", background: "var(--surface-subtle)", borderBottom: "1px solid var(--line)" }}>
+            <div className="table-filters">
               {[
                 ["all", `All (${currentRows.length})`],
                 ["submitted", `Submitted (${submitted})`],
@@ -2194,16 +1887,7 @@ function AdminPortal({ session }: { session: Session }) {
                   key={key}
                   type="button"
                   onClick={() => setDashStatusFilter(key)}
-                  style={{
-                    padding: "4px 12px",
-                    borderRadius: "var(--radius-full)",
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    border: dashStatusFilter === key ? "1px solid var(--ink)" : "1px solid transparent",
-                    background: dashStatusFilter === key ? "var(--ink)" : "transparent",
-                    color: dashStatusFilter === key ? "white" : "var(--text-secondary)",
-                    transition: "all var(--transition-fast)",
-                  }}
+                  className={dashStatusFilter === key ? "filter-pill filter-pill--active" : "filter-pill"}
                 >
                   {label}
                 </button>
@@ -2472,7 +2156,7 @@ function AdminPortal({ session }: { session: Session }) {
                 <section className="builder-workspace">
                   <div className="question-catalog">
                     <div className="panel-heading">
-                      <div style={{ display: "flex", alignItems: "center", gap: "16px", flex: 1 }}>
+                      <div className="builder-heading-row">
                         <div>
                           <p className="eyebrow">Question library</p>
                           <h3>{questions.length} questions</h3>
@@ -2482,14 +2166,7 @@ function AdminPortal({ session }: { session: Session }) {
                           placeholder="Search questions…"
                           value={qSearch}
                           onChange={(e) => setQSearch(e.target.value)}
-                          style={{
-                            maxWidth: "240px",
-                            padding: "6px 12px",
-                            borderRadius: "var(--radius-sm)",
-                            border: "1px solid var(--line)",
-                            fontSize: "13px",
-                            marginLeft: "auto",
-                          }}
+                          className="catalog-search"
                         />
                       </div>
                     </div>
@@ -2666,7 +2343,7 @@ function AdminPortal({ session }: { session: Session }) {
                       ))}
                     </select>
                   </label>
-                  <label className="checkbox-label" style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "24px" }}>
+                  <label className="checkbox-label checkbox-label--aligned">
                     <input
                       type="checkbox"
                       checked={form.required}
@@ -2686,8 +2363,8 @@ function AdminPortal({ session }: { session: Session }) {
                     />
                   </label>
                 )}
-                <fieldset style={{ border: "1px solid var(--line)", borderRadius: "var(--radius-md)", padding: "18px" }}>
-                  <legend style={{ padding: "0 8px", fontWeight: 700, fontSize: "12px", textTransform: "uppercase" }}>Carry-forward mapping</legend>
+                <fieldset className="mapping-fieldset">
+                  <legend className="fieldset-legend">Carry-forward mapping</legend>
                   <p className="fieldset-help">Use when this question inherits validated answers from an approved previous-year question ID.</p>
                   <label>
                     Source question ID
@@ -2698,8 +2375,8 @@ function AdminPortal({ session }: { session: Session }) {
                     />
                   </label>
                 </fieldset>
-                <fieldset style={{ border: "1px solid var(--line)", borderRadius: "var(--radius-md)", padding: "18px" }}>
-                  <legend style={{ padding: "0 8px", fontWeight: 700, fontSize: "12px", textTransform: "uppercase" }}>Conditional visibility</legend>
+                <fieldset className="mapping-fieldset">
+                  <legend className="fieldset-legend">Conditional visibility</legend>
                   <p className="fieldset-help">Leave Depends on empty to show this question unconditionally.</p>
                   <div className="form-grid">
                     <label>
@@ -2721,7 +2398,7 @@ function AdminPortal({ session }: { session: Session }) {
                     </label>
                   </div>
                   {form.operator !== "is_answered" && (
-                    <label style={{ marginTop: "12px" }}>
+                    <label className="expected-value-field">
                       Expected value
                       <input
                         value={form.expected}
@@ -2773,7 +2450,7 @@ function AdminPortal({ session }: { session: Session }) {
             </button>
           </div>
 
-          <section className="metric-grid metric-grid--four" style={{ marginBottom: "24px" }}>
+          <section className="metric-grid metric-grid--four admin-metric-grid">
             <article>
               <span>Total registered</span>
               <strong>{orgs.length}</strong>
@@ -2798,25 +2475,19 @@ function AdminPortal({ session }: { session: Session }) {
                 <p className="eyebrow">Directory</p>
                 <h3>Company directory</h3>
               </div>
-              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <div className="table-toolbar">
                 <input
                   type="search"
                   placeholder="Search company, slug, email…"
                   value={orgSearch}
                   onChange={(e) => { setOrgSearch(e.target.value); setOrgPage(0); }}
-                  style={{
-                    padding: "6px 14px",
-                    borderRadius: "var(--radius-sm)",
-                    border: "1px solid var(--line)",
-                    fontSize: "13px",
-                    width: "240px",
-                  }}
+                  className="directory-search"
                 />
               </div>
             </div>
 
             {/* Status Filter Tabs */}
-            <div style={{ display: "flex", gap: "8px", padding: "12px 24px", background: "var(--surface-subtle)", borderBottom: "1px solid var(--line)" }}>
+            <div className="table-filters">
               {[
                 ["all", `All (${orgs.length})`],
                 ["active", `Active (${orgs.filter((o) => o.is_active).length})`],
@@ -2826,16 +2497,7 @@ function AdminPortal({ session }: { session: Session }) {
                   key={key}
                   type="button"
                   onClick={() => { setOrgStatusFilter(key as "all" | "active" | "inactive"); setOrgPage(0); }}
-                  style={{
-                    padding: "4px 12px",
-                    borderRadius: "var(--radius-full)",
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    border: orgStatusFilter === key ? "1px solid var(--ink)" : "1px solid transparent",
-                    background: orgStatusFilter === key ? "var(--ink)" : "transparent",
-                    color: orgStatusFilter === key ? "white" : "var(--text-secondary)",
-                    transition: "all var(--transition-fast)",
-                  }}
+                  className={orgStatusFilter === key ? "filter-pill filter-pill--active" : "filter-pill"}
                 >
                   {label}
                 </button>
@@ -2858,16 +2520,8 @@ function AdminPortal({ session }: { session: Session }) {
                   {paginatedOrgs.map((o) => (
                     <tr key={o.id}>
                       <td data-label="Company">
-                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                          <span
-                            className="company-avatar"
-                            style={{
-                              width: "36px",
-                              height: "36px",
-                              fontSize: "12px",
-                              flexShrink: 0,
-                            }}
-                          >
+                        <div className="company-cell">
+                          <span className="company-avatar company-avatar--small">
                             {o.name.slice(0, 2).toUpperCase()}
                           </span>
                           <strong>{o.name}</strong>
@@ -2878,16 +2532,16 @@ function AdminPortal({ session }: { session: Session }) {
                       </td>
                       <td data-label="Contact Email">
                         {o.contact_email ? (
-                          <span style={{ color: "var(--text-secondary)" }}>{o.contact_email}</span>
+                          <span className="text-secondary">{o.contact_email}</span>
                         ) : (
-                          <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>Not set</span>
+                          <span className="text-muted text-muted--italic">Not set</span>
                         )}
                       </td>
                       <td data-label="Reference">
                         {o.external_reference ? (
-                          <span style={{ fontSize: "13px" }}>{o.external_reference}</span>
+                          <span className="reference-value">{o.external_reference}</span>
                         ) : (
-                          <span style={{ color: "var(--text-muted)" }}>—</span>
+                          <span className="text-muted">—</span>
                         )}
                       </td>
                       <td data-label="Status">
@@ -2896,7 +2550,7 @@ function AdminPortal({ session }: { session: Session }) {
                         </span>
                       </td>
                       <td data-label="Actions">
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <div className="row-actions row-actions--compact">
                           <button
                             type="button"
                             className="table-action"
@@ -2975,31 +2629,23 @@ function AdminPortal({ session }: { session: Session }) {
             {/* Import */}
             <form className="panel-form" onSubmit={importHistory}>
               <h3>Historical Excel / CSV import</h3>
-              <p className="muted" style={{ fontSize: "13px" }}>
+              <p className="muted import-help">
                 Required headers: <code>company_name, company_slug, reporting_year, question_key, answer</code>
               </p>
-              <div
-                style={{
-                  border: "2px dashed var(--line)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "24px",
-                  textAlign: "center",
-                  background: "var(--surface-subtle)",
-                }}
-              >
+              <div className="file-dropzone">
                 <input
                   name="historyFile"
                   type="file"
                   accept=".xlsx,.csv"
                   required
                   onChange={(e) => setImportFileName(e.target.files?.[0]?.name ?? "")}
-                  style={{ display: "none" }}
+                  className="visually-hidden"
                   id="file-upload"
                 />
-                <label htmlFor="file-upload" style={{ cursor: "pointer", display: "grid", gap: "8px" }}>
-                  <span style={{ fontSize: "28px" }}>📂</span>
+                <label htmlFor="file-upload" className="file-dropzone__label">
+                  <span className="file-dropzone__icon">📂</span>
                   <strong>{importFileName ? importFileName : "Click to select .xlsx or .csv file"}</strong>
-                  <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Supports Excel workbooks and UTF-8 CSV</span>
+                  <span className="file-dropzone__hint">Supports Excel workbooks and UTF-8 CSV</span>
                 </label>
               </div>
               <button className="button button--ink" disabled={busy || !importFileName}>
