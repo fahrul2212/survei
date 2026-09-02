@@ -56,6 +56,7 @@ import { AdminDashboard } from "../components/admin/AdminDashboard";
 import { AdminAnalytics } from "../components/admin/AdminAnalytics";
 import { SurveyBuilder } from "../components/admin/SurveyBuilder";
 import { AdminCompanies } from "../components/admin/AdminCompanies";
+import { AdminOperations } from "../components/admin/AdminOperations";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -394,6 +395,7 @@ export function AdminPortal({ session }: { session: Session }) {
     ["companies", "Companies"],
     ["data", "Import & export"],
     ["analytics", "Analytics"],
+    ["operations", "Reminders & AI"],
     ["audit", "Audit log"],
   ];
 
@@ -670,6 +672,8 @@ export function AdminPortal({ session }: { session: Session }) {
       {view === "analytics" && (
         <AdminAnalytics organizations={orgs} rows={rows} currentRows={currentRows} />
       )}
+
+      {view === "operations" && <AdminOperations versions={versions} organizations={orgs} setNotice={setNotice} />}
 
       {/* ══════════════════════════ AUDIT LOG ════════════════════════════════ */}
       {view === "audit" && <AuditLogView orgs={orgs} />}

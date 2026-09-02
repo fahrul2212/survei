@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Organization, ProgressRow } from "../../lib/portal";
 import { PageContainer, PageHeader } from "../ui";
 
@@ -21,10 +22,31 @@ export function AdminAnalytics({
   const inProgress = currentRows.filter((row) => row.status === "draft" || row.status === "reopened").length;
   const notStarted = currentRows.filter((row) => row.status === "not_started").length;
   const activeOrganizations = organizations.filter((organization) => organization.is_active);
+  const [comparisonSurveyId, setComparisonSurveyId] = useState(cycles[0]?.id ?? 0);
+  const [firstOrganizationId, setFirstOrganizationId] = useState(activeOrganizations[0]?.id ?? 0);
+  const [secondOrganizationId, setSecondOrganizationId] = useState(activeOrganizations[1]?.id ?? activeOrganizations[0]?.id ?? 0);
+  const comparisonRows = [firstOrganizationId, secondOrganizationId].map((organizationId) => ({
+    organization: organizations.find((item) => item.id === organizationId),
+    row: rows.find((item) => item.organization_id === organizationId && item.survey_version_id === comparisonSurveyId),
+  }));
 
   return (
     <PageContainer>
       <PageHeader eyebrow="Lightweight analytics" title="Participation trends" description="Track submission progress, cohort completion rates, and company trajectories across survey cycles." />
+      <section className="mb-5 rounded-xl border border-slate-200 bg-white p-5 md:p-6">
+        <div className="flex flex-col gap-2 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between">
+          <div><p className="text-xs font-bold uppercase tracking-wider text-slate-500">Direct comparison</p><h2 className="mt-1 text-lg font-bold text-slate-900">Compare two companies</h2></div>
+          <select value={comparisonSurveyId} onChange={(event) => setComparisonSurveyId(Number(event.target.value))} className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-900 outline-none focus:border-[#d91f17] focus:ring-2 focus:ring-red-100" aria-label="Comparison survey">{cycles.map((cycle) => <option key={cycle.id} value={cycle.id}>{cycle.year} · {cycle.name}</option>)}</select>
+        </div>
+        <div className="mt-5 grid gap-5 lg:grid-cols-2">
+          {comparisonRows.map((comparison, index) => <article key={index} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <select value={index === 0 ? firstOrganizationId : secondOrganizationId} onChange={(event) => index === 0 ? setFirstOrganizationId(Number(event.target.value)) : setSecondOrganizationId(Number(event.target.value))} className="min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-900 outline-none focus:border-[#d91f17] focus:ring-2 focus:ring-red-100" aria-label={`Company ${index + 1}`}>{activeOrganizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name}</option>)}</select>
+            <div className="mt-5 flex items-end justify-between gap-4"><div><span className="text-xs font-bold uppercase tracking-wider text-slate-500">Completion</span><strong className="mt-1 block text-4xl font-extrabold text-slate-900">{comparison.row?.completion_percent ?? 0}%</strong></div><span className="rounded-full bg-white px-3 py-1 text-xs font-bold capitalize text-slate-600">{(comparison.row?.status ?? "not_started").replace("_", " ")}</span></div>
+            <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-200"><i className="block h-full rounded-full bg-[#d91f17]" style={{ width: `${comparison.row?.completion_percent ?? 0}%` }} /></div>
+            <p className="mt-3 text-xs text-slate-500">{comparison.row?.answered_questions ?? 0} of {comparison.row?.total_questions ?? 0} questions answered</p>
+          </article>)}
+        </div>
+      </section>
       <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <article className="rounded-xl border border-slate-200 bg-white p-5 md:p-6">
           <h3 className="text-lg font-bold text-slate-900">Average completion by survey</h3>

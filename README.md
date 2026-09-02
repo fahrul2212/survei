@@ -22,6 +22,7 @@ npm run supabase:functions
 Create the first administrator in Supabase Auth, then set `app_metadata.role` to `platform_admin`. All company accounts are subsequently invited through the portal. See `ADMIN_GUIDE.md` for the operating workflow and historical import template.
 
 Product sequencing and long-term capability planning are documented in [`docs/roadmap.md`](docs/roadmap.md).
+Production secrets and the automated reminder scheduler are documented in [`docs/operations-setup.md`](docs/operations-setup.md).
 
 ## Cloudflare deployment
 

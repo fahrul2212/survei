@@ -31,8 +31,8 @@ Goal: reduce administrative effort and make production support predictable.
 
 Goal: support larger cohorts and more realistic company teams without changing the reporting model.
 
-- Configurable reminder schedule for companies that have not started or are still in progress.
-- Multiple users per company with member and company-admin roles.
+- [Implemented] Configurable, idempotent deadline reminders for companies that have not started or are still in progress.
+- [Implemented] Multiple users per company with viewer, contributor, and company-admin roles.
 - Comments or clarification requests attached to a report or question.
 - Reopen workflow with reason, due date, and resolution status.
 - Bulk company management and invite actions.
@@ -43,17 +43,17 @@ Goal: support larger cohorts and more realistic company teams without changing t
 Goal: turn validated submissions into useful, reviewable programme insight.
 
 - Company progress over several reporting years.
-- Question-level comparison across companies and years.
+- [Implemented] Administrator company completion comparison by survey.
 - Completion and response-quality trends.
-- Optional anonymised benchmarking with minimum cohort-size safeguards.
+- [Implemented] Anonymised company completion benchmarking with a five-company suppression threshold.
 - Executive summary view for administrators: what changed, where follow-up is needed, and which themes are recurring.
-- AI-assisted summaries generated from submitted snapshots only, with source question IDs, model/prompt versioning, and mandatory human review before publication.
+- [Implemented] AI-assisted structured summaries generated through the OpenAI Responses API from submitted snapshots only, with source question IDs and model/prompt versioning.
 
 ## Phase 5 - Evidence and integrations
 
 Goal: connect the portal to the wider climate-data workflow.
 
-- Supporting document uploads with file type, size, retention, and access controls.
+- [Implemented] Private supporting document uploads with file type, 20 MB size, submission ownership, and storage/table access controls.
 - API/webhooks for approved reporting and export events.
 - Optional integrations with accounting, energy, or emissions data providers.
 - SSO and stronger organisation-level identity controls if participation grows materially.
@@ -70,6 +70,6 @@ Goal: connect the portal to the wider climate-data workflow.
 
 1. Finish Phase 1 UI/UX and core workflow validation.
 2. Complete Phase 2 before the next full reporting cycle.
-3. Prioritise reminders and team access when the cohort or admin workload justifies them.
-4. Add benchmarking and AI summaries only after longitudinal data quality is stable.
-5. Add uploads and integrations when a clear operational owner and retention policy exist.
+3. Validate reminder delivery and role boundaries with production accounts.
+4. Add mandatory administrator approval and publication states for external-facing AI summaries.
+5. Define document retention periods before adding automated deletion.

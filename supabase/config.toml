@@ -422,3 +422,21 @@ entrypoint = "./functions/admin-invite-company/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/admin-invite-company/*.html" ]
+
+[functions.invite-company-member]
+enabled = true
+verify_jwt = false
+import_map = "./functions/invite-company-member/deno.json"
+entrypoint = "./functions/invite-company-member/index.ts"
+
+[functions.generate-ai-summary]
+enabled = true
+verify_jwt = false
+import_map = "./functions/generate-ai-summary/deno.json"
+entrypoint = "./functions/generate-ai-summary/index.ts"
+
+[functions.send-report-reminders]
+enabled = true
+verify_jwt = false
+import_map = "./functions/send-report-reminders/deno.json"
+entrypoint = "./functions/send-report-reminders/index.ts"

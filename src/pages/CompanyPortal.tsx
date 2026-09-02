@@ -8,6 +8,7 @@ import {
   isAnswered,
   parseSurveyQuestion,
   type AnswerRecord,
+  type CompanyRole,
   type JsonAnswer,
   type Organization,
   type Submission,
@@ -17,6 +18,10 @@ import {
 import { EmptyState, Loading, NoticeBar, PageContainer, PageHeader, Shell, StatusBadge, type Notice, Logo, Button } from "../components/ui";
 import { AccountSettings } from "./AccountSettings";
 import { Report } from "./Report";
+import { CompanyTeam } from "../components/company/CompanyTeam";
+import { CompanyDocuments } from "../components/company/CompanyDocuments";
+import { CompanyBenchmark } from "../components/company/CompanyBenchmark";
+import { CompanySummary } from "../components/company/CompanySummary";
 
 const QUESTION_SELECT = `id,survey_version_id,display_order,is_required,carry_forward_enabled,visibility_rule,section_key,section_title,question_revision:question_revisions!inner(id,prompt,help_text,question_type,options,validation,question:question_definitions!inner(id,stable_key,category))`;
 
@@ -32,11 +37,12 @@ export function CompanyPortal({ session }: { session: Session }) {
   const [answerProvenance, setAnswerProvenance] = useState<Record<number, AnswerRecord["provenance"]>>({});
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<Notice>(null);
+  const [role, setRole] = useState<CompanyRole>("viewer");
 
-  const loadSurvey = useCallback(async (v: SurveyVersion, known: Submission[]) => {
+  const loadSurvey = useCallback(async (v: SurveyVersion, known: Submission[], allowCreate = role !== "viewer") => {
     if (!supabase) return;
     let s = known.find((x) => x.survey_version_id === v.id) ?? null;
-    if (!s && v.status === "published") {
+    if (!s && v.status === "published" && allowCreate) {
       const r = await supabase.rpc("initialize_submission", {
         target_survey_version_id: v.id,
         target_organization_id: null,
@@ -62,7 +68,7 @@ export function CompanyPortal({ session }: { session: Session }) {
     const answerRows = (ar.data ?? []) as AnswerRecord[];
     setAnswers(Object.fromEntries(answerRows.map((a) => [a.survey_question_id, a.value])));
     setAnswerProvenance(Object.fromEntries(answerRows.map((a) => [a.survey_question_id, a.provenance])));
-  }, []);
+  }, [role]);
 
   const load = useCallback(async () => {
     if (!supabase) return;
@@ -70,7 +76,7 @@ export function CompanyPortal({ session }: { session: Session }) {
     try {
       const m = await supabase
         .from("organization_members")
-        .select("organization:organizations!inner(*)")
+        .select("role,organization:organizations!inner(*)")
         .eq("user_id", session.user.id)
         .limit(1)
         .maybeSingle();
@@ -78,6 +84,8 @@ export function CompanyPortal({ session }: { session: Session }) {
       const o = Array.isArray(m.data?.organization) ? m.data.organization[0] : m.data?.organization;
       if (!o) { setOrg(null); return; }
       setOrg(o as Organization);
+      const memberRole = (m.data?.role ?? "viewer") as CompanyRole;
+      setRole(memberRole);
 
       const [vr, sr] = await Promise.all([
         supabase.from("survey_versions").select("*").in("status", ["published", "closed"]).order("reporting_year", { ascending: false }).order("id", { ascending: false }),
@@ -92,7 +100,7 @@ export function CompanyPortal({ session }: { session: Session }) {
       setSubmissions(ss);
 
       const current = vv.find((x) => x.status === "published") ?? vv[0];
-      if (current) await loadSurvey(current, ss);
+      if (current) await loadSurvey(current, ss, memberRole !== "viewer");
     } catch (e) {
       setNotice({ kind: "error", message: e instanceof Error ? e.message : "Unable to load data" });
     } finally {
@@ -119,7 +127,7 @@ export function CompanyPortal({ session }: { session: Session }) {
   [answers, visible]);
 
   async function save(q: SurveyQuestion, v: JsonAnswer) {
-    if (!supabase || !submission || submission.status === "submitted" || version?.status !== "published") return;
+    if (!supabase || role === "viewer" || !submission || submission.status === "submitted" || version?.status !== "published") return;
     const r = await supabase.from("answers").upsert(
       { submission_id: submission.id, survey_question_id: q.id, value: v, provenance: "manual", updated_by: session.user.id },
       { onConflict: "submission_id,survey_question_id" },
@@ -132,7 +140,7 @@ export function CompanyPortal({ session }: { session: Session }) {
   }
 
   async function submit() {
-    if (!supabase || !submission || version?.status !== "published") return;
+    if (!supabase || role === "viewer" || !submission || version?.status !== "published") return;
     const missing = visible.filter((q) => q.required && !isAnswered(answers[q.id]));
     if (missing.length) return setNotice({ kind: "error", message: `${missing.length} required response(s) are missing.` });
     const r = await supabase.rpc("submit_submission", { target_submission_id: submission.id });
@@ -143,9 +151,13 @@ export function CompanyPortal({ session }: { session: Session }) {
   }
 
   async function open(v: SurveyVersion) {
+    if (role === "viewer" && !submissions.some((item) => item.survey_version_id === v.id)) {
+      setNotice({ kind: "error", message: "Viewer access is read-only. A contributor must start this survey first." });
+      return;
+    }
     setLoading(true);
     try {
-      await loadSurvey(v, submissions);
+      await loadSurvey(v, submissions, role !== "viewer");
       setView("report");
     } catch (e) {
       setNotice({ kind: "error", message: e instanceof Error ? e.message : "Unable to open report" });
@@ -173,6 +185,10 @@ export function CompanyPortal({ session }: { session: Session }) {
     ["overview", "Overview"],
     ["report", version ? version.name : "Current survey", `${answered}/${visible.length}`],
     ["history", "Survey archive"],
+    ["documents", "Documents"],
+    ["benchmark", "Benchmark"],
+    ["summary", "AI summary"],
+    ["team", "Team"],
     ["account", "Account"],
   ];
 
@@ -193,6 +209,7 @@ export function CompanyPortal({ session }: { session: Session }) {
           save={save}
           submit={submit}
           back={() => setView("overview")}
+          editable={role !== "viewer"}
         />
       )}
 
@@ -352,6 +369,11 @@ export function CompanyPortal({ session }: { session: Session }) {
           )}
         </PageContainer>
       )}
+
+      {view === "documents" && <CompanyDocuments organization={org} submissions={submissions} versions={versions} canEdit={role !== "viewer"} setNotice={setNotice} />}
+      {view === "benchmark" && <CompanyBenchmark versions={versions} setNotice={setNotice} />}
+      {view === "summary" && <CompanySummary submissions={submissions} versions={versions} canGenerate={role !== "viewer"} setNotice={setNotice} />}
+      {view === "team" && <CompanyTeam organization={org} canManage={role === "company_admin"} setNotice={setNotice} />}
 
       {/* ── Account ── */}
       {view === "account" && <AccountSettings session={session} />}

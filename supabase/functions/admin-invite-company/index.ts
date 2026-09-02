@@ -1,5 +1,4 @@
-import "@supabase/functions-js/edge-runtime.d.ts";
-import { withSupabase } from "@supabase/server";
+import { adminClient, json, preflight, requireUser } from "../_shared/supabase.ts";
 
 type InvitePayload = {
   companyName: string;
@@ -14,15 +13,18 @@ function clean(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export default {
-  fetch: withSupabase({ auth: "user" }, async (req, ctx) => {
+ Deno.serve(async (req) => {
+    const options = preflight(req); if (options) return options;
     if (req.method !== "POST") {
-      return Response.json({ error: "Method not allowed" }, { status: 405 });
+      return json({ error: "Method not allowed" }, 405);
     }
 
-    const appMetadata = ctx.jwtClaims?.app_metadata as { role?: string } | undefined;
+    let caller;
+    try { caller = await requireUser(req); } catch { return json({ error: "Authentication required" }, 401); }
+    const admin = adminClient();
+    const appMetadata = caller.app_metadata as { role?: string } | undefined;
     if (appMetadata?.role !== "platform_admin") {
-      return Response.json({ error: "Administrator access required" }, { status: 403 });
+      return json({ error: "Administrator access required" }, 403);
     }
 
     const payload = (await req.json()) as Partial<InvitePayload>;
@@ -32,17 +34,17 @@ export default {
     const fullName = clean(payload.fullName);
 
     if (!companyName || !companySlug || !email || !fullName) {
-      return Response.json(
+      return json(
         { error: "Company name, slug, contact name, and email are required" },
-        { status: 400 },
+        400,
       );
     }
 
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(companySlug)) {
-      return Response.json({ error: "Company slug is invalid" }, { status: 400 });
+      return json({ error: "Company slug is invalid" }, 400);
     }
 
-    const { data: organization, error: organizationError } = await ctx.supabaseAdmin
+    const { data: organization, error: organizationError } = await admin
       .from("organizations")
       .upsert(
         {
@@ -58,26 +60,26 @@ export default {
       .single();
 
     if (organizationError || !organization) {
-      return Response.json(
+      return json(
         { error: organizationError?.message ?? "Unable to create company" },
-        { status: 400 },
+        400,
       );
     }
 
-    const { data: userPage, error: listError } = await ctx.supabaseAdmin.auth.admin.listUsers({
+    const { data: userPage, error: listError } = await admin.auth.admin.listUsers({
       page: 1,
       perPage: 1000,
     });
 
     if (listError) {
-      return Response.json({ error: listError.message }, { status: 400 });
+      return json({ error: listError.message }, 400);
     }
 
     let user = userPage.users.find((candidate) => candidate.email?.toLowerCase() === email);
     let invited = false;
 
     if (!user) {
-      const { data: inviteData, error: inviteError } = await ctx.supabaseAdmin.auth.admin.inviteUserByEmail(
+      const { data: inviteData, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
         email,
         {
           data: { full_name: fullName },
@@ -86,9 +88,9 @@ export default {
       );
 
       if (inviteError || !inviteData.user) {
-        return Response.json(
+        return json(
           { error: inviteError?.message ?? "Unable to invite company user" },
-          { status: 400 },
+          400,
         );
       }
 
@@ -97,25 +99,25 @@ export default {
     }
 
     const existingAppMetadata = (user.app_metadata ?? {}) as Record<string, unknown>;
-    const { error: metadataError } = await ctx.supabaseAdmin.auth.admin.updateUserById(user.id, {
+    const { error: metadataError } = await admin.auth.admin.updateUserById(user.id, {
       app_metadata: { ...existingAppMetadata, role: "company_user" },
       user_metadata: { ...(user.user_metadata ?? {}), full_name: fullName },
     });
 
     if (metadataError) {
-      return Response.json({ error: metadataError.message }, { status: 400 });
+      return json({ error: metadataError.message }, 400);
     }
 
-    const { error: profileError } = await ctx.supabaseAdmin.from("profiles").upsert({
+    const { error: profileError } = await admin.from("profiles").upsert({
       user_id: user.id,
       full_name: fullName,
     });
 
     if (profileError) {
-      return Response.json({ error: profileError.message }, { status: 400 });
+      return json({ error: profileError.message }, 400);
     }
 
-    const { error: membershipError } = await ctx.supabaseAdmin.from("organization_members").upsert(
+    const { error: membershipError } = await admin.from("organization_members").upsert(
       {
         organization_id: organization.id,
         user_id: user.id,
@@ -125,13 +127,12 @@ export default {
     );
 
     if (membershipError) {
-      return Response.json({ error: membershipError.message }, { status: 400 });
+      return json({ error: membershipError.message }, 400);
     }
 
-    return Response.json({
+    return json({
       organization,
       user: { id: user.id, email: user.email },
       invited,
     });
-  }),
-};
+});

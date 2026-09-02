@@ -456,7 +456,8 @@ export function AdminCompanies({
                               onChange={(e) => void changeMemberRole(membersModalOrg.id, m.user_id, e.target.value)}
                               className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
                             >
-                              <option value="member">Member</option>
+                              <option value="viewer">Viewer</option>
+                              <option value="member">Contributor</option>
                               <option value="company_admin">Company admin</option>
                             </select>
                           </td>

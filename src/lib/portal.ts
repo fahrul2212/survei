@@ -134,10 +134,68 @@ export type HistoricalImportRow = {
 /** A company user returned by get_organization_members() RPC */
 export type MemberRow = {
   user_id: string;
-  role: "member" | "company_admin";
+  role: "viewer" | "member" | "company_admin";
   full_name: string;
   email: string;
   created_at: string;
+};
+
+export type CompanyRole = MemberRow["role"];
+
+export type SubmissionDocument = {
+  id: number;
+  organization_id: number;
+  submission_id: number;
+  survey_question_id: number | null;
+  storage_path: string;
+  file_name: string;
+  mime_type: string;
+  size_bytes: number;
+  uploaded_by: string;
+  created_at: string;
+};
+
+export type BenchmarkResult = {
+  own_completion: number;
+  cohort_average: number | null;
+  cohort_median: number | null;
+  percentile_rank: number | null;
+  cohort_size: number;
+  submitted_count: number | null;
+  suppressed: boolean;
+};
+
+export type AiSummaryContent = {
+  executive_summary: string;
+  strengths: string[];
+  gaps: string[];
+  priority_actions: Array<{ action: string; rationale: string; source_question_ids: number[] }>;
+  notable_changes: string[];
+};
+
+export type AiSummary = {
+  id: number;
+  organization_id: number;
+  submission_id: number;
+  snapshot_id: number;
+  status: "pending" | "completed" | "failed";
+  model: string;
+  prompt_version: string;
+  content: AiSummaryContent | Record<string, never>;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ReminderPolicy = {
+  id: number;
+  survey_version_id: number;
+  enabled: boolean;
+  days_before_due: number[];
+  include_not_started: boolean;
+  include_in_progress: boolean;
+  created_by: string;
+  updated_at: string;
 };
 
 /** An audit event returned by get_audit_events() RPC */

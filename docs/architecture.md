@@ -30,23 +30,23 @@ Question identity and wording are separate concerns:
 
 ### Automated reminders
 
-Add reminder policy and delivery-attempt tables, then invoke a provider-neutral Edge Function from a scheduled job. Store idempotency keys, template version, reporting year, recipient, status, and provider response so retries cannot send duplicates.
+`reminder_policies` and `reminder_deliveries` configure and audit deadline messages. A daily scheduled Edge Function sends through Resend; per-recipient/date idempotency keys prevent duplicate delivery.
 
 ### Multiple users and roles
 
-Keep organization membership as the authorization source. Add permissions through normalized roles or capabilities, not user-editable profile metadata. Every organization query must retain row-level authorization.
+Organization membership is the authorization source. `viewer` is read-only, `member` is a reporting contributor, and `company_admin` can manage the company team. Roles never come from user-editable profile metadata.
 
 ### Benchmarking
 
-Expose aggregated, administrator-approved RPCs or security-invoker views. Define minimum cohort sizes and suppression rules before showing peer comparisons so an individual company's answers cannot be inferred.
+The company benchmark RPC returns completion aggregates only and suppresses peer metrics until five active companies are present. Administrator comparisons use authorized progress rows.
 
 ### AI summaries
 
-Generate asynchronously from a submitted snapshot, record model/prompt versions and source question IDs, and require human review before publication. Keep summaries separate from canonical answers.
+The `generate-ai-summary` Edge Function sends submitted snapshot evidence to the OpenAI Responses API with a strict JSON schema and stores model/prompt versions plus source question IDs. Summaries remain separate from canonical answers and are labelled as drafts requiring verification.
 
 ### Document uploads
 
-Use private object storage paths scoped by organization, reporting year, and submission. Store document metadata in Postgres and enforce equivalent ownership rules in both table and storage policies.
+The private `report-documents` bucket uses organization/submission paths. `submission_documents` stores metadata, while matching table and object policies allow read access to company members and write access only to contributors/admins.
 
 ### API integrations
 

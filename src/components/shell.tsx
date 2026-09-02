@@ -1,16 +1,20 @@
 import type { User } from "@supabase/supabase-js";
 import {
   BarChart3,
+  BellRing,
   Building2,
   Download,
   ExternalLink,
   FileText,
+  Files,
   History,
   LayoutDashboard,
   LogOut,
   Menu,
   ShieldCheck,
   UserRound,
+  Users,
+  Bot,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -26,7 +30,12 @@ const navIcons: Record<string, LucideIcon> = {
   data: Download,
   history: History,
   overview: LayoutDashboard,
+  operations: BellRing,
   report: FileText,
+  documents: Files,
+  benchmark: BarChart3,
+  summary: Bot,
+  team: Users,
   surveys: FileText,
 };
 

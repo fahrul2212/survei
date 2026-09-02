@@ -14,6 +14,7 @@ export function Report({
   save,
   submit,
   back,
+  editable = true,
 }: {
   version: SurveyVersion;
   submission: Submission;
@@ -25,6 +26,7 @@ export function Report({
   save: (q: SurveyQuestion, v: JsonAnswer) => Promise<void>;
   submit: () => Promise<void>;
   back: () => void;
+  editable?: boolean;
 }) {
   const visible = questions.filter((q) => evaluateVisibility(q, questions, answers));
   const [activeId, setActiveId] = useState(visible[0]?.id ?? 0);
@@ -33,8 +35,8 @@ export function Report({
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [selectedSection, setSelectedSection] = useState<string>("all");
 
-  const readOnly = submission.status === "submitted" || version.status !== "published";
-  const readOnlyLabel = version.status === "closed" ? "Survey closed" : "Submitted · read only";
+  const readOnly = !editable || submission.status === "submitted" || version.status !== "published";
+  const readOnlyLabel = !editable ? "Viewer access · read only" : version.status === "closed" ? "Survey closed" : "Submitted · read only";
   const answered = visible.filter((q) => isAnswered(answers[q.id])).length;
 
   const sectionKeys = useMemo(() => {
