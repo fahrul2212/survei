@@ -355,16 +355,31 @@ function Shell({
             <span className="status-dot" />
             <span style={{ color: "var(--text-secondary)" }}>Secure reporting portal connected</span>
           </div>
-          <div className="profile-chip" aria-label={`${name}, ${user.email ?? ""}`} title={user.email ?? name}>
-            <span className="profile-avatar" aria-hidden="true">
-              <svg viewBox="0 0 24 24" focusable="false">
-                <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8a7 7 0 0 0-14 0" />
-              </svg>
-            </span>
-            <div>
-              <strong>{name}</strong>
-              <small>{user.email}</small>
+          <div className="topbar-actions">
+            <div className="profile-chip" aria-label={`${name}, ${user.email ?? ""}`} title={user.email ?? name}>
+              <span className="profile-avatar" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8a7 7 0 0 0-14 0" />
+                </svg>
+              </span>
+              <div>
+                <strong>{name}</strong>
+                <small>{user.email}</small>
+              </div>
             </div>
+            <button
+              type="button"
+              className="topbar-logout"
+              onClick={() => void supabase?.auth.signOut()}
+              title="Sign out of portal"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" x2="9" y1="12" y2="12" />
+              </svg>
+              <span>Sign out</span>
+            </button>
           </div>
         </header>
         {children}
@@ -497,9 +512,6 @@ function Report({
   const [saving, setSaving] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [selectedSection, setSelectedSection] = useState<string>("all");
-  const [paletteOpen, setPaletteOpen] = useState(
-    () => typeof window !== "undefined" && window.matchMedia("(min-width: 1181px)").matches,
-  );
 
   const active = visible.find((q) => q.id === activeId) ?? visible[0];
   const index = visible.indexOf(active);
@@ -522,14 +534,6 @@ function Report({
   useEffect(() => {
     if (active && !visible.some((q) => q.id === activeId)) setActiveId(active.id);
   }, [active, activeId, visible]);
-
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 1181px)");
-    const sync = () => setPaletteOpen(media.matches);
-    sync();
-    media.addEventListener("change", sync);
-    return () => media.removeEventListener("change", sync);
-  }, []);
 
   // Keyboard navigation
   useEffect(() => {
@@ -597,32 +601,29 @@ function Report({
 
       <aside className="report-outline">
         <button className="back-link" onClick={back}>Back to overview</button>
-        <p className="eyebrow">Annual report {version.reporting_year}</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", marginBottom: "4px" }}>
+          <p className="eyebrow" style={{ margin: 0 }}>Annual report {version.reporting_year}</p>
+          <span className="live-autosave-pill">
+            {readOnly ? "🔒 Read only" : saving ? "⏳ Saving…" : "✓ Saved"}
+          </span>
+        </div>
         <h2>{active.sectionTitle}</h2>
         <div className="outline-progress">
           <span>
             <i style={{ width: `${visible.length ? (answered / visible.length) * 100 : 0}%` }} />
           </span>
-          <small>{answered} of {visible.length} visible questions answered ({visible.length ? Math.round((answered / visible.length) * 100) : 0}%)</small>
+          <small>{answered} of {visible.length} answered ({visible.length ? Math.round((answered / visible.length) * 100) : 0}%)</small>
         </div>
 
         {/* Section Filter */}
         {sectionKeys.length > 1 && (
-          <div style={{ marginBottom: "14px" }}>
+          <div style={{ marginBottom: "12px" }}>
             <select
               value={selectedSection}
               onChange={(e) => setSelectedSection(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "8px 12px",
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--line)",
-                fontSize: "12px",
-                fontWeight: 600,
-                background: "var(--surface-subtle)",
-              }}
+              className="section-filter-select"
             >
-              <option value="all">All sections ({visible.length})</option>
+              <option value="all">All sections ({visible.length} questions)</option>
               {sectionKeys.map(([k, t]) => (
                 <option key={k} value={k}>{t} ({visible.filter((q) => q.sectionKey === k).length})</option>
               ))}
@@ -630,15 +631,11 @@ function Report({
           </div>
         )}
 
-        <details
-          className="palette-panel"
-          open={paletteOpen}
-          onToggle={(e) => { if (window.innerWidth <= 1180) setPaletteOpen(e.currentTarget.open); }}
-        >
-          <summary>
+        <div className="palette-panel">
+          <div className="palette-header">
             <span>Question navigator</span>
             <strong>{answered}/{visible.length}</strong>
-          </summary>
+          </div>
           <div className="palette-legend" aria-label="Question status legend">
             <span><i className="legend-dot legend-dot--answered" />Answered</span>
             <span><i className="legend-dot" />Unanswered</span>
@@ -664,24 +661,19 @@ function Report({
               );
             })}
           </div>
-        </details>
-
-        <p className="autosave" aria-live="polite">
-          {readOnly ? (
-            "🔒 Submitted (Read only)"
-          ) : saving ? (
-            "⏳ Saving securely…"
-          ) : (
-            "✓ All changes saved securely"
-          )}
-        </p>
+        </div>
       </aside>
 
       <section className="question-stage">
         <div className="question-card" key={active.id}>
           <div className="question-meta">
             <span>Question {index + 1} of {visible.length}</span>
-            <code>{active.stableKey}</code>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span className="question-save-indicator">
+                {readOnly ? "🔒 Submitted (Read only)" : saving ? "⏳ Saving securely…" : "✓ All changes saved"}
+              </span>
+              <code>{active.stableKey}</code>
+            </div>
           </div>
           <p className="section-kicker">{active.sectionTitle} / {active.category}</p>
           <h1>{active.prompt}</h1>
@@ -1085,12 +1077,30 @@ function CompanyPortal({ session }: { session: Session }) {
 
                 <aside className="info-card">
                   <div>
-                    <p className="eyebrow">Baseline data</p>
-                    <strong>{questions.filter((q) => q.carryForwardEnabled && isAnswered(answers[q.id])).length}</strong>
-                    <h3>responses prefilled</h3>
-                    <p>Verified responses from prior reporting cycles are automatically carried forward for your review.</p>
+                    <span className="eyebrow" style={{ display: "block", color: "rgba(255, 255, 255, 0.88)", marginBottom: "8px" }}>
+                      Baseline data
+                    </span>
+                    <div style={{ fontFamily: "var(--font-display)", fontSize: "52px", fontWeight: 800, lineHeight: 1, color: "#ffffff", margin: "8px 0" }}>
+                      {questions.filter((q) => q.carryForwardEnabled && isAnswered(answers[q.id])).length}
+                    </div>
+                    <h3 style={{ color: "#ffffff", fontSize: "20px", margin: "6px 0 10px" }}>responses prefilled</h3>
+                    <p style={{ color: "rgba(255, 255, 255, 0.95)", fontSize: "14px", lineHeight: "1.6", margin: 0 }}>
+                      Verified responses from prior reporting cycles are automatically carried forward for your review.
+                    </p>
                   </div>
-                  <button className="button button--secondary" onClick={() => setView("report")} style={{ marginTop: "18px", alignSelf: "start" }}>
+                  <button
+                    className="button"
+                    onClick={() => setView("report")}
+                    style={{
+                      marginTop: "20px",
+                      alignSelf: "flex-start",
+                      background: "#ffffff",
+                      color: "var(--green-dark)",
+                      fontWeight: 700,
+                      border: "none",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                    }}
+                  >
                     Review responses →
                   </button>
                 </aside>
