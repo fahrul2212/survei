@@ -268,8 +268,8 @@ export function CompanyPortal({ session }: { session: Session }) {
 
           {version && submission ? (
             <>
-              <section className="mb-7 grid min-h-[280px] grid-cols-1 overflow-hidden rounded-xl border border-slate-200 bg-white md:grid-cols-[1.35fr_0.65fr]">
-                <div className="p-7 md:p-10">
+              <section className="mb-7 grid min-h-[280px] grid-cols-1 overflow-hidden rounded-xl border border-slate-200 bg-white lg:grid-cols-[minmax(0,1.35fr)_minmax(250px,0.65fr)]">
+                <div className="min-w-0 p-6 sm:p-7 md:p-9 lg:p-10">
                   <StatusBadge status={submission.status} />
                   <h2 className="mb-3 mt-5 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">{version.name}</h2>
                   <p className="max-w-xl leading-6 text-slate-600">Review the responses carried forward from your last verified report, update anything that changed, then submit when the report is complete.</p>
@@ -278,7 +278,7 @@ export function CompanyPortal({ session }: { session: Session }) {
                     <ArrowRight size={16} aria-hidden="true" />
                   </button>
                 </div>
-                <div className="flex flex-col justify-center border-t border-slate-200 bg-slate-50 p-7 md:border-l md:border-t-0 md:p-9">
+                <div className="flex flex-col justify-center border-t border-slate-200 bg-slate-50 p-6 sm:p-7 md:border-l md:border-t-0 md:p-8 xl:p-9">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Overall completion</span>
                   <strong className="mt-2 text-5xl font-extrabold tracking-tight text-slate-900">{progress}%</strong>
                   <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label="Overall report completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
@@ -288,8 +288,8 @@ export function CompanyPortal({ session }: { session: Session }) {
                 </div>
               </section>
 
-              <section className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_330px]">
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+              <section className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+                <div className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white">
                   <div className="flex items-center justify-between border-b border-slate-200 p-5 md:px-6">
                     <div>
                       <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-slate-500">Reporting sections</p>
@@ -299,36 +299,52 @@ export function CompanyPortal({ session }: { session: Session }) {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2">
                     {sections.map((s) => (
-                      <button key={s.key} className="flex w-full flex-wrap items-center justify-between border-b border-r border-slate-100 p-5 text-left transition-colors hover:bg-slate-50" onClick={() => setView("report")}>
-                        <span className="grid size-9 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-slate-500">
-                          {s.answered === s.total ? <Check size={16} aria-label="Complete" /> : `${Math.round((s.answered / s.total) * 100)}%`}
-                        </span>
-                        <span className="flex flex-1 flex-col pl-4">
-                          <strong className="truncate text-sm font-bold text-slate-900">{s.title}</strong>
-                          <small className="text-xs font-semibold text-slate-500">{s.answered} of {s.total} answered</small>
-                        </span>
-                        <span className="col-start-2 mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-100">
-                          <i className="block h-full bg-[#d91f17] transition-all" style={{ width: `${(s.answered / s.total) * 100}%` }} />
-                        </span>
+                      <button
+                        key={s.key}
+                        type="button"
+                        className="group flex flex-col justify-between border-b border-slate-100 p-4 text-left transition-colors hover:bg-slate-50 sm:p-5 sm:[&:nth-child(odd)]:border-r"
+                        onClick={() => setView("report")}
+                      >
+                        <div className="flex w-full items-center gap-3.5 min-w-0">
+                          <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-slate-600">
+                            {s.answered === s.total ? <Check size={16} aria-label="Complete" /> : `${Math.round((s.answered / s.total) * 100)}%`}
+                          </span>
+                          <div className="flex min-w-0 flex-1 flex-col">
+                            <strong className="truncate text-sm font-bold text-slate-900" title={s.title}>
+                              {s.title}
+                            </strong>
+                            <small className="mt-0.5 text-xs font-semibold text-slate-500">
+                              {s.answered} of {s.total} answered
+                            </small>
+                          </div>
+                        </div>
+                        <div className="mt-3.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuenow={Math.round((s.answered / s.total) * 100)} aria-valuemin={0} aria-valuemax={100} aria-label={`${s.title} progress`}>
+                          <div
+                            className="h-full rounded-full bg-[#d91f17] transition-all"
+                            style={{ width: `${(s.answered / s.total) * 100}%` }}
+                          />
+                        </div>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <aside className="flex flex-col justify-between rounded-xl border border-slate-200 border-l-4 border-l-emerald-600 bg-white p-7 text-slate-900">
-                  <div>
+                <aside className="flex flex-col justify-between rounded-xl border border-slate-200 border-l-4 border-l-emerald-600 bg-white p-6 md:p-7 text-slate-900 md:flex-row md:items-center md:gap-6 xl:flex-col xl:items-start xl:gap-0">
+                  <div className="flex-1 min-w-0">
                     <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-widest text-emerald-700">
                       Baseline data
                     </span>
-                    <div className="my-2 text-5xl font-extrabold leading-none text-slate-900">
-                      {questions.filter((q) => isAnswered(answers[q.id]) && (answerProvenance[q.id] === "prefilled" || answerProvenance[q.id] === "historical_import")).length}
+                    <div className="my-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                      <span className="text-4xl font-extrabold leading-none text-slate-900 md:text-5xl">
+                        {questions.filter((q) => isAnswered(answers[q.id]) && (answerProvenance[q.id] === "prefilled" || answerProvenance[q.id] === "historical_import")).length}
+                      </span>
+                      <h3 className="text-lg font-bold text-slate-900 md:text-xl">responses prefilled</h3>
                     </div>
-                    <h3 className="mb-2.5 mt-1.5 text-xl font-bold">responses prefilled</h3>
-                    <p className="text-sm leading-relaxed text-slate-600">
+                    <p className="max-w-xl text-sm leading-relaxed text-slate-600">
                       Verified responses from prior reporting cycles are automatically carried forward for your review.
                     </p>
                   </div>
-                  <button className="mt-5 inline-flex w-fit items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-50" onClick={() => setView("report")}>
+                  <button className="mt-5 inline-flex shrink-0 w-fit items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-50 md:mt-0 xl:mt-5" onClick={() => setView("report")}>
                     Review responses <ArrowRight size={16} aria-hidden="true" />
                   </button>
                 </aside>
