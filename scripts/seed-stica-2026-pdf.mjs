@@ -97,7 +97,7 @@ const questions = sectionSpecs.flatMap(([sectionKey, sectionTitle, prefix, promp
 // 25 Authentic STICA Signatory Companies taken directly from the 2025 Progress Report PDF (Pages 22-27)
 const sticaCompanies = [
   {
-    name: "North Thread AB (Showcase)",
+    name: "North Thread AB",
     slug: "north-thread-showcase",
     email: credentials.client.email,
     ref: "STICA-SWE-001",
@@ -703,7 +703,7 @@ function generateRealisticAnswer(q, company, year) {
   const k = q.stableKey;
 
   // ── Company Profile (ORG) ──────────────────────────────────────────────────
-  if (k === "ORG-001") return `${company.name} AB`;
+  if (k === "ORG-001") return company.name.endsWith("AB") ? company.name : `${company.name} AB`;
   if (k === "ORG-002") return `SE${String(556000 + Math.abs(company.slug.length * 137)).padStart(6, "0")}-01`;
   if (k === "ORG-003") return company.country;
   if (k === "ORG-004") return `${company.name.split(" ")[0]} Climate Team`;
