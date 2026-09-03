@@ -67,6 +67,7 @@ export function Shell({
   children: ReactNode;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const accountLabel = admin ? "Administrator" : "Company account";
   const visibleName = admin ? "Administrator" : name;
 
@@ -79,7 +80,7 @@ export function Shell({
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  // Lock body scroll when drawer is open on mobile
+  // Lock body scroll when drawer is open on mobile/tablet
   useEffect(() => {
     if (drawerOpen) {
       document.body.style.overflow = "hidden";
@@ -89,17 +90,28 @@ export function Shell({
     return () => { document.body.style.overflow = ""; };
   }, [drawerOpen]);
 
+  // Close drawer if screen resizes to desktop
+  useEffect(() => {
+    function onResize() {
+      if (window.innerWidth >= 1280 && drawerOpen) {
+        setDrawerOpen(false);
+      }
+    }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [drawerOpen]);
+
   function navigate(id: string) {
     setView(id);
     setDrawerOpen(false);
   }
 
   const baseSidebar = "flex flex-col h-dvh px-4.5 py-6 overflow-y-auto overflow-x-hidden border-r text-white";
-  const desktopSidebar = "sticky top-0 z-30 hidden lg:flex";
-  const drawerSidebar = "fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] shadow-xl transition-transform duration-300 lg:hidden";
+  const desktopSidebar = "sticky top-0 z-30 hidden xl:flex";
+  const drawerSidebar = "fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] shadow-xl transition-transform duration-300 xl:hidden";
   const themeSidebar = admin ? "bg-slate-950 border-slate-900" : "bg-slate-900 border-slate-800";
 
-  const SidebarContent = () => (
+  const SidebarContent = ({ isDrawer }: { isDrawer?: boolean }) => (
     <>
       {/* Logo */}
       <div className="mb-6 flex items-center justify-between">
@@ -110,12 +122,19 @@ export function Shell({
             <span className="text-[10px] uppercase tracking-wider text-slate-400">Climate Action</span>
           </div>
         </div>
-        {/* Close button — mobile only */}
+        {/* Close button — works on both tablet/mobile drawer and desktop sidebar */}
         <button
           type="button"
-          className="grid size-8 place-items-center rounded-md text-slate-400 transition-colors hover:bg-slate-800 hover:text-white lg:hidden"
-          onClick={() => setDrawerOpen(false)}
+          className="grid size-8 place-items-center rounded-md text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+          onClick={() => {
+            if (isDrawer) {
+              setDrawerOpen(false);
+            } else {
+              setDesktopSidebarOpen(false);
+            }
+          }}
           aria-label="Close navigation"
+          title="Close navigation"
         >
           <X size={20} />
         </button>
@@ -171,16 +190,18 @@ export function Shell({
   );
 
   return (
-    <div className="grid min-h-dvh bg-slate-50 lg:grid-cols-[260px_1fr]">
+    <div className={`grid min-h-dvh bg-slate-50 ${desktopSidebarOpen ? "xl:grid-cols-[260px_1fr]" : "grid-cols-1"}`}>
       {/* ── Desktop sidebar ─────────────────────────────────────── */}
-      <aside className={`${baseSidebar} ${desktopSidebar} ${themeSidebar}`}>
-        <SidebarContent />
-      </aside>
+      {desktopSidebarOpen && (
+        <aside className={`${baseSidebar} ${desktopSidebar} ${themeSidebar}`}>
+          <SidebarContent />
+        </aside>
+      )}
 
-      {/* ── Mobile drawer overlay ────────────────────────────────── */}
+      {/* ── Mobile/Tablet drawer overlay ────────────────────────── */}
       {drawerOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-950/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/50 xl:hidden"
           aria-hidden="true"
           onClick={() => setDrawerOpen(false)}
         />
@@ -189,19 +210,27 @@ export function Shell({
         className={`${baseSidebar} ${drawerSidebar} ${themeSidebar} ${drawerOpen ? "translate-x-0" : "-translate-x-full"}`}
         aria-hidden={!drawerOpen}
       >
-        <SidebarContent />
+        <SidebarContent isDrawer />
       </aside>
 
       {/* ── Main workspace ──────────────────────────────────────── */}
       <div className="flex min-h-dvh min-w-0 flex-col">
-        <header className="sticky top-0 z-25 flex min-h-[64px] items-center gap-3 border-b border-slate-200 bg-white px-4 text-[13px] font-medium md:px-6 lg:px-10">
-          {/* Hamburger — mobile only */}
+        <header className="sticky top-0 z-25 flex min-h-[64px] items-center gap-3 border-b border-slate-200 bg-white px-4 text-[13px] font-medium md:px-6 lg:px-8">
+          {/* Hamburger / Toggle button — opens drawer on tablet/mobile, toggles sidebar on desktop */}
           <button
             type="button"
-            className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:hidden"
-            onClick={() => setDrawerOpen(true)}
-            aria-label="Open navigation menu"
-            aria-expanded={drawerOpen}
+            className={`flex size-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 ${
+              desktopSidebarOpen ? "xl:hidden" : "flex"
+            }`}
+            onClick={() => {
+              if (window.innerWidth >= 1280) {
+                setDesktopSidebarOpen((prev) => !prev);
+              } else {
+                setDrawerOpen((prev) => !prev);
+              }
+            }}
+            aria-label={desktopSidebarOpen ? "Open navigation menu" : "Show sidebar"}
+            aria-expanded={drawerOpen || desktopSidebarOpen}
           >
             <Menu size={20} />
           </button>
