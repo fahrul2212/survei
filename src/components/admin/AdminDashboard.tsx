@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { ArrowRight, CheckCircle2, ClipboardList, Clock3, FileText, UsersRound } from "lucide-react";
-import { Button, EmptyState, PageContainer, PageHeader, ProgressBar, SearchField, StatusBadge } from "../ui";
+import { Button, DataTablePagination, EmptyState, PageContainer, PageHeader, ProgressBar, SearchField, StatusBadge } from "../ui";
 import type { Organization, ProgressRow, SurveyVersion } from "../../lib/portal";
 
 export function AdminDashboard({
@@ -24,6 +24,8 @@ export function AdminDashboard({
 }) {
   const [dashSearch, setDashSearch] = useState("");
   const [dashStatusFilter, setDashStatusFilter] = useState<string>("all");
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   const activeSurveys = versions.filter((v) => v.status === "published");
   const current = activeSurveys.find((v) => v.id === currentSurveyId) ?? activeSurveys[0];
@@ -47,6 +49,11 @@ export function AdminDashboard({
   const submitted = currentRows.filter((r) => r.status === "submitted").length;
   const inProgress = currentRows.filter((r) => r.status === "draft" || r.status === "reopened").length;
   const notStarted = currentRows.filter((r) => r.status === "not_started").length;
+
+  const totalPages = Math.max(1, Math.ceil(filteredDashboardRows.length / pageSize));
+  const pagedDashboardRows = useMemo(() => {
+    return filteredDashboardRows.slice(page * pageSize, (page + 1) * pageSize);
+  }, [filteredDashboardRows, page, pageSize]);
 
   return (
     <PageContainer>
@@ -135,7 +142,10 @@ export function AdminDashboard({
             <SearchField
               placeholder="Search company or email…"
               value={dashSearch}
-              onChange={(e) => setDashSearch(e.target.value)}
+              onChange={(e) => {
+                setDashSearch(e.target.value);
+                setPage(0);
+              }}
               className="w-full sm:w-[260px]"
             />
             <Button variant="secondary" onClick={() => setView("data")}>
@@ -155,7 +165,10 @@ export function AdminDashboard({
             <button
               key={key}
               type="button"
-              onClick={() => setDashStatusFilter(key)}
+              onClick={() => {
+                setDashStatusFilter(key);
+                setPage(0);
+              }}
               className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
                 dashStatusFilter === key
                   ? "border border-slate-900 bg-slate-900 text-white shadow-sm"
@@ -184,7 +197,7 @@ export function AdminDashboard({
               <span role="columnheader" className="text-right">Action</span>
             </div>
             <div className="divide-y divide-slate-100" role="rowgroup">
-              {filteredDashboardRows.map((r) => (
+              {pagedDashboardRows.map((r) => (
                 <article
                   key={`${r.organization_id}-${r.survey_version_id}`}
                   className="flex flex-col gap-3 p-4 transition-colors hover:bg-slate-50/70 md:grid md:grid-cols-[minmax(0,1.3fr)_minmax(0,1.1fr)_minmax(8rem,0.9fr)_7.5rem_13rem] md:items-center md:gap-4 md:px-5 md:py-3.5"
@@ -257,6 +270,15 @@ export function AdminDashboard({
                 <div className="p-8 text-center text-slate-500">No companies matching the filter.</div>
               )}
             </div>
+            <DataTablePagination
+              page={page}
+              totalPages={totalPages}
+              totalItems={filteredDashboardRows.length}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+              itemName="companies"
+            />
           </div>
           )}
       </section>

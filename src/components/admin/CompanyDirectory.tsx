@@ -1,6 +1,6 @@
 import { Archive, ArchiveRestore, Building2, Pencil, UsersRound } from "lucide-react";
 import type { Organization } from "../../lib/portal";
-import { Button, EmptyState, SearchField, TruncatedText } from "../ui";
+import { Button, DataTablePagination, EmptyState, SearchField, TruncatedText } from "../ui";
 
 export type CompanyStatusFilter = "all" | "active" | "inactive";
 
@@ -149,21 +149,14 @@ export function CompanyDirectory({
         </div>
       )}
 
-      {totalPages > 1 && (
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-200 p-4 sm:flex-row">
-          <span className="text-xs font-medium text-slate-500">
-            Page {page + 1} of {totalPages} · {filteredCount} companies
-          </span>
-          <div className="flex items-center gap-2">
-            <Button size="small" variant="secondary" disabled={page === 0} onClick={() => onPage(Math.max(0, page - 1))}>
-              Previous
-            </Button>
-            <Button size="small" variant="secondary" disabled={page >= totalPages - 1} onClick={() => onPage(page + 1)}>
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <DataTablePagination
+        page={page}
+        totalPages={totalPages}
+        totalItems={filteredCount}
+        pageSize={12}
+        onPageChange={onPage}
+        itemName="companies"
+      />
     </section>
   );
 }

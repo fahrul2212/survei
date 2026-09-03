@@ -41,6 +41,7 @@ import {
 import { exportPivotXlsx, exportResponsesXlsx, readImportWorkbook } from "../lib/spreadsheet";
 import {
   Button,
+  DataTablePagination,
   EmptyState,
   Loading,
   Logo,
@@ -700,41 +701,21 @@ export function AdminPortal({ session }: { session: Session }) {
                   onPrint={() => window.print()}
                 />
               ) : (
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                  <div className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <h3 className="text-lg font-bold text-slate-900">{exports.length} response rows</h3>
-                    <div className="flex items-center gap-2">
-                      <button
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-40"
-                        type="button"
-                        disabled={exportPage === 0}
-                        onClick={() => setExportPage((p) => p - 1)}
-                      >
-                        <ArrowLeft size={15} aria-hidden="true" /> Previous
-                      </button>
-                      <span className="text-xs font-semibold text-slate-600">
-                        {exportPage * EXPORT_PAGE_SIZE + 1}–{Math.min((exportPage + 1) * EXPORT_PAGE_SIZE, exports.length)} of {exports.length}
-                      </span>
-                      <button
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-40"
-                        type="button"
-                        disabled={(exportPage + 1) * EXPORT_PAGE_SIZE >= exports.length}
-                        onClick={() => setExportPage((p) => p + 1)}
-                      >
-                        Next <ArrowRight size={15} aria-hidden="true" />
-                      </button>
-                    </div>
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+                  <div className="border-b border-slate-200 bg-slate-50/70 p-4">
+                    <h3 className="text-base font-bold text-slate-900">{exports.length} response rows</h3>
+                    <p className="text-xs text-slate-500">Raw individual answers for selected filters</p>
                   </div>
                   <div className="w-full overflow-x-auto">
                     <table className="w-full min-w-[760px] text-left text-sm text-slate-600">
                       <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
                         <tr className="border-b border-slate-200">
-                          <th>Year</th>
-                          <th>Survey</th>
-                          <th>Company</th>
-                          <th>Question ID</th>
-                          <th>Question prompt</th>
-                          <th>Answer</th>
+                          <th className="px-4 py-3">Year</th>
+                          <th className="px-4 py-3">Survey</th>
+                          <th className="px-4 py-3">Company</th>
+                          <th className="px-4 py-3">Question ID</th>
+                          <th className="px-4 py-3">Question prompt</th>
+                          <th className="px-4 py-3">Answer</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -751,6 +732,14 @@ export function AdminPortal({ session }: { session: Session }) {
                       </tbody>
                     </table>
                   </div>
+                  <DataTablePagination
+                    page={exportPage}
+                    totalPages={Math.max(1, Math.ceil(exports.length / EXPORT_PAGE_SIZE))}
+                    totalItems={exports.length}
+                    pageSize={EXPORT_PAGE_SIZE}
+                    onPageChange={setExportPage}
+                    itemName="responses"
+                  />
                 </div>
               )}
             </section>

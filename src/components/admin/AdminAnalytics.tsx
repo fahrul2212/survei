@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BarChart3, HelpCircle, Search, TrendingUp } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { valueAsText, type ExportRow, type Organization, type ProgressRow } from "../../lib/portal";
-import { Button, EmptyState, PageContainer, PageHeader, SearchField, StatusBadge } from "../ui";
+import { Button, DataTablePagination, EmptyState, PageContainer, PageHeader, SearchField, StatusBadge } from "../ui";
 
 export function AdminAnalytics({
   organizations,
@@ -36,6 +36,14 @@ export function AdminAnalytics({
   const notStarted = currentRows.filter((row) => row.status === "not_started").length;
   const activeOrganizations = organizations.filter((organization) => organization.is_active);
 
+  // Trajectory pagination
+  const [trajectoryPage, setTrajectoryPage] = useState(0);
+  const [trajectoryPageSize, setTrajectoryPageSize] = useState(10);
+  const totalTrajectoryPages = Math.max(1, Math.ceil(activeOrganizations.length / trajectoryPageSize));
+  const pagedActiveOrganizations = useMemo(() => {
+    return activeOrganizations.slice(trajectoryPage * trajectoryPageSize, (trajectoryPage + 1) * trajectoryPageSize);
+  }, [activeOrganizations, trajectoryPage, trajectoryPageSize]);
+
   const [comparisonSurveyId, setComparisonSurveyId] = useState(cycles[0]?.id ?? 0);
   const [firstOrganizationId, setFirstOrganizationId] = useState(activeOrganizations[0]?.id ?? 0);
   const [secondOrganizationId, setSecondOrganizationId] = useState(
@@ -54,6 +62,8 @@ export function AdminAnalytics({
   const [selectedQuestionKey, setSelectedQuestionKey] = useState<string>("");
   const [questionSearch, setQuestionSearch] = useState("");
   const [companyDrillSearch, setCompanyDrillSearch] = useState("");
+  const [drillPage, setDrillPage] = useState(0);
+  const [drillPageSize, setDrillPageSize] = useState(10);
 
   useEffect(() => {
     if (!supabase || !questionSurveyId) return;
@@ -191,6 +201,11 @@ export function AdminAnalytics({
         valueAsText(r.answer).toLowerCase().includes(term),
     );
   }, [questionResponses, companyDrillSearch]);
+
+  const totalDrillPages = Math.max(1, Math.ceil(drillDownRows.length / drillPageSize));
+  const pagedDrillDownRows = useMemo(() => {
+    return drillDownRows.slice(drillPage * drillPageSize, (drillPage + 1) * drillPageSize);
+  }, [drillDownRows, drillPage, drillPageSize]);
 
   return (
     <PageContainer>
@@ -393,7 +408,7 @@ export function AdminAnalytics({
                 </span>
               </div>
               <div className="divide-y divide-slate-100">
-                {activeOrganizations.map((organization) => (
+                {pagedActiveOrganizations.map((organization) => (
                   <article
                     className="grid gap-3 py-4 lg:grid-cols-[minmax(16rem,0.8fr)_minmax(0,2.2fr)] lg:items-center lg:gap-8"
                     key={organization.id}
@@ -428,6 +443,15 @@ export function AdminAnalytics({
                   </article>
                 ))}
               </div>
+              <DataTablePagination
+                page={trajectoryPage}
+                totalPages={totalTrajectoryPages}
+                totalItems={activeOrganizations.length}
+                pageSize={trajectoryPageSize}
+                onPageChange={setTrajectoryPage}
+                onPageSizeChange={setTrajectoryPageSize}
+                itemName="companies"
+              />
             </article>
           </section>
         </>
@@ -477,7 +501,10 @@ export function AdminAnalytics({
                       <button
                         key={q.key}
                         type="button"
-                        onClick={() => setSelectedQuestionKey(q.key)}
+                        onClick={() => {
+                          setSelectedQuestionKey(q.key);
+                          setDrillPage(0);
+                        }}
                         className={`w-full rounded-lg p-2.5 text-left transition-all ${
                           isSelected
                             ? "border border-slate-900 bg-slate-900 text-white shadow-xs"
@@ -680,7 +707,10 @@ export function AdminAnalytics({
                     <SearchField
                       placeholder="Search company or answer…"
                       value={companyDrillSearch}
-                      onChange={(e) => setCompanyDrillSearch(e.target.value)}
+                      onChange={(e) => {
+                        setCompanyDrillSearch(e.target.value);
+                        setDrillPage(0);
+                      }}
                       className="w-full sm:w-[240px]"
                     />
                   </div>
@@ -703,7 +733,7 @@ export function AdminAnalytics({
                             </td>
                           </tr>
                         ) : (
-                          drillDownRows.map((r) => {
+                          pagedDrillDownRows.map((r) => {
                             const valText = valueAsText(r.answer);
                             const hasVal = valText && valText !== "null";
                             return (
@@ -738,6 +768,15 @@ export function AdminAnalytics({
                       </tbody>
                     </table>
                   </div>
+                  <DataTablePagination
+                    page={drillPage}
+                    totalPages={totalDrillPages}
+                    totalItems={drillDownRows.length}
+                    pageSize={drillPageSize}
+                    onPageChange={setDrillPage}
+                    onPageSizeChange={setDrillPageSize}
+                    itemName="responses"
+                  />
                 </article>
               </>
             ) : (
