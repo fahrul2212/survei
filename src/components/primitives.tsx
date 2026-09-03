@@ -129,16 +129,22 @@ export function StatusBadge({ status, inverse = false }: { status: ReportingStat
   );
 }
 
-export function ProgressBar({ value, label = "Progress", tone = "red" }: { value: number; label?: string; tone?: "red" | "dark" | "emerald" }) {
+export function ProgressBar({ value, label = "Progress", tone = "red" }: { value: number; label?: string; tone?: "red" | "dark" | "emerald" | "slate" }) {
   const safeValue = Math.min(100, Math.max(0, Math.round(value)));
-  const fill = tone === "emerald" ? "bg-emerald-500" : tone === "dark" ? "bg-slate-900" : "bg-[#d91f17]";
+  const fill = safeValue === 100
+    ? "bg-emerald-600"
+    : tone === "emerald"
+    ? "bg-emerald-600"
+    : tone === "dark" || tone === "slate"
+    ? "bg-slate-600"
+    : "bg-[#d91f17]";
   return (
     <div className="min-w-0">
       <div className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-500">
         <span>{label}</span>
-        <span className="tabular-nums text-slate-900">{safeValue}%</span>
+        <span className="tabular-nums font-bold text-slate-900">{safeValue}%</span>
       </div>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={safeValue}>
+      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={safeValue}>
         <div className={cn("h-full rounded-full transition-[width] duration-300", fill)} style={{ width: `${safeValue}%` }} />
       </div>
     </div>
@@ -175,14 +181,12 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="grid min-h-64 place-items-center px-6 py-12 text-center">
+    <div className="grid min-h-48 place-items-center px-6 py-10 text-center">
       <div className="grid max-w-md justify-items-center">
-        <span className="mb-4 grid size-12 place-items-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500">
-          <Icon size={22} aria-hidden="true" />
-        </span>
-        <h3 className="text-lg font-bold text-slate-950">{title}</h3>
-        <p className="mt-1.5 text-sm leading-6 text-slate-600">{description}</p>
-        {action && <div className="mt-5">{action}</div>}
+        <Icon size={26} aria-hidden="true" className="mb-2.5 text-slate-400 stroke-[1.75]" />
+        <h3 className="text-base font-bold text-slate-900">{title}</h3>
+        <p className="mt-1 text-sm leading-relaxed text-slate-500">{description}</p>
+        {action && <div className="mt-4">{action}</div>}
       </div>
     </div>
   );

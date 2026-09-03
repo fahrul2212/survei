@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { BellRing, Bot, CheckCircle2, MailCheck } from "lucide-react";
+import { BellRing, CheckCircle2, FileText, MailCheck } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { formatDateTime, type AiSummary, type Organization, type ReminderPolicy, type SurveyVersion } from "../../lib/portal";
 import { Button, EmptyState, PageContainer, PageHeader, type Notice } from "../ui";
@@ -50,76 +50,232 @@ export function AdminOperations({ versions, organizations, setNotice, onOpenSumm
   const sentCount = deliveries.filter((item) => item.status === "sent").length;
   const failedCount = deliveries.filter((item) => item.status === "failed").length;
 
-  return <PageContainer>
-    <PageHeader eyebrow="Reporting operations" title="Reminders and AI drafts" description="Control deadline emails and review AI-generated climate plan summaries from one operational workspace." />
-    <section className="grid gap-5 md:grid-cols-3">
-      <article className="rounded-xl border border-slate-200 bg-white p-5"><BellRing size={19} className="text-[#d91f17]" /><strong className="mt-4 block text-3xl text-slate-900">{policies.filter((item) => item.enabled).length}</strong><span className="text-sm text-slate-500">Active reminder schedules</span></article>
-      <article className="rounded-xl border border-slate-200 bg-white p-5"><MailCheck size={19} className="text-emerald-600" /><strong className="mt-4 block text-3xl text-slate-900">{sentCount}</strong><span className="text-sm text-slate-500">Recent emails delivered</span></article>
-      <article className="rounded-xl border border-slate-200 bg-white p-5"><Bot size={19} className="text-blue-600" /><strong className="mt-4 block text-3xl text-slate-900">{summaries.filter((item) => item.status === "completed").length}</strong><span className="text-sm text-slate-500">Completed AI drafts</span></article>
-    </section>
+  return (
+    <PageContainer>
+      <PageHeader
+        eyebrow="Reporting operations"
+        title="Reminders & summaries"
+        description="Configure automated deadline notices and review executive summaries across reporting cycles."
+      />
 
-    <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
-      <div className="border-b border-slate-200 px-5 py-4 md:px-6"><p className="text-xs font-bold uppercase tracking-wider text-slate-500">Automated email</p><h2 className="mt-1 text-lg font-bold text-slate-900">Deadline reminder schedules</h2></div>
-      {activeSurveys.length === 0 ? <EmptyState icon={BellRing} title="No published surveys" description="Publish a survey before configuring its reminder schedule." /> : <div className="divide-y divide-slate-100">{activeSurveys.map((survey) => {
-        const policy = policies.find((item) => item.survey_version_id === survey.id);
-        return <form key={`${survey.id}-${policy?.updated_at ?? "new"}`} className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_18rem_auto] lg:items-end md:px-6" onSubmit={(event) => { event.preventDefault(); const values = String(new FormData(event.currentTarget).get("days") ?? "").split(",").map(Number).filter((value) => Number.isInteger(value) && value >= 0 && value <= 365); void savePolicy(survey, true, values.length ? Array.from(new Set(values)) : [14, 7, 3, 1]); }}>
-          <div><strong className="text-sm text-slate-900">{survey.reporting_year} · {survey.name}</strong><span className="mt-1 block text-xs text-slate-500">{survey.closes_at ? `Deadline ${new Date(survey.closes_at).toLocaleDateString("en-GB")}` : "Set a survey deadline before emails can be sent"}</span></div>
-          <label className="grid gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">Days before deadline<input name="days" defaultValue={(policy?.days_before_due ?? [14, 7, 3, 1]).join(", ")} className="min-h-10 rounded-lg border border-slate-300 px-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none focus:border-[#d91f17] focus:ring-2 focus:ring-red-100" aria-label={`Reminder days for ${survey.name}`} /></label>
-          <div className="flex gap-2"><Button size="small" type="submit" disabled={!survey.closes_at || busyId === survey.id}>{policy?.enabled ? "Save schedule" : "Enable"}</Button>{policy?.enabled && <Button size="small" type="button" variant="secondary" disabled={busyId === survey.id} onClick={() => void savePolicy(survey, false, policy.days_before_due)}>Pause</Button>}</div>
-        </form>;
-      })}</div>}
-    </section>
+      {/* KPI Metric Cards */}
+      <section className="grid gap-4 sm:grid-cols-3">
+        <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Reminder schedules</span>
+            <BellRing size={18} className="text-[#d91f17]" aria-hidden="true" />
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <strong className="text-3xl font-extrabold tracking-tight text-slate-900">
+              {policies.filter((item) => item.enabled).length}
+            </strong>
+            <span className="text-xs font-semibold text-slate-500">active policies</span>
+          </div>
+        </article>
 
-    <div className="mt-6 grid gap-6 xl:grid-cols-2">
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white"><div className="border-b border-slate-200 px-5 py-4"><h2 className="text-lg font-bold text-slate-900">Recent email delivery</h2><p className="mt-1 text-xs text-slate-500">{failedCount ? `${failedCount} recent delivery failures need attention` : "Latest automated delivery attempts"}</p></div>{deliveries.length === 0 ? <EmptyState icon={MailCheck} title="No reminders sent yet" description="Delivery records appear after a configured deadline reminder runs." /> : <div className="divide-y divide-slate-100">{deliveries.slice(0, 8).map((item) => <div key={item.id} className="flex items-start justify-between gap-4 px-5 py-4"><div className="min-w-0"><strong className="block truncate text-sm text-slate-900">{item.recipient_email}</strong><span className="text-xs text-slate-500">{formatDateTime(item.sent_at ?? item.created_at)}</span>{item.error_message && <p className="mt-1 text-xs text-red-700">{item.error_message}</p>}</div><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${item.status === "sent" ? "bg-emerald-50 text-emerald-700" : item.status === "failed" ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-600"}`}>{item.status}</span></div>)}</div>}</section>
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-        <div className="border-b border-slate-200 px-5 py-4">
-          <h2 className="text-lg font-bold text-slate-900">AI summary register</h2>
-          <p className="mt-1 text-xs text-slate-500">Drafts are traceable to a submitted snapshot and model version</p>
+        <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Delivered notices</span>
+            <MailCheck size={18} className="text-emerald-600" aria-hidden="true" />
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <strong className="text-3xl font-extrabold tracking-tight text-slate-900">{sentCount}</strong>
+            <span className="text-xs font-semibold text-slate-500">sent successfully</span>
+          </div>
+        </article>
+
+        <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Executive summaries</span>
+            <FileText size={18} className="text-slate-600" aria-hidden="true" />
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <strong className="text-3xl font-extrabold tracking-tight text-slate-900">
+              {summaries.filter((item) => item.status === "completed").length}
+            </strong>
+            <span className="text-xs font-semibold text-slate-500">ready for review</span>
+          </div>
+        </article>
+      </section>
+
+      {/* Deadline reminder schedules */}
+      <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+        <div className="border-b border-slate-200 bg-slate-50/50 px-5 py-4 md:px-6">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Automated notification</p>
+          <h2 className="mt-0.5 text-base font-bold text-slate-900">Deadline reminder schedules</h2>
         </div>
-        {summaries.length === 0 ? (
-          <EmptyState icon={Bot} title="No AI drafts yet" description="Company contributors can generate a summary after submitting a report." />
+        {activeSurveys.length === 0 ? (
+          <EmptyState
+            icon={BellRing}
+            title="No published surveys"
+            description="Publish a survey before configuring its automated reminder schedule."
+          />
         ) : (
           <div className="divide-y divide-slate-100">
-            {summaries.slice(0, 8).map((item) => {
-              const organization = organizations.find((org) => org.id === item.organization_id);
-              const orgName = organization?.name ?? `Company ${item.organization_id}`;
+            {activeSurveys.map((survey) => {
+              const policy = policies.find((item) => item.survey_version_id === survey.id);
               return (
-                <div key={item.id} className="flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-slate-50">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <strong className="truncate text-sm text-slate-900">{orgName}</strong>
-                      {item.status === "completed" ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-700">
-                          <CheckCircle2 size={12} /> Ready
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600">
-                          {item.status}
-                        </span>
-                      )}
-                    </div>
+                <form
+                  key={`${survey.id}-${policy?.updated_at ?? "new"}`}
+                  className="grid gap-4 p-5 md:px-6 lg:grid-cols-[minmax(0,1.2fr)_18rem_auto] lg:items-end"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const values = String(new FormData(event.currentTarget).get("days") ?? "")
+                      .split(",")
+                      .map(Number)
+                      .filter((value) => Number.isInteger(value) && value >= 0 && value <= 365);
+                    void savePolicy(survey, true, values.length ? Array.from(new Set(values)) : [14, 7, 3, 1]);
+                  }}
+                >
+                  <div className="min-w-0">
+                    <strong className="block truncate text-sm font-bold text-slate-900">
+                      {survey.reporting_year} · {survey.name}
+                    </strong>
                     <span className="mt-1 block text-xs text-slate-500">
-                      {item.model} · {formatDateTime(item.created_at)}
+                      {survey.closes_at
+                        ? `Deadline: ${new Date(survey.closes_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`
+                        : "Set a survey deadline before reminders can be dispatched"}
                     </span>
-                    {item.error_message && <p className="mt-1 text-xs text-red-700">{item.error_message}</p>}
                   </div>
-                  {onOpenSummary && (
+
+                  <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Days before deadline
+                    <input
+                      name="days"
+                      defaultValue={(policy?.days_before_due ?? [14, 7, 3, 1]).join(", ")}
+                      placeholder="e.g. 14, 7, 3, 1"
+                      className="min-h-10 rounded-lg border border-slate-300 bg-white px-3.5 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none transition focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                      aria-label={`Reminder days for ${survey.name}`}
+                    />
+                  </label>
+
+                  <div className="flex items-center gap-2">
                     <Button
                       size="small"
-                      variant="secondary"
-                      icon={Bot}
-                      onClick={() => onOpenSummary(item.submission_id, orgName, `Submission ${item.submission_id}`)}
+                      type="submit"
+                      disabled={!survey.closes_at || busyId === survey.id}
+                      variant={policy?.enabled ? "secondary" : "primary"}
                     >
-                      View summary
+                      {policy?.enabled ? "Update schedule" : "Enable"}
                     </Button>
-                  )}
-                </div>
+                    {policy?.enabled && (
+                      <Button
+                        size="small"
+                        type="button"
+                        variant="ghost"
+                        disabled={busyId === survey.id}
+                        onClick={() => void savePolicy(survey, false, policy.days_before_due)}
+                        className="text-slate-600 hover:text-slate-900"
+                      >
+                        Pause
+                      </Button>
+                    )}
+                  </div>
+                </form>
               );
             })}
           </div>
         )}
       </section>
-    </div>
-  </PageContainer>;
+
+      {/* Registers */}
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+          <div className="border-b border-slate-200 bg-slate-50/50 px-5 py-4">
+            <h2 className="text-base font-bold text-slate-900">Recent email delivery</h2>
+            <p className="mt-0.5 text-xs text-slate-500">
+              {failedCount ? `${failedCount} delivery failures need attention` : "Latest automated delivery attempts"}
+            </p>
+          </div>
+          {deliveries.length === 0 ? (
+            <EmptyState
+              icon={MailCheck}
+              title="No reminders sent yet"
+              description="Delivery records will appear here after a configured deadline schedule executes."
+            />
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {deliveries.slice(0, 8).map((item) => (
+                <div key={item.id} className="flex items-start justify-between gap-4 px-5 py-3.5">
+                  <div className="min-w-0">
+                    <strong className="block truncate text-sm font-semibold text-slate-900">{item.recipient_email}</strong>
+                    <span className="text-xs text-slate-500">{formatDateTime(item.sent_at ?? item.created_at)}</span>
+                    {item.error_message && <p className="mt-1 text-xs text-red-700">{item.error_message}</p>}
+                  </div>
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                      item.status === "sent"
+                        ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : item.status === "failed"
+                        ? "border border-red-200 bg-red-50 text-red-700"
+                        : "border border-slate-200 bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {item.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+          <div className="border-b border-slate-200 bg-slate-50/50 px-5 py-4">
+            <h2 className="text-base font-bold text-slate-900">Executive summary register</h2>
+            <p className="mt-0.5 text-xs text-slate-500">Traceable drafts tied to submitted reporting snapshots</p>
+          </div>
+          {summaries.length === 0 ? (
+            <EmptyState
+              icon={FileText}
+              title="No summaries generated yet"
+              description="Summaries become available once company contributors submit their annual reports."
+            />
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {summaries.slice(0, 8).map((item) => {
+                const organization = organizations.find((org) => org.id === item.organization_id);
+                const orgName = organization?.name ?? `Company ${item.organization_id}`;
+                return (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-4 px-5 py-3.5 transition-colors hover:bg-slate-50/70"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <strong className="truncate text-sm font-semibold text-slate-900">{orgName}</strong>
+                        {item.status === "completed" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                            <CheckCircle2 size={11} /> Ready
+                          </span>
+                        ) : (
+                          <span className="rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                            {item.status}
+                          </span>
+                        )}
+                      </div>
+                      <span className="mt-0.5 block text-xs text-slate-500">
+                        {item.model} · {formatDateTime(item.created_at)}
+                      </span>
+                      {item.error_message && <p className="mt-1 text-xs text-red-700">{item.error_message}</p>}
+                    </div>
+                    {onOpenSummary && (
+                      <Button
+                        size="small"
+                        variant="secondary"
+                        icon={FileText}
+                        onClick={() => onOpenSummary(item.submission_id, orgName, `Submission ${item.submission_id}`)}
+                        className="text-xs font-semibold"
+                      >
+                        View draft
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      </div>
+    </PageContainer>
+  );
 }

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowRight, Bot, CheckCircle2, ClipboardList, Clock3, UsersRound } from "lucide-react";
+import { ArrowRight, CheckCircle2, ClipboardList, Clock3, FileText, UsersRound } from "lucide-react";
 import { Button, EmptyState, PageContainer, PageHeader, ProgressBar, SearchField, StatusBadge } from "../ui";
 import type { Organization, ProgressRow, SurveyVersion } from "../../lib/portal";
 
@@ -145,7 +145,7 @@ export function AdminDashboard({
         </div>
 
         {/* Status Filter Tabs */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 p-4">
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-slate-50/50 p-3.5 sm:p-4">
           {[
             ["all", `All (${currentRows.length})`],
             ["submitted", `Submitted (${submitted})`],
@@ -156,10 +156,10 @@ export function AdminDashboard({
               key={key}
               type="button"
               onClick={() => setDashStatusFilter(key)}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
                 dashStatusFilter === key
-                  ? "bg-slate-800 text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+                  ? "border border-slate-900 bg-slate-900 text-white shadow-sm"
+                  : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"
               }`}
             >
               {label}
@@ -175,23 +175,23 @@ export function AdminDashboard({
               action={<Button variant="primary" onClick={() => setView("companies")}>Review companies</Button>}
             />
           ) : (
-          <div className="text-sm text-slate-600 overflow-x-auto" role="table" aria-label="Company reporting progress">
-            <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(7.5rem,0.85fr)_6.8rem_11.5rem] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 md:grid" role="row">
+          <div className="overflow-x-auto text-sm text-slate-600" role="table" aria-label="Company reporting progress">
+            <div className="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1.1fr)_minmax(8rem,0.9fr)_7.5rem_13rem] items-center gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 md:grid" role="row">
               <span role="columnheader">Company</span>
               <span role="columnheader">Contact</span>
               <span role="columnheader">Progress</span>
               <span role="columnheader">Status</span>
-              <span role="columnheader">Action</span>
+              <span role="columnheader" className="text-right">Action</span>
             </div>
             <div className="divide-y divide-slate-100" role="rowgroup">
               {filteredDashboardRows.map((r) => (
                 <article
                   key={`${r.organization_id}-${r.survey_version_id}`}
-                  className="flex flex-col gap-3 p-4 transition-colors hover:bg-slate-50/80 md:grid md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(7.5rem,0.85fr)_6.8rem_11.5rem] md:items-center md:gap-4 md:px-5 md:py-3.5"
+                  className="flex flex-col gap-3 p-4 transition-colors hover:bg-slate-50/70 md:grid md:grid-cols-[minmax(0,1.3fr)_minmax(0,1.1fr)_minmax(8rem,0.9fr)_7.5rem_13rem] md:items-center md:gap-4 md:px-5 md:py-3.5"
                   role="row"
                 >
                   {/* Company Name & Mobile Status */}
-                  <div className="flex items-start justify-between gap-3 min-w-0 md:block" role="cell">
+                  <div className="flex min-w-0 items-start justify-between gap-3 md:block" role="cell">
                     <div className="min-w-0">
                       <strong className="block truncate text-sm font-bold text-slate-900" title={r.organization_name}>
                         {r.organization_name}
@@ -214,7 +214,7 @@ export function AdminDashboard({
 
                   {/* Progress Bar */}
                   <div className="min-w-0" role="cell">
-                    <ProgressBar value={r.completion_percent} label="Completion" tone="dark" />
+                    <ProgressBar value={r.completion_percent} label="Completion" tone="slate" />
                   </div>
 
                   {/* Desktop Status Badge */}
@@ -223,26 +223,32 @@ export function AdminDashboard({
                   </div>
 
                   {/* Actions */}
-                  <div className="min-w-0" role="cell">
+                  <div className="min-w-0 md:flex md:justify-end" role="cell">
                     {r.status === "submitted" ? (
-                      <div className="flex flex-wrap items-center gap-1.5 pt-1 md:pt-0">
+                      <div className="flex items-center justify-start md:justify-end gap-2 pt-1 md:pt-0">
                         {onOpenSummary && (
                           <Button
                             size="small"
                             variant="secondary"
-                            icon={Bot}
+                            icon={FileText}
                             onClick={() => onOpenSummary(r)}
-                            title="View or generate AI summary"
+                            title="View executive summary"
+                            className="text-xs font-semibold"
                           >
-                            AI summary
+                            Summary
                           </Button>
                         )}
-                        <Button size="small" variant="ghost" onClick={() => onReopen(r)}>
+                        <Button
+                          size="small"
+                          variant="ghost"
+                          onClick={() => onReopen(r)}
+                          className="text-xs text-slate-600 hover:text-slate-900"
+                        >
                           Reopen
                         </Button>
                       </div>
                     ) : (
-                      <span className="text-slate-400 hidden md:inline" aria-label="No action available">—</span>
+                      <span className="hidden text-slate-300 md:inline md:pr-4" aria-label="No action available">—</span>
                     )}
                   </div>
                 </article>

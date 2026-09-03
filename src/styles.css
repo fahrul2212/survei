@@ -68,3 +68,72 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
 }
+
+@media print {
+  @page {
+    margin: 1.6cm 1.4cm;
+    size: A4 portrait;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Hide interactive web chrome during print */
+  nav,
+  aside,
+  header,
+  button,
+  .no-print,
+  [role="navigation"],
+  [role="alertdialog"],
+  .shell-sidebar {
+    display: none !important;
+  }
+
+  /* Make sure printable report displays full width without scrollbars */
+  .interactive-report-ui {
+    display: none !important;
+  }
+
+  .print-document {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .print-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 24pt;
+  }
+
+  .print-row {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th, td {
+    padding: 6pt 6pt !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+
+  th {
+    border-bottom: 2px solid #0f172a !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    font-size: 8pt !important;
+    color: #475569 !important;
+  }
+}
