@@ -221,18 +221,18 @@ export function CompanyPortal({ session }: { session: Session }) {
             title={org.name}
             description={openSurveys.length > 1 ? `${openSurveys.length} surveys are open for reporting.` : version ? `Your ${version.reporting_year} survey is ready for review.` : "No reporting cycle is open."}
             meta={version && submission ? <StatusBadge status={submission.status} /> : undefined}
+            actions={
+              version?.closes_at ? (
+                <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
+                  <CalendarDays size={18} className="text-[#d91f17]" aria-hidden="true" />
+                  <span className="grid gap-0.5">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Submission deadline</span>
+                    <strong className="text-sm text-slate-900">{formatDate(version.closes_at)}</strong>
+                  </span>
+                </div>
+              ) : undefined
+            }
           />
-          <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
-            {version?.closes_at && (
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
-                <CalendarDays size={18} className="text-[#d91f17]" aria-hidden="true" />
-                <span className="grid gap-0.5">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Submission deadline</span>
-                  <strong className="text-sm text-slate-900">{formatDate(version.closes_at)}</strong>
-                </span>
-              </div>
-            )}
-          </div>
 
           {openSurveys.length > 1 && (
             <section className="mb-7 overflow-hidden rounded-xl border border-slate-200 bg-white" aria-labelledby="open-surveys-title">
@@ -288,7 +288,7 @@ export function CompanyPortal({ session }: { session: Session }) {
                 </div>
               </section>
 
-              <section className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+              <section className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
                 <div className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white">
                   <div className="flex items-center justify-between border-b border-slate-200 p-5 md:px-6">
                     <div>
@@ -329,22 +329,22 @@ export function CompanyPortal({ session }: { session: Session }) {
                   </div>
                 </div>
 
-                <aside className="flex flex-col justify-between rounded-xl border border-slate-200 border-l-4 border-l-emerald-600 bg-white p-6 md:p-7 text-slate-900 md:flex-row md:items-center md:gap-6 xl:flex-col xl:items-start xl:gap-0">
+                <aside className="flex flex-col justify-between rounded-xl border border-slate-200 border-l-4 border-l-emerald-600 bg-white p-6 md:p-7 text-slate-900 sm:flex-row sm:items-center sm:gap-6 lg:flex-col lg:items-start lg:gap-0">
                   <div className="flex-1 min-w-0">
                     <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-widest text-emerald-700">
                       Baseline data
                     </span>
-                    <div className="my-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <div className="my-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 lg:block">
                       <span className="text-4xl font-extrabold leading-none text-slate-900 md:text-5xl">
                         {questions.filter((q) => isAnswered(answers[q.id]) && (answerProvenance[q.id] === "prefilled" || answerProvenance[q.id] === "historical_import")).length}
                       </span>
-                      <h3 className="text-lg font-bold text-slate-900 md:text-xl">responses prefilled</h3>
+                      <h3 className="text-lg font-bold text-slate-900 md:text-xl lg:mt-2">responses prefilled</h3>
                     </div>
                     <p className="max-w-xl text-sm leading-relaxed text-slate-600">
                       Verified responses from prior reporting cycles are automatically carried forward for your review.
                     </p>
                   </div>
-                  <button className="mt-5 inline-flex shrink-0 w-fit items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-50 md:mt-0 xl:mt-5" onClick={() => setView("report")}>
+                  <button className="mt-5 inline-flex shrink-0 w-fit items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-50 sm:mt-0 lg:mt-6" onClick={() => setView("report")}>
                     Review responses <ArrowRight size={16} aria-hidden="true" />
                   </button>
                 </aside>
