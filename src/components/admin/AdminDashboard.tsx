@@ -119,8 +119,17 @@ export function AdminDashboard({
       <section className="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
         <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between md:p-5">
           <div>
-            <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">Company status</p>
-            <h3 className="text-lg font-bold text-slate-900">{current?.reporting_year ?? "No active year"}</h3>
+            <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">Company participation</p>
+            <div className="flex items-center gap-2.5">
+              <h3 className="text-lg font-bold text-slate-900">
+                {current ? `${current.reporting_year} reporting cycle` : "All companies"}
+              </h3>
+              {current?.status && (
+                <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                  {current.status}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
             <SearchField
@@ -166,8 +175,8 @@ export function AdminDashboard({
               action={<Button variant="primary" onClick={() => setView("companies")}>Review companies</Button>}
             />
           ) : (
-          <div className="text-sm text-slate-600" role="table" aria-label="Company reporting progress">
-            <div className="hidden grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(10rem,0.8fr)_7.5rem_12rem] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 xl:grid" role="row">
+          <div className="text-sm text-slate-600 overflow-x-auto" role="table" aria-label="Company reporting progress">
+            <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(7.5rem,0.85fr)_6.8rem_11.5rem] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 md:grid" role="row">
               <span role="columnheader">Company</span>
               <span role="columnheader">Contact</span>
               <span role="columnheader">Progress</span>
@@ -178,29 +187,45 @@ export function AdminDashboard({
               {filteredDashboardRows.map((r) => (
                 <article
                   key={`${r.organization_id}-${r.survey_version_id}`}
-                  className="grid min-w-0 gap-5 p-4 transition-colors hover:bg-slate-50 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(10rem,0.8fr)_7.5rem_12rem] xl:items-center xl:gap-4 xl:px-5 xl:py-4"
+                  className="flex flex-col gap-3 p-4 transition-colors hover:bg-slate-50/80 md:grid md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(7.5rem,0.85fr)_6.8rem_11.5rem] md:items-center md:gap-4 md:px-5 md:py-3.5"
                   role="row"
                 >
-                  <div className="min-w-0" role="cell">
-                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Company</span>
-                    <strong className="block truncate font-semibold text-slate-900" title={r.organization_name}>{r.organization_name}</strong>
+                  {/* Company Name & Mobile Status */}
+                  <div className="flex items-start justify-between gap-3 min-w-0 md:block" role="cell">
+                    <div className="min-w-0">
+                      <strong className="block truncate text-sm font-bold text-slate-900" title={r.organization_name}>
+                        {r.organization_name}
+                      </strong>
+                      <span className="mt-0.5 block truncate text-xs text-slate-500 md:hidden" title={r.contact_email ?? "Not set"}>
+                        {r.contact_email ?? "No contact email"}
+                      </span>
+                    </div>
+                    <div className="shrink-0 md:hidden">
+                      <StatusBadge status={r.status} />
+                    </div>
                   </div>
-                  <div className="min-w-0" role="cell">
-                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Contact</span>
-                    <span className="block truncate text-slate-600" title={r.contact_email ?? "Not set"}>{r.contact_email ?? "Not set"}</span>
+
+                  {/* Desktop Contact Email */}
+                  <div className="hidden min-w-0 md:block" role="cell">
+                    <span className="block truncate text-sm text-slate-600" title={r.contact_email ?? "Not set"}>
+                      {r.contact_email ?? "Not set"}
+                    </span>
                   </div>
+
+                  {/* Progress Bar */}
                   <div className="min-w-0" role="cell">
-                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Progress</span>
                     <ProgressBar value={r.completion_percent} label="Completion" tone="dark" />
                   </div>
-                  <div className="min-w-0" role="cell">
-                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Status</span>
+
+                  {/* Desktop Status Badge */}
+                  <div className="hidden min-w-0 md:block" role="cell">
                     <StatusBadge status={r.status} />
                   </div>
-                  <div className="min-w-0 border-t border-slate-100 pt-4 sm:border-0 sm:pt-0" role="cell">
-                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Action</span>
-                    {r.status === "submitted" && (
-                      <div className="flex flex-wrap items-center gap-1.5">
+
+                  {/* Actions */}
+                  <div className="min-w-0" role="cell">
+                    {r.status === "submitted" ? (
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1 md:pt-0">
                         {onOpenSummary && (
                           <Button
                             size="small"
@@ -216,8 +241,9 @@ export function AdminDashboard({
                           Reopen
                         </Button>
                       </div>
+                    ) : (
+                      <span className="text-slate-400 hidden md:inline" aria-label="No action available">—</span>
                     )}
-                    {r.status !== "submitted" && <span className="text-slate-400" aria-label="No action available">—</span>}
                   </div>
                 </article>
               ))}
