@@ -162,20 +162,38 @@ export function SticaProgressReportDocument({
         const pLower = row.question_prompt.toLowerCase();
         const aText = valueAsText(row.answer);
 
-        if (pLower.includes("scope 1") || pLower.includes("scope 1&2") || row.question_key === "EMI-011") {
-          if (aText && aText !== "null") entry.scope12 = `${Number(aText).toLocaleString()} tCO2e`;
+        if (row.question_key === "EMI-001" || row.question_key === "EMI-011" || pLower.includes("scope 1 emissions")) {
+          const num = Number(aText);
+          if (!isNaN(num) && num > 0) entry.scope12 = `${num.toLocaleString()} tCO2e`;
         }
-        if (pLower.includes("scope 3") || row.question_key === "EMI-013") {
-          if (aText && aText !== "null") entry.scope3 = `${Number(aText).toLocaleString()} tCO2e`;
+        if (row.question_key === "EMI-003" && entry.scope12 !== "—") {
+          const num2 = Number(aText);
+          const currentScope1 = parseFloat(entry.scope12.replace(/[^0-9.]/g, "")) || 0;
+          if (!isNaN(num2) && num2 > 0) {
+            entry.scope12 = `${Math.round(currentScope1 + num2).toLocaleString()} tCO2e`;
+          }
         }
-        if (pLower.includes("base year") || pLower.includes("reduction since")) {
-          if (aText && aText !== "null") entry.baseYearChange = aText;
+        if (row.question_key === "EMI-004" || row.question_key === "EMI-013" || pLower.includes("scope 3 total emissions")) {
+          const num = Number(aText);
+          if (!isNaN(num) && num > 0) entry.scope3 = `${num.toLocaleString()} tCO2e`;
         }
-        if (pLower.includes("target description") || row.question_key === "TGT-001" || row.question_key === "TGT-002") {
-          if (aText && aText !== "null") entry.targetDescription = aText;
+        if (row.question_key === "ACT-001" || pLower.includes("reduction achieved since")) {
+          const num = Number(aText);
+          if (!isNaN(num)) {
+            entry.baseYearChange = num > 0 ? `+${num}%` : `${num}%`;
+            if (num <= -50) entry.targetProgress = "Target achieved";
+            else if (num <= -30) entry.targetProgress = "Ahead of target";
+            else if (num < 0) entry.targetProgress = "On target";
+            else entry.targetProgress = "Behind target";
+          }
         }
-        if (pLower.includes("verification") || pLower.includes("assurance") || pLower.includes("audit")) {
-          if (aText && aText !== "null") entry.verification = aText;
+        if (row.question_key === "GOV-010" || row.question_key === "TGT-001") {
+          if (aText && aText !== "null") entry.targetDescription = `${aText}% absolute reduction by 2030 (1.5°C pathway)`;
+        }
+        if (row.question_key === "ASS-004" || row.question_key === "ASS-002") {
+          if (aText && aText !== "null" && aText !== "false") {
+            entry.verification = aText === "true" ? "Verified by third-party auditor" : aText;
+          }
         }
       }
     }

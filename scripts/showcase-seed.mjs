@@ -135,7 +135,7 @@ async function main() {
     { reporting_year: 2024, name: "STICA Climate Transition Plan 2024", status: "closed", opens_at: "2024-09-01T00:00:00Z", closes_at: "2024-11-30T23:59:59Z", published_at: "2024-08-15T00:00:00Z" },
     { reporting_year: 2025, name: "STICA Climate Transition Plan 2025", status: "closed", opens_at: "2025-09-01T00:00:00Z", closes_at: "2025-11-30T23:59:59Z", published_at: "2025-08-15T00:00:00Z" },
     { reporting_year: 2026, name: "STICA Climate Transition Plan 2026", status: "published", opens_at: "2026-09-01T00:00:00Z", closes_at: "2026-11-30T23:59:59Z", published_at: "2026-09-01T00:00:00Z" },
-  ], "reporting_year");
+  ], "reporting_year,name");
 
   const definitions = await upsert("question_definitions", questions.map((q) => ({ stable_key: q.stableKey, category: q.category })), "stable_key");
   const revisions = await upsert("question_revisions", questions.map((q) => ({
