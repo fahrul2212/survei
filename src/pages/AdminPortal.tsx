@@ -7,14 +7,17 @@ import {
   ClipboardPlus,
   Clock3,
   FileSpreadsheet,
+  FileText,
   LockKeyhole,
   Plus,
   Printer,
   RotateCcw,
   Send,
+  Table,
   UploadCloud,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { SticaProgressReportDocument } from "../components/admin/SticaProgressReportDocument";
 import {
   evaluateVisibility,
   formatDate,
@@ -174,6 +177,7 @@ export function AdminPortal({ session }: { session: Session }) {
   // Company management (Modals & Edit)
   const [exports, setExports] = useState<ExportRow[]>([]);
   const [exportFormat, setExportFormat] = useState<"flat" | "pivot">("flat");
+  const [exportPreviewMode, setExportPreviewMode] = useState<"report" | "table">("report");
   const [exportPage, setExportPage] = useState(0);
   const [year, setYear] = useState("");
   const [company, setCompany] = useState("");
@@ -623,11 +627,21 @@ export function AdminPortal({ session }: { session: Session }) {
               </Button>
               
               <div className="mt-2 flex flex-col justify-end gap-3 border-t border-slate-200 pt-6 sm:flex-row">
-                <Button variant="secondary" onClick={() => print()}>
-                  <Printer size={16} aria-hidden="true" className="mr-1.5" /> Print / PDF
+                <Button
+                  variant="secondary"
+                  onClick={async () => {
+                    if (exports.length === 0) {
+                      await prepare();
+                    }
+                    setExportPreviewMode("report");
+                    window.setTimeout(() => window.print(), 120);
+                  }}
+                  disabled={busy}
+                >
+                  <Printer size={16} aria-hidden="true" className="mr-1.5" /> Print / Save Official PDF
                 </Button>
-                 <Button icon={FileSpreadsheet} onClick={() => void downloadExport()} disabled={busy}>
-                   {busy ? "Generating file…" : `Download Excel (${exportFormat})`}
+                <Button icon={FileSpreadsheet} onClick={() => void downloadExport()} disabled={busy}>
+                  {busy ? "Generating file…" : `Download Excel (${exportFormat})`}
                 </Button>
               </div>
             </div>
@@ -635,57 +649,110 @@ export function AdminPortal({ session }: { session: Session }) {
 
           {/* Export preview */}
           {exports.length > 0 && (
-            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-              <div className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <h3 className="text-lg font-bold text-slate-900">{exports.length} response rows</h3>
+            <section className="mt-8 space-y-6">
+              <div className="no-print flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-3">
                 <div className="flex items-center gap-2">
                   <button
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-40"
                     type="button"
-                    disabled={exportPage === 0}
-                    onClick={() => setExportPage((p) => p - 1)}
+                    onClick={() => setExportPreviewMode("report")}
+                    className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all ${
+                      exportPreviewMode === "report"
+                        ? "bg-[#d91f17] text-white shadow-xs"
+                        : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    }`}
                   >
-                    <ArrowLeft size={15} aria-hidden="true" /> Previous
+                    <FileText size={15} /> Official STICA Progress Report
                   </button>
-                  <span>
-                    {exportPage * EXPORT_PAGE_SIZE + 1}–{Math.min((exportPage + 1) * EXPORT_PAGE_SIZE, exports.length)} of {exports.length}
-                  </span>
                   <button
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-40"
                     type="button"
-                    disabled={(exportPage + 1) * EXPORT_PAGE_SIZE >= exports.length}
-                    onClick={() => setExportPage((p) => p + 1)}
+                    onClick={() => setExportPreviewMode("table")}
+                    className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all ${
+                      exportPreviewMode === "table"
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    }`}
                   >
-                    Next <ArrowRight size={15} aria-hidden="true" />
+                    <Table size={15} /> Raw Data Rows ({exports.length})
                   </button>
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      setExportPreviewMode("report");
+                      window.setTimeout(() => window.print(), 120);
+                    }}
+                  >
+                    <Printer size={15} aria-hidden="true" className="mr-1.5" /> Print / Save PDF
+                  </Button>
+                </div>
               </div>
-              <div className="w-full overflow-x-auto">
-                <table className="w-full min-w-[760px] text-left text-sm text-slate-600">
-                  <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    <tr className="border-b border-slate-200">
-                      <th>Year</th>
-                      <th>Survey</th>
-                      <th>Company</th>
-                      <th>Question ID</th>
-                      <th>Question prompt</th>
-                      <th>Answer</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visibleExports.map((r, i) => (
-                      <tr key={i} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                        <td className="px-4 py-3 font-bold text-slate-900">{r.reporting_year}</td>
-                        <td className="max-w-64 truncate px-4 py-3" title={r.survey_name}>{r.survey_name}</td>
-                        <td className="max-w-52 truncate px-4 py-3" title={r.company_name}>{r.company_name}</td>
-                        <td className="px-4 py-3"><code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">{r.question_key}</code></td>
-                        <td className="max-w-[28rem] truncate px-4 py-3" title={r.question_prompt}>{r.question_prompt}</td>
-                        <td className="max-w-64 truncate px-4 py-3" title={valueAsText(r.answer)}>{valueAsText(r.answer)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+
+              {exportPreviewMode === "report" ? (
+                <SticaProgressReportDocument
+                  exports={exports}
+                  orgs={orgs}
+                  rows={rows}
+                  cycles={versions}
+                  selectedYear={year ? Number(year) : undefined}
+                  selectedCompanySlug={company || undefined}
+                  onPrint={() => window.print()}
+                />
+              ) : (
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                  <div className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <h3 className="text-lg font-bold text-slate-900">{exports.length} response rows</h3>
+                    <div className="flex items-center gap-2">
+                      <button
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-40"
+                        type="button"
+                        disabled={exportPage === 0}
+                        onClick={() => setExportPage((p) => p - 1)}
+                      >
+                        <ArrowLeft size={15} aria-hidden="true" /> Previous
+                      </button>
+                      <span className="text-xs font-semibold text-slate-600">
+                        {exportPage * EXPORT_PAGE_SIZE + 1}–{Math.min((exportPage + 1) * EXPORT_PAGE_SIZE, exports.length)} of {exports.length}
+                      </span>
+                      <button
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-40"
+                        type="button"
+                        disabled={(exportPage + 1) * EXPORT_PAGE_SIZE >= exports.length}
+                        onClick={() => setExportPage((p) => p + 1)}
+                      >
+                        Next <ArrowRight size={15} aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="w-full overflow-x-auto">
+                    <table className="w-full min-w-[760px] text-left text-sm text-slate-600">
+                      <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        <tr className="border-b border-slate-200">
+                          <th>Year</th>
+                          <th>Survey</th>
+                          <th>Company</th>
+                          <th>Question ID</th>
+                          <th>Question prompt</th>
+                          <th>Answer</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {visibleExports.map((r, i) => (
+                          <tr key={i} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                            <td className="px-4 py-3 font-bold text-slate-900">{r.reporting_year}</td>
+                            <td className="max-w-64 truncate px-4 py-3" title={r.survey_name}>{r.survey_name}</td>
+                            <td className="max-w-52 truncate px-4 py-3" title={r.company_name}>{r.company_name}</td>
+                            <td className="px-4 py-3"><code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">{r.question_key}</code></td>
+                            <td className="max-w-[28rem] truncate px-4 py-3" title={r.question_prompt}>{r.question_prompt}</td>
+                            <td className="max-w-64 truncate px-4 py-3" title={valueAsText(r.answer)}>{valueAsText(r.answer)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </section>
           )}
         </PageContainer>

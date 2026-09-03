@@ -40,6 +40,15 @@ export function Report({
   const readOnlyLabel = !editable ? "Viewer access · read only" : version.status === "closed" ? "Survey closed" : "Submitted · read only";
   const answered = visible.filter((q) => isAnswered(answers[q.id])).length;
 
+  const companyNameAnswer = useMemo(() => {
+    const orgQ = questions.find((q) => q.stableKey === "ORG-001");
+    if (orgQ && answers[orgQ.id]) {
+      const txt = valueAsText(answers[orgQ.id]);
+      if (txt && txt !== "null") return txt;
+    }
+    return "STICA Signatory Member";
+  }, [questions, answers]);
+
   const sectionKeys = useMemo(() => {
     const map = new Map<string, string>();
     for (const q of visible) {
@@ -388,7 +397,48 @@ export function Report({
 
     {/* Official Document Layout for @media print */}
     <div className="hidden print:block print-document font-sans">
-      <header className="border-b-2 border-slate-900 pb-6 mb-8">
+      {/* Cover Page */}
+      <section className="stica-report-cover relative flex min-h-[950px] flex-col justify-between overflow-hidden bg-[#d91f17] p-14 text-white">
+        <div>
+          <p className="text-sm font-extrabold uppercase tracking-[0.25em] text-white">
+            The Scandinavian Textile Initiative For Climate Action
+          </p>
+        </div>
+
+        <div className="py-12 max-w-xl">
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/80">
+            Signatory Climate Transition Plan Disclosure
+          </p>
+          <h1 className="mt-3 text-5xl font-black tracking-tight text-white">
+            {version.reporting_year} PROGRESS REPORT
+          </h1>
+          <p className="mt-3 text-xl font-bold uppercase tracking-wider text-white/90">
+            {companyNameAnswer}
+          </p>
+          <p className="mt-2 text-xs font-medium text-white/75">
+            Cycle: {version.name} · Submission #{submission.id}
+          </p>
+        </div>
+
+        <div className="flex justify-between items-end border-t border-white/25 pt-6 text-xs text-white/90">
+          <div>
+            <p className="font-bold">STICA Company Climate Action Program</p>
+            <p className="text-white/70">www.sustainablefashionacademy.org/stica</p>
+          </div>
+          <div className="text-right">
+            <p className="font-semibold capitalize">Status: {submission.status}</p>
+            <p className="text-white/70">
+              {submission.submitted_at
+                ? `Submitted: ${new Date(submission.submitted_at).toLocaleDateString("en-GB")}`
+                : `Generated: ${new Date().toLocaleDateString("en-GB")}`}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div className="stica-page-break" />
+
+      <header className="border-b-2 border-slate-900 pb-6 mb-8 pt-6">
         <div className="flex justify-between items-start">
           <div>
             <p className="text-xs font-extrabold uppercase tracking-widest text-[#d91f17]">
