@@ -6,10 +6,11 @@ import { Button, EmptyState, PageContainer, PageHeader, type Notice } from "../u
 
 type Delivery = { id: number; status: string; recipient_email: string; error_message: string | null; sent_at: string | null; created_at: string };
 
-export function AdminOperations({ versions, organizations, setNotice }: {
+export function AdminOperations({ versions, organizations, setNotice, onOpenSummary }: {
   versions: SurveyVersion[];
   organizations: Organization[];
   setNotice: (notice: Notice) => void;
+  onOpenSummary?: (submissionId: number, organizationName: string, surveyName: string) => void;
 }) {
   const [policies, setPolicies] = useState<ReminderPolicy[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
@@ -71,7 +72,54 @@ export function AdminOperations({ versions, organizations, setNotice }: {
 
     <div className="mt-6 grid gap-6 xl:grid-cols-2">
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white"><div className="border-b border-slate-200 px-5 py-4"><h2 className="text-lg font-bold text-slate-900">Recent email delivery</h2><p className="mt-1 text-xs text-slate-500">{failedCount ? `${failedCount} recent delivery failures need attention` : "Latest automated delivery attempts"}</p></div>{deliveries.length === 0 ? <EmptyState icon={MailCheck} title="No reminders sent yet" description="Delivery records appear after a configured deadline reminder runs." /> : <div className="divide-y divide-slate-100">{deliveries.slice(0, 8).map((item) => <div key={item.id} className="flex items-start justify-between gap-4 px-5 py-4"><div className="min-w-0"><strong className="block truncate text-sm text-slate-900">{item.recipient_email}</strong><span className="text-xs text-slate-500">{formatDateTime(item.sent_at ?? item.created_at)}</span>{item.error_message && <p className="mt-1 text-xs text-red-700">{item.error_message}</p>}</div><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${item.status === "sent" ? "bg-emerald-50 text-emerald-700" : item.status === "failed" ? "bg-red-50 text-red-700" : "bg-slate-100 text-slate-600"}`}>{item.status}</span></div>)}</div>}</section>
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white"><div className="border-b border-slate-200 px-5 py-4"><h2 className="text-lg font-bold text-slate-900">AI summary register</h2><p className="mt-1 text-xs text-slate-500">Drafts are traceable to a submitted snapshot and model version</p></div>{summaries.length === 0 ? <EmptyState icon={Bot} title="No AI drafts yet" description="Company contributors can generate a summary after submitting a report." /> : <div className="divide-y divide-slate-100">{summaries.slice(0, 8).map((item) => { const organization = organizations.find((org) => org.id === item.organization_id); return <div key={item.id} className="flex items-start justify-between gap-4 px-5 py-4"><div><strong className="text-sm text-slate-900">{organization?.name ?? `Company ${item.organization_id}`}</strong><span className="mt-1 block text-xs text-slate-500">{item.model} · {formatDateTime(item.created_at)}</span>{item.error_message && <p className="mt-1 text-xs text-red-700">{item.error_message}</p>}</div>{item.status === "completed" ? <CheckCircle2 size={18} className="shrink-0 text-emerald-600" /> : <span className="text-xs font-bold uppercase text-slate-500">{item.status}</span>}</div>; })}</div>}</section>
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="border-b border-slate-200 px-5 py-4">
+          <h2 className="text-lg font-bold text-slate-900">AI summary register</h2>
+          <p className="mt-1 text-xs text-slate-500">Drafts are traceable to a submitted snapshot and model version</p>
+        </div>
+        {summaries.length === 0 ? (
+          <EmptyState icon={Bot} title="No AI drafts yet" description="Company contributors can generate a summary after submitting a report." />
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {summaries.slice(0, 8).map((item) => {
+              const organization = organizations.find((org) => org.id === item.organization_id);
+              const orgName = organization?.name ?? `Company ${item.organization_id}`;
+              return (
+                <div key={item.id} className="flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-slate-50">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <strong className="truncate text-sm text-slate-900">{orgName}</strong>
+                      {item.status === "completed" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-700">
+                          <CheckCircle2 size={12} /> Ready
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600">
+                          {item.status}
+                        </span>
+                      )}
+                    </div>
+                    <span className="mt-1 block text-xs text-slate-500">
+                      {item.model} · {formatDateTime(item.created_at)}
+                    </span>
+                    {item.error_message && <p className="mt-1 text-xs text-red-700">{item.error_message}</p>}
+                  </div>
+                  {onOpenSummary && (
+                    <Button
+                      size="small"
+                      variant="secondary"
+                      icon={Bot}
+                      onClick={() => onOpenSummary(item.submission_id, orgName, `Submission ${item.submission_id}`)}
+                    >
+                      View summary
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   </PageContainer>;
 }

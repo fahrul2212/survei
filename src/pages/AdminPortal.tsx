@@ -57,6 +57,7 @@ import { AdminAnalytics } from "../components/admin/AdminAnalytics";
 import { SurveyBuilder } from "../components/admin/SurveyBuilder";
 import { AdminCompanies } from "../components/admin/AdminCompanies";
 import { AdminOperations } from "../components/admin/AdminOperations";
+import { AdminSummaryModal } from "../components/admin/AdminSummaryModal";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -167,6 +168,8 @@ export function AdminPortal({ session }: { session: Session }) {
   // Reopen modal
   const [reopenTarget, setReopenTarget] = useState<ProgressRow | null>(null);
   const [reopenReason, setReopenReason] = useState("");
+  // AI Summary modal
+  const [summaryTarget, setSummaryTarget] = useState<{ submissionId: number; organizationName: string; surveyName: string } | null>(null);
 
   // Company management (Modals & Edit)
   const [exports, setExports] = useState<ExportRow[]>([]);
@@ -444,6 +447,17 @@ export function AdminPortal({ session }: { session: Session }) {
         </div>
       )}
 
+      {/* ── AI Summary dialog ── */}
+      {summaryTarget && (
+        <AdminSummaryModal
+          submissionId={summaryTarget.submissionId}
+          organizationName={summaryTarget.organizationName}
+          surveyName={summaryTarget.surveyName}
+          onClose={() => setSummaryTarget(null)}
+          setNotice={setNotice}
+        />
+      )}
+
       {/* ══════════════════════════ DASHBOARD ════════════════════════════════ */}
       {view === "dashboard" && (
         <AdminDashboard
@@ -454,6 +468,15 @@ export function AdminPortal({ session }: { session: Session }) {
           onCurrentSurveyChange={setMonitoringSurveyId}
           setView={setView}
           onReopen={setReopenTarget}
+          onOpenSummary={(row) => {
+            if (row.submission_id) {
+              setSummaryTarget({
+                submissionId: row.submission_id,
+                organizationName: row.organization_name,
+                surveyName: `${row.reporting_year} · ${row.survey_name}`,
+              });
+            }
+          }}
         />
       )}
 
@@ -673,7 +696,16 @@ export function AdminPortal({ session }: { session: Session }) {
         <AdminAnalytics organizations={orgs} rows={rows} currentRows={currentRows} />
       )}
 
-      {view === "operations" && <AdminOperations versions={versions} organizations={orgs} setNotice={setNotice} />}
+      {view === "operations" && (
+        <AdminOperations
+          versions={versions}
+          organizations={orgs}
+          setNotice={setNotice}
+          onOpenSummary={(submissionId, organizationName, surveyName) => {
+            setSummaryTarget({ submissionId, organizationName, surveyName });
+          }}
+        />
+      )}
 
       {/* ══════════════════════════ AUDIT LOG ════════════════════════════════ */}
       {view === "audit" && <AuditLogView orgs={orgs} />}

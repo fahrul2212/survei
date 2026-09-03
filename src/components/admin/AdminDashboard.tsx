@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowRight, CheckCircle2, ClipboardList, Clock3, UsersRound } from "lucide-react";
+import { ArrowRight, Bot, CheckCircle2, ClipboardList, Clock3, UsersRound } from "lucide-react";
 import { Button, EmptyState, PageContainer, PageHeader, ProgressBar, SearchField, StatusBadge } from "../ui";
 import type { Organization, ProgressRow, SurveyVersion } from "../../lib/portal";
 
@@ -11,6 +11,7 @@ export function AdminDashboard({
   onCurrentSurveyChange,
   setView,
   onReopen,
+  onOpenSummary,
 }: {
   versions: SurveyVersion[];
   orgs: Organization[];
@@ -19,6 +20,7 @@ export function AdminDashboard({
   onCurrentSurveyChange: (id: number) => void;
   setView: (v: string) => void;
   onReopen: (row: ProgressRow) => void;
+  onOpenSummary?: (row: ProgressRow) => void;
 }) {
   const [dashSearch, setDashSearch] = useState("");
   const [dashStatusFilter, setDashStatusFilter] = useState<string>("all");
@@ -165,7 +167,7 @@ export function AdminDashboard({
             />
           ) : (
           <div className="text-sm text-slate-600" role="table" aria-label="Company reporting progress">
-            <div className="hidden grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(11rem,0.8fr)_8.5rem_7rem] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 xl:grid" role="row">
+            <div className="hidden grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(10rem,0.8fr)_7.5rem_12rem] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 xl:grid" role="row">
               <span role="columnheader">Company</span>
               <span role="columnheader">Contact</span>
               <span role="columnheader">Progress</span>
@@ -176,7 +178,7 @@ export function AdminDashboard({
               {filteredDashboardRows.map((r) => (
                 <article
                   key={`${r.organization_id}-${r.survey_version_id}`}
-                  className="grid min-w-0 gap-5 p-4 transition-colors hover:bg-slate-50 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(11rem,0.8fr)_8.5rem_7rem] xl:items-center xl:gap-4 xl:px-5 xl:py-4"
+                  className="grid min-w-0 gap-5 p-4 transition-colors hover:bg-slate-50 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(10rem,0.8fr)_7.5rem_12rem] xl:items-center xl:gap-4 xl:px-5 xl:py-4"
                   role="row"
                 >
                   <div className="min-w-0" role="cell">
@@ -198,9 +200,22 @@ export function AdminDashboard({
                   <div className="min-w-0 border-t border-slate-100 pt-4 sm:border-0 sm:pt-0" role="cell">
                     <span className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400 xl:hidden">Action</span>
                     {r.status === "submitted" && (
-                      <Button size="small" variant="secondary" onClick={() => onReopen(r)}>
-                        Reopen
-                      </Button>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {onOpenSummary && (
+                          <Button
+                            size="small"
+                            variant="secondary"
+                            icon={Bot}
+                            onClick={() => onOpenSummary(r)}
+                            title="View or generate AI summary"
+                          >
+                            AI summary
+                          </Button>
+                        )}
+                        <Button size="small" variant="ghost" onClick={() => onReopen(r)}>
+                          Reopen
+                        </Button>
+                      </div>
                     )}
                     {r.status !== "submitted" && <span className="text-slate-400" aria-label="No action available">—</span>}
                   </div>
