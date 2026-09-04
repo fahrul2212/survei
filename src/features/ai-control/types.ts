@@ -74,3 +74,21 @@ export type AiModelsResponse = {
   models: AiModelOption[];
   recommendedModel: string | null;
 };
+
+export type SurveyAiResult = {
+  content: {
+    answer: string;
+    key_findings: string[];
+    comparisons: string[];
+    caveats: string[];
+    sources: Array<{ question_key: string; reporting_year: number; scope: string }>;
+  };
+  usage: { input: number; output: number; total: number; costUsd: number | null };
+  scope: {
+    years: number[];
+    organization_count: number;
+    question_keys: string[];
+    categories: string[];
+    evidence_rows: number;
+  };
+};

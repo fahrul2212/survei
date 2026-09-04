@@ -5,6 +5,7 @@ import { CompanyDirectory, type CompanyStatusFilter } from "./CompanyDirectory";
 import { supabase } from "../../lib/supabase";
 import { slugify, formatDate } from "../../lib/portal";
 import type { Organization, SurveyVersion, ProgressRow } from "../../lib/portal";
+import { InvitationList } from "../../features/invitations/InvitationList";
 
 const ORG_PAGE_SIZE = 12;
 
@@ -478,6 +479,12 @@ export function AdminCompanies({
                   </table></div>
                 </div>
               )}
+            </div>
+
+            <div className="mt-7 border-t border-slate-200 pt-6">
+              <h3 className="text-base font-bold text-slate-900">Invitation history</h3>
+              <p className="mt-1 mb-4 text-sm text-slate-500">Pending, accepted, expired, and revoked invitations for this company.</p>
+              <InvitationList organizationId={membersModalOrg.id} />
             </div>
 
             <div className="-mx-6 -mb-6 mt-6 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 p-5 md:-mx-8 md:-mb-8">

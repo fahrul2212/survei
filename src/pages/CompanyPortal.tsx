@@ -22,6 +22,7 @@ import { CompanyTeam } from "../components/company/CompanyTeam";
 import { CompanyDocuments } from "../components/company/CompanyDocuments";
 import { CompanyBenchmark } from "../components/company/CompanyBenchmark";
 import { CompanySummary } from "../components/company/CompanySummary";
+import { SurveyAiExplorer } from "../features/ai-control/SurveyAiExplorer";
 
 const QUESTION_SELECT = `id,survey_version_id,display_order,is_required,carry_forward_enabled,visibility_rule,section_key,section_title,question_revision:question_revisions!inner(id,prompt,help_text,question_type,options,validation,question:question_definitions!inner(id,stable_key,category))`;
 
@@ -188,6 +189,7 @@ export function CompanyPortal({ session }: { session: Session }) {
     ["documents", "Documents"],
     ["benchmark", "Benchmark"],
     ["summary", "AI summary"],
+    ["ai-explorer", "AI insights"],
     ["team", "Team"],
     ["account", "Account"],
   ];
@@ -389,6 +391,7 @@ export function CompanyPortal({ session }: { session: Session }) {
       {view === "documents" && <CompanyDocuments organization={org} submissions={submissions} versions={versions} canEdit={role !== "viewer"} setNotice={setNotice} />}
       {view === "benchmark" && <CompanyBenchmark versions={versions} setNotice={setNotice} />}
       {view === "summary" && <CompanySummary submissions={submissions} versions={versions} canGenerate={role !== "viewer"} setNotice={setNotice} />}
+      {view === "ai-explorer" && <SurveyAiExplorer mode="company" versions={versions} setNotice={setNotice} />}
       {view === "team" && <CompanyTeam organization={org} canManage={role === "company_admin"} setNotice={setNotice} />}
 
       {/* ── Account ── */}

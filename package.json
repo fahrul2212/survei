@@ -14,6 +14,8 @@
     "supabase:functions": "supabase functions deploy",
     "seed:showcase": "node scripts/showcase-seed.mjs",
     "seed:survey-2025": "node scripts/seed-stica-survey-2025.mjs",
+    "seed:survey-2025-responses": "node scripts/seed-stica-survey-2025-responses.mjs",
+    "db:keep-2025-copy": "node scripts/keep-only-survey-2025-copy.mjs",
     "test:roles": "node scripts/role-smoke-test.mjs"
   },
   "dependencies": {

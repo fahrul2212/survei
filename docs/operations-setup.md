@@ -8,10 +8,24 @@ Configure these secrets in the linked Supabase project:
 
 ```bash
 supabase secrets set RESEND_API_KEY=... REMINDER_FROM_EMAIL="STICA Reporting <reporting@your-domain.example>"
+supabase secrets set INVITATION_FROM_EMAIL="STICA Reporting <reporting@your-domain.example>" INVITATION_EXPIRY_MINUTES=60
 supabase secrets set REMINDER_CRON_SECRET=... PORTAL_URL=https://your-portal.example
 ```
 
 Use a verified sending domain for `REMINDER_FROM_EMAIL`. The browser never receives the Resend or cron secrets.
+
+Invitation links are single-use Supabase Auth credentials. Administrators do not create, view, or email passwords. A recipient opens the time-limited link, creates a password of at least 12 characters, and only then receives the invited company membership. Pending invitations can be resent or revoked and all lifecycle actions are audited. Keep the hosted Supabase **Email OTP expiry** aligned with `INVITATION_EXPIRY_MINUTES` (recommended: 3600 seconds / 60 minutes).
+
+In hosted Supabase Auth settings, also configure:
+
+- Site URL: `https://stica.webmaintain.tech`
+- Exact redirect allow-list entry: `https://stica.webmaintain.tech/`
+- Public email sign-up disabled; email confirmations and secure password changes enabled
+- Minimum password length 12, at least letters and digits, leaked-password protection when the plan supports it
+- SMTP/Resend domain with SPF, DKIM and DMARC; disable click tracking for authentication links
+- CAPTCHA/Turnstile for public recovery and login abuse protection
+
+The repository's local Supabase configuration uses these secure defaults, but hosted Auth settings must be verified separately in the Supabase dashboard.
 
 ## Cloudflare Worker secrets
 
@@ -41,6 +55,8 @@ select vault.create_secret('THE_SAME_REMINDER_CRON_SECRET', 'reminder_cron_secre
 ```
 
 The schedule runs at 07:00 UTC each day. Only enabled policies whose survey has a future deadline and whose configured day offset matches are sent. Every attempted recipient/date has a unique delivery key, so retries do not duplicate an email.
+
+The Resend API key and verified sender are the only missing provider-specific values. Without them, invitation delivery can fall back to Supabase Auth email for a first invite, but automated report reminders remain disabled by design.
 
 ## Deployment
 

@@ -7,6 +7,23 @@ function safeEqual(left: string, right: string): boolean {
   return difference === 0;
 }
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;",
+  })[character] ?? character);
+}
+
+async function loadEmailDirectory(admin: ReturnType<typeof adminClient>): Promise<Map<string, string>> {
+  const result = new Map<string, string>();
+  for (let page = 1; page <= 100; page += 1) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) throw error;
+    data.users.forEach((user) => result.set(user.id, user.email ?? ""));
+    if (data.users.length < 1000) break;
+  }
+  return result;
+}
+
 Deno.serve(async (req) => {
     const options = preflight(req); if (options) return options;
     if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
@@ -20,6 +37,11 @@ Deno.serve(async (req) => {
     const sender = Deno.env.get("REMINDER_FROM_EMAIL") ?? "";
     const portalUrl = Deno.env.get("PORTAL_URL") ?? "";
     if (!sender || !portalUrl) return json({ error: "REMINDER_FROM_EMAIL and PORTAL_URL must be configured" }, 503);
+    try {
+      if (new URL(portalUrl).protocol !== "https:") throw new Error("not https");
+    } catch {
+      return json({ error: "PORTAL_URL must be a valid HTTPS URL" }, 503);
+    }
     const today = new Date();
     const todayKey = today.toISOString().slice(0, 10);
     const { data: policies, error: policyError } = await admin
@@ -30,9 +52,12 @@ Deno.serve(async (req) => {
 
     const { data: organizations } = await admin.from("organizations").select("id,name").eq("is_active", true);
     const { data: members } = await admin.from("organization_members").select("organization_id,user_id,role").in("role", ["member", "company_admin"]);
-    const { data: userPage, error: usersError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    if (usersError) return json({ error: usersError.message }, 400);
-    const emailByUser = new Map(userPage.users.map((user) => [user.id, user.email ?? ""]));
+    let emailByUser: Map<string, string>;
+    try {
+      emailByUser = await loadEmailDirectory(admin);
+    } catch (error) {
+      return json({ error: error instanceof Error ? error.message : "Unable to load reminder recipients" }, 400);
+    }
     let sent = 0, skipped = 0, failed = 0;
 
     for (const policy of policies ?? []) {
@@ -73,7 +98,7 @@ Deno.serve(async (req) => {
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({
               from: sender, to: [email], subject: `STICA report reminder: ${daysRemaining} day${daysRemaining === 1 ? "" : "s"} remaining`,
-              html: `<p>Hello,</p><p><strong>${organization.name}</strong> has ${daysRemaining} day${daysRemaining === 1 ? "" : "s"} remaining to complete <strong>${survey.name}</strong>.</p><p>Current status: ${status.replaceAll("_", " ")}.</p><p><a href="${portalUrl}">Open the STICA reporting portal</a></p>`,
+              html: `<p>Hello,</p><p><strong>${escapeHtml(organization.name)}</strong> has ${daysRemaining} day${daysRemaining === 1 ? "" : "s"} remaining to complete <strong>${escapeHtml(survey.name)}</strong>.</p><p>Current status: ${escapeHtml(status.replaceAll("_", " "))}.</p><p><a href="${escapeHtml(portalUrl)}">Open the STICA reporting portal</a></p>`,
             }),
           });
           const body = await response.json() as { id?: string; message?: string };

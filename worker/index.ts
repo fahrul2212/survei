@@ -2,6 +2,7 @@ import { estimateRoute } from "./routes/estimate";
 import { modelsRoute, settingsRoute, testProviderRoute } from "./routes/settings";
 import { summaryRoute } from "./routes/summary";
 import { usageRoute } from "./routes/usage";
+import { explorerRoute } from "./routes/explorer";
 import { errorResponse, json, withSecurityHeaders } from "./lib/http";
 import { adminClient, requireCaller, requirePlatformAdmin } from "./lib/supabase";
 
@@ -13,6 +14,7 @@ async function api(request: Request, env: Env): Promise<Response> {
     const path = new URL(request.url).pathname;
 
     if (path === "/api/ai/summary") return await summaryRoute(request, env, admin, caller);
+    if (path === "/api/ai/explore") return await explorerRoute(request, env, admin, caller);
 
     requirePlatformAdmin(caller);
     if (path === "/api/ai/settings") return await settingsRoute(request, env, admin, caller.user);

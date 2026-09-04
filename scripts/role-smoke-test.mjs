@@ -29,12 +29,12 @@ async function main() {
   check("Admin JWT has platform_admin role", adminIdentity.user?.app_metadata?.role === "platform_admin", adminIdentity.user?.app_metadata?.role);
   const organisationsResult = await admin.from("organizations").select("id,slug").eq("is_active", true);
   check("Admin sees all showcase companies", !organisationsResult.error && organisationsResult.data.length >= 6, organisationsResult.error?.message || String(organisationsResult.data?.length));
-  const versionResult = await admin.from("survey_versions").select("id").eq("reporting_year", 2026).single();
-  check("Admin sees reporting year 2026", !versionResult.error, versionResult.error?.message);
+  const versionResult = await admin.from("survey_versions").select("id,name,status").eq("reporting_year", 2025).eq("name", "STICA Signatory's Survey 2025 - Climate Transition Plans").single();
+  check("Admin sees the retained 2025 SurveyMonkey copy", !versionResult.error, versionResult.error?.message);
   const questionsResult = await admin.from("survey_questions").select("id", { count: "exact", head: true }).eq("survey_version_id", versionResult.data.id);
-  check("Published survey has exactly 90 questions", !questionsResult.error && questionsResult.count === 90, questionsResult.error?.message || String(questionsResult.count));
-  const progressResult = await admin.from("admin_submission_progress").select("organization_id").eq("reporting_year", 2026);
-  check("Admin can read progress dashboard", !progressResult.error && progressResult.data.length >= 5, progressResult.error?.message || String(progressResult.data?.length));
+  check("Retained 2025 survey has exactly 92 questions", !questionsResult.error && questionsResult.count === 92, questionsResult.error?.message || String(questionsResult.count));
+  const progressResult = await admin.from("admin_submission_progress").select("organization_id").eq("reporting_year", 2025);
+  check("Admin can read the seeded 2025 progress dashboard", !progressResult.error && progressResult.data.length >= 8, progressResult.error?.message || String(progressResult.data?.length));
 
   const company = await login(env.TEST_CLIENT_EMAIL, env.TEST_CLIENT_PASSWORD);
   const { data: companyIdentity } = await company.auth.getUser();
@@ -45,16 +45,11 @@ async function main() {
   const leakResult = await company.from("organizations").select("id").eq("id", other.id);
   check("Client cannot read another company", !leakResult.error && leakResult.data.length === 0, leakResult.error?.message || String(leakResult.data?.length));
   const submissionsResult = await company.from("company_submissions").select("id,status,survey_version_id").eq("organization_id", visibleResult.data[0].id);
-  check("Client sees three years of its own reports", !submissionsResult.error && submissionsResult.data.length === 3, submissionsResult.error?.message || String(submissionsResult.data?.length));
-  const current = submissionsResult.data.find((row) => row.survey_version_id === versionResult.data.id);
-  const adminAnswersResult = await admin.from("answers").select("id", { count: "exact", head: true }).eq("submission_id", current.id);
-  check("Admin can count the client's current answers", !adminAnswersResult.error, adminAnswersResult.error?.message);
-  const answersResult = await company.from("answers").select("id", { count: "exact", head: true }).eq("submission_id", current.id);
-  check(
-    "Client sees every answer in its current submission",
-    !answersResult.error && answersResult.count === adminAnswersResult.count,
-    answersResult.error?.message || `${answersResult.count}/${adminAnswersResult.count}`,
-  );
+  check("Client sees only its own retained reports", !submissionsResult.error && submissionsResult.data.every((row) => row.survey_version_id === versionResult.data.id), submissionsResult.error?.message || String(submissionsResult.data?.length));
+  const otherSubmissionResult = await admin.from("company_submissions").select("id,organization_id").neq("organization_id", visibleResult.data[0].id).eq("survey_version_id", versionResult.data.id).limit(1).single();
+  check("Admin can select a different seeded company report", !otherSubmissionResult.error, otherSubmissionResult.error?.message);
+  const leakAnswersResult = await company.from("answers").select("id", { count: "exact", head: true }).eq("submission_id", otherSubmissionResult.data.id);
+  check("Client cannot read another company's survey answers", !leakAnswersResult.error && leakAnswersResult.count === 0, leakAnswersResult.error?.message || String(leakAnswersResult.count));
   const forbidden = await company.rpc("create_survey_year", { p_reporting_year: 2027, p_name: "Forbidden role smoke test" });
   check(
     "Client cannot execute admin survey RPC",

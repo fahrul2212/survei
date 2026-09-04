@@ -3,6 +3,7 @@ import { MailPlus, ShieldCheck, Trash2, Users } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import type { CompanyRole, MemberRow, Organization } from "../../lib/portal";
 import { Button, EmptyState, PageContainer, PageHeader, type Notice } from "../ui";
+import { InvitationList } from "../../features/invitations/InvitationList";
 
 const roleLabels: Record<CompanyRole, string> = {
   company_admin: "Company admin",
@@ -18,6 +19,7 @@ export function CompanyTeam({ organization, canManage, setNotice }: {
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [invitationRefresh, setInvitationRefresh] = useState(0);
 
   const load = useCallback(async () => {
     if (!supabase || !canManage) { setLoading(false); return; }
@@ -36,17 +38,18 @@ export function CompanyTeam({ organization, canManage, setNotice }: {
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
     setBusy(true);
-    const { error } = await supabase.functions.invoke("invite-company-member", { body: {
+    const { data, error } = await supabase.functions.invoke("invite-company-member", { body: {
       organizationId: organization.id,
       fullName: String(form.get("fullName") ?? ""),
       email: String(form.get("email") ?? ""),
       role: String(form.get("role") ?? "member"),
       redirectTo: window.location.origin,
     } });
-    if (error) setNotice({ kind: "error", message: error.message });
+    if (error || data?.error) setNotice({ kind: "error", message: data?.error ?? error?.message ?? "Invitation failed" });
     else {
-      setNotice({ kind: "success", message: "Team invitation sent and access assigned." });
+      setNotice({ kind: "success", message: data.linked ? "Existing account linked to the company." : "Secure invitation sent." });
       formElement.reset();
+      setInvitationRefresh((value) => value + 1);
       await load();
     }
     setBusy(false);
@@ -117,6 +120,11 @@ export function CompanyTeam({ organization, canManage, setNotice }: {
               <Button type="submit" icon={Users} disabled={busy}>{busy ? "Sending invitation…" : "Invite team member"}</Button>
             </div>
           </form>
+          <section className="rounded-xl border border-slate-200 bg-white p-5 md:p-6 xl:col-span-2">
+            <h2 className="text-lg font-bold text-slate-900">Invitation history</h2>
+            <p className="mt-1 mb-5 text-sm text-slate-500">Track pending links, resend an expired invitation, or revoke unused access.</p>
+            <InvitationList organizationId={organization.id} refreshKey={invitationRefresh} />
+          </section>
         </div>
       )}
     </PageContainer>

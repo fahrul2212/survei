@@ -1,5 +1,5 @@
 import { supabase } from "../../lib/supabase";
-import type { AiModelsResponse, AiSettingsResponse, AiSettingsUpdate, AiUsageResponse } from "./types";
+import type { AiModelsResponse, AiSettingsResponse, AiSettingsUpdate, AiUsageResponse, SurveyAiResult } from "./types";
 
 type ApiErrorBody = { error?: string };
 
@@ -65,4 +65,14 @@ export function estimateAiCost(inputTokens: number, outputTokens: number, model:
 
 export function generateAiSummary(submissionId: number): Promise<unknown> {
   return api("/api/ai/summary", { method: "POST", body: JSON.stringify({ submissionId }) });
+}
+
+export function exploreSurveyData(input: {
+  question: string;
+  years?: number[];
+  organizationIds?: number[];
+  questionKeys?: string[];
+  categories?: string[];
+}): Promise<SurveyAiResult> {
+  return api("/api/ai/explore", { method: "POST", body: JSON.stringify(input) });
 }

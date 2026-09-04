@@ -63,6 +63,7 @@ import { AdminCompanies } from "../components/admin/AdminCompanies";
 import { AdminOperations } from "../components/admin/AdminOperations";
 import { AdminSummaryModal } from "../components/admin/AdminSummaryModal";
 import { AdminAiControl } from "../features/ai-control/AdminAiControl";
+import { SurveyAiExplorer } from "../features/ai-control/SurveyAiExplorer";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -404,6 +405,7 @@ export function AdminPortal({ session }: { session: Session }) {
     ["companies", "Companies"],
     ["data", "Import & export"],
     ["analytics", "Analytics"],
+    ["ai-explorer", "AI survey explorer"],
     ["operations", "Reminders & summaries"],
     ["ai", "AI control centre"],
     ["audit", "Audit log"],
@@ -751,6 +753,8 @@ export function AdminPortal({ session }: { session: Session }) {
       {view === "analytics" && (
         <AdminAnalytics organizations={orgs} rows={rows} currentRows={currentRows} />
       )}
+
+      {view === "ai-explorer" && <SurveyAiExplorer mode="admin" versions={versions} organizations={orgs} setNotice={setNotice} />}
 
       {view === "operations" && (
         <AdminOperations

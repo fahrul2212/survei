@@ -42,7 +42,7 @@ export function AccountSettings({ session }: { session: Session }) {
     e.preventDefault();
     if (!supabase) return;
     if (password !== confirm) return setPwNotice({ kind: "error", message: "Passwords do not match." });
-    if (password.length < 8) return setPwNotice({ kind: "error", message: "Password must be at least 8 characters." });
+    if (password.length < 12 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) return setPwNotice({ kind: "error", message: "Password must be at least 12 characters and include letters and a number." });
     setPwBusy(true);
     const { error } = await supabase.auth.updateUser({ password });
     setPwBusy(false);
@@ -97,14 +97,14 @@ export function AccountSettings({ session }: { session: Session }) {
             New password
             <input 
               className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
-              type="password" value={password} minLength={8} placeholder="Min. 8 characters" onChange={(e) => setPassword(e.target.value)} required 
+              type="password" value={password} minLength={12} autoComplete="new-password" placeholder="Min. 12 characters" onChange={(e) => setPassword(e.target.value)} required
             />
           </label>
           <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
             Confirm password
             <input 
               className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
-              type="password" value={confirm} placeholder="Repeat new password" onChange={(e) => setConfirm(e.target.value)} required 
+              type="password" value={confirm} minLength={12} autoComplete="new-password" placeholder="Repeat new password" onChange={(e) => setConfirm(e.target.value)} required
             />
           </label>
           <Button disabled={pwBusy}>

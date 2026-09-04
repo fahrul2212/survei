@@ -90,3 +90,20 @@ export function monthStart(): string {
   const now = new Date();
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
 }
+
+export async function recentSpend(admin: SupabaseClient, organizationId?: number): Promise<number> {
+  let query = admin.from("ai_usage_events").select("actual_cost_usd,estimated_cost_usd,status").gte("created_at", monthStart());
+  if (organizationId) query = query.eq("organization_id", organizationId);
+  const { data, error } = await query.limit(5000);
+  if (error) throw databaseError(error, "Unable to validate the AI budget");
+  return (data ?? []).filter((row) => row.status === "completed" || row.status === "pending" || row.actual_cost_usd !== null)
+    .reduce((sum, row) => sum + Number(row.actual_cost_usd ?? row.estimated_cost_usd ?? 0), 0);
+}
+
+export async function enforceAiRateLimit(admin: SupabaseClient, userId: string): Promise<void> {
+  const oneMinuteAgo = new Date(Date.now() - 60_000).toISOString();
+  const { count, error } = await admin.from("ai_usage_events").select("id", { count: "exact", head: true })
+    .eq("requested_by", userId).gte("created_at", oneMinuteAgo);
+  if (error) throw databaseError(error, "Unable to validate the AI request limit");
+  if ((count ?? 0) >= 10) throw new ApiError(429, "Too many AI requests. Please wait one minute.", "rate_limit_exceeded");
+}
