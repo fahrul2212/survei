@@ -1,9 +1,10 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { AiModelPriceRow } from "../domain/ai";
 import { encryptSecret } from "../lib/crypto";
-import { ApiError, json, requireMethod, requireSameOrigin } from "../lib/http";
+import { ApiError, json, readJsonObject, requireMethod, requireSameOrigin } from "../lib/http";
 import { databaseError } from "../lib/supabase";
-import { loadCredential, loadPrice, loadSettings, parseSettingsInput, resolveProviderKey } from "../services/governance";
+import { loadCredential, loadPrice, loadSettings, optionalProviderKey, parseSettingsInput, resolveProviderKey } from "../services/governance";
+import { availableOpenAiModels } from "../services/openai-catalog";
 
 async function audit(admin: SupabaseClient, user: User, eventType: string, details: Record<string, unknown>): Promise<void> {
   const { error } = await admin.from("audit_events").insert({
@@ -118,4 +119,12 @@ export async function testProviderRoute(request: Request, env: Env, admin: Supab
     throw new ApiError(502, "The AI provider rejected the configured key or model", "provider_test_failed");
   }
   return json({ connected: true, model: settings.default_model });
+}
+
+export async function modelsRoute(request: Request, env: Env, admin: SupabaseClient): Promise<Response> {
+  requireMethod(request, "POST");
+  requireSameOrigin(request);
+  const body = await readJsonObject(request);
+  const apiKey = optionalProviderKey(body.apiKey) ?? await resolveProviderKey(admin, env, "openai");
+  return json(await availableOpenAiModels(apiKey));
 }

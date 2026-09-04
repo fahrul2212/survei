@@ -27,13 +27,18 @@ function modelName(value: unknown, field: string, nullable = false): string | nu
   return value.trim();
 }
 
+export function optionalProviderKey(value: unknown): string | undefined {
+  if (value === undefined || value === "") return undefined;
+  if (typeof value !== "string" || value.length < 20 || value.length > 512 || /\s/.test(value)) {
+    throw new ApiError(400, "API key format is invalid", "invalid_api_key");
+  }
+  return value;
+}
+
 export async function parseSettingsInput(request: Request): Promise<AiSettingsInput> {
   const body = await readJsonObject(request);
   if (typeof body.enabled !== "boolean") throw new ApiError(400, "Enabled must be true or false", "invalid_settings");
-  const apiKey = body.apiKey === undefined || body.apiKey === "" ? undefined : body.apiKey;
-  if (apiKey !== undefined && (typeof apiKey !== "string" || apiKey.length < 20 || apiKey.length > 512 || /\s/.test(apiKey))) {
-    throw new ApiError(400, "API key format is invalid", "invalid_api_key");
-  }
+  const apiKey = optionalProviderKey(body.apiKey);
   const inputPricePerMillionUsd = finiteNumber(body.inputPricePerMillionUsd, "Input price", 0, 100_000);
   const outputPricePerMillionUsd = finiteNumber(body.outputPricePerMillionUsd, "Output price", 0, 100_000);
   if (body.enabled && inputPricePerMillionUsd === 0 && outputPricePerMillionUsd === 0) {

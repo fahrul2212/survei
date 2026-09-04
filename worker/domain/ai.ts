@@ -57,3 +57,12 @@ export type AiSettingsInput = {
   outputPricePerMillionUsd: number;
   apiKey?: string;
 };
+
+export type AiModelOption = {
+  id: string;
+  pricing: {
+    inputPricePerMillionUsd: number;
+    outputPricePerMillionUsd: number;
+    verifiedAt: string;
+  } | null;
+};

@@ -62,3 +62,15 @@ export type AiSettingsUpdate = Omit<AiControlSettings, "provider" | "updatedAt">
   outputPricePerMillionUsd: number;
   apiKey?: string;
 };
+
+export type AiModelOption = {
+  id: string;
+  pricing: (Pick<AiPricing, "inputPricePerMillionUsd" | "outputPricePerMillionUsd"> & {
+    verifiedAt: string;
+  }) | null;
+};
+
+export type AiModelsResponse = {
+  models: AiModelOption[];
+  recommendedModel: string | null;
+};

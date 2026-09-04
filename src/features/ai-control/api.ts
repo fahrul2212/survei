@@ -1,5 +1,5 @@
 import { supabase } from "../../lib/supabase";
-import type { AiSettingsResponse, AiSettingsUpdate, AiUsageResponse } from "./types";
+import type { AiModelsResponse, AiSettingsResponse, AiSettingsUpdate, AiUsageResponse } from "./types";
 
 type ApiErrorBody = { error?: string };
 
@@ -40,6 +40,13 @@ export function updateAiSettings(settings: AiSettingsUpdate): Promise<{ saved: t
 
 export function testAiProvider(): Promise<{ connected: true; model: string }> {
   return api("/api/ai/settings/test", { method: "POST", body: "{}" });
+}
+
+export function getAiModels(apiKey?: string): Promise<AiModelsResponse> {
+  return api("/api/ai/models", {
+    method: "POST",
+    body: JSON.stringify(apiKey ? { apiKey } : {}),
+  });
 }
 
 export function getAiUsage(): Promise<AiUsageResponse> {

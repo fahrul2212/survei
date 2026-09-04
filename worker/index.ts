@@ -1,5 +1,5 @@
 import { estimateRoute } from "./routes/estimate";
-import { settingsRoute, testProviderRoute } from "./routes/settings";
+import { modelsRoute, settingsRoute, testProviderRoute } from "./routes/settings";
 import { summaryRoute } from "./routes/summary";
 import { usageRoute } from "./routes/usage";
 import { errorResponse, json, withSecurityHeaders } from "./lib/http";
@@ -17,6 +17,7 @@ async function api(request: Request, env: Env): Promise<Response> {
     requirePlatformAdmin(caller);
     if (path === "/api/ai/settings") return settingsRoute(request, env, admin, caller.user);
     if (path === "/api/ai/settings/test") return testProviderRoute(request, env, admin);
+    if (path === "/api/ai/models") return modelsRoute(request, env, admin);
     if (path === "/api/ai/usage") return usageRoute(request, admin);
     if (path === "/api/ai/estimate") return estimateRoute(request, admin);
     return json({ error: "API route not found", code: "not_found", requestId }, 404);

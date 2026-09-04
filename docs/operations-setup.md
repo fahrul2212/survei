@@ -44,6 +44,6 @@ The schedule runs at 07:00 UTC each day. Only enabled policies whose survey has 
 
 ## Deployment
 
-Apply database migrations, deploy reminder Edge Functions, configure the Cloudflare Worker secrets, and deploy the Worker. In **AI control centre**, enter current provider pricing, test the connection, choose budgets, and only then enable AI. Configure reminder policies separately from **Reminders & summaries**. Submit a company report before generating its AI summary.
+Apply database migrations, deploy reminder Edge Functions, configure the Cloudflare Worker secrets, and deploy the Worker. In **AI control centre**, paste the OpenAI project key, load its available text models, select one, choose budgets, and only then enable AI. Known model prices are filled from the portal's dated catalogue; verify the current OpenAI price under Advanced settings when a model is not catalogued. Configure reminder policies separately from **Reminders & summaries**. Submit a company report before generating its AI summary.
 
 Before enabling AI in production, confirm that the OpenAI project is owned by the client organisation, API data sharing is not opted in, and the applicable retention setting is documented. `store: false` is enforced in code, but standard OpenAI abuse-monitoring logs may still retain content for up to 30 days. Zero Data Retention or Modified Abuse Monitoring requires approval from OpenAI. Publish the AI processing notice and complete the applicable OpenAI business terms/DPA review first.

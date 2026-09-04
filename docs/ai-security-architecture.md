@@ -78,6 +78,7 @@ This implementation follows the current [OpenAI Usage Policies](https://openai.c
 |---|---|---|
 | `GET /api/ai/settings` | Platform administrator | Read non-secret configuration and masked credential status |
 | `PUT /api/ai/settings` | Platform administrator | Save limits, price and optionally replace the encrypted provider key |
+| `POST /api/ai/models` | Platform administrator | Validate a supplied or saved key and list compatible OpenAI text models |
 | `POST /api/ai/settings/test` | Platform administrator | Test the saved model and provider credential |
 | `GET /api/ai/usage` | Platform administrator | Read current-month usage, spend and projection |
 | `POST /api/ai/estimate` | Platform administrator | Estimate cost using saved pricing |
@@ -97,7 +98,7 @@ The environment `OPENAI_API_KEY` can be used as a fallback when no dashboard-man
 
 ## Budget and cost calculation
 
-Model prices are editable configuration stamped with an effective time, not hard-coded assumptions. Before a provider request, the Worker estimates input tokens, reserves the configured maximum output, and calculates:
+The model dropdown is fetched from OpenAI for the connected project key. OpenAI's model-list response does not include prices, so prices for supported models come from a small dated server-side catalogue and remain editable under Advanced settings. Unknown models must receive an administrator-reviewed price before AI can be enabled. Before a provider request, the Worker estimates input tokens, reserves the configured maximum output, and calculates:
 
 ```text
 estimated cost =
@@ -137,8 +138,8 @@ For high concurrency, replace the initial rate counter with a Durable Object or 
 3. Run `npm run cf:types` after binding or variable-name changes.
 4. Run `npm run build` so both React and Worker TypeScript are checked.
 5. Deploy through the protected `main` branch workflow.
-6. Enter current model prices in AI control centre.
-7. Test provider connectivity, set conservative budgets, then enable AI.
+6. Connect the provider key, choose a compatible model, and verify any non-catalogued price in AI control centre.
+7. Set conservative budgets, then enable AI.
 8. Exercise administrator, contributor and viewer accounts.
 9. Confirm credential values never appear in browser responses, Worker logs or audit details.
 10. Compare recorded monthly usage with the provider bill.
