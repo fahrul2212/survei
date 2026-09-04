@@ -10,9 +10,10 @@ const PRICES: Record<string, readonly [input: number, output: number]> = {
   "gpt-5.6-sol": [4, 20],
   "gpt-5.6-terra": [2, 12],
   "gpt-5.6-luna": [0.2, 1.2],
+  "gpt-5-mini": [0.25, 2],
 };
 
-const RECOMMENDED_ORDER = ["gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol", "gpt-5.6", "gpt-6-astra"];
+const RECOMMENDED_ORDER = ["gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol", "gpt-5.6", "gpt-6-astra", "gpt-5-mini"];
 const EXCLUDED_MARKERS = [
   "audio", "codex", "computer-use", "dall-e", "embedding", "image", "moderation",
   "realtime", "search", "sora", "transcribe", "tts", "whisper",
