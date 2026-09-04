@@ -47,10 +47,20 @@ async function main() {
   const submissionsResult = await company.from("company_submissions").select("id,status,survey_version_id").eq("organization_id", visibleResult.data[0].id);
   check("Client sees three years of its own reports", !submissionsResult.error && submissionsResult.data.length === 3, submissionsResult.error?.message || String(submissionsResult.data?.length));
   const current = submissionsResult.data.find((row) => row.survey_version_id === versionResult.data.id);
+  const adminAnswersResult = await admin.from("answers").select("id", { count: "exact", head: true }).eq("submission_id", current.id);
+  check("Admin can count the client's current answers", !adminAnswersResult.error, adminAnswersResult.error?.message);
   const answersResult = await company.from("answers").select("id", { count: "exact", head: true }).eq("submission_id", current.id);
-  check("Client sees its 72-answer carried-forward draft", !answersResult.error && answersResult.count === 72, answersResult.error?.message || String(answersResult.count));
+  check(
+    "Client sees every answer in its current submission",
+    !answersResult.error && answersResult.count === adminAnswersResult.count,
+    answersResult.error?.message || `${answersResult.count}/${adminAnswersResult.count}`,
+  );
   const forbidden = await company.rpc("create_survey_year", { p_reporting_year: 2027, p_name: "Forbidden role smoke test" });
-  check("Client cannot execute admin survey RPC", Boolean(forbidden.error), "RPC unexpectedly succeeded");
+  check(
+    "Client cannot execute admin survey RPC",
+    Boolean(forbidden.error),
+    forbidden.error ? "Access denied as expected" : "RPC unexpectedly succeeded",
+  );
 
   await Promise.all([admin.auth.signOut(), company.auth.signOut()]);
   console.table(results);

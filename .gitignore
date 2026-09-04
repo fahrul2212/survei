@@ -10,4 +10,8 @@ supabase/.temp/
 *.log
 .playwright-cli/
 output/playwright/
+output/
+tmp/pdfs/brief-render/
+tmp/pdfs/proposal-render/
+tmp/pdfs/build_stica_technical_proposal.py
 *.tsbuildinfo

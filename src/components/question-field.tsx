@@ -42,7 +42,7 @@ export function QuestionField({ question, value, disabled, change, save }: {
     );
   }
 
-  if (question.type === "single_choice") {
+  if (question.type === "single_choice" && question.validation.presentation === "dropdown") {
     return (
       <select
         disabled={disabled}
@@ -56,6 +56,39 @@ export function QuestionField({ question, value, disabled, change, save }: {
         <option value="">Select an option…</option>
         {question.options.map((option) => <option key={option} value={option}>{option}</option>)}
       </select>
+    );
+  }
+
+  if (question.type === "single_choice") {
+    return (
+      <div className="grid grid-cols-1 gap-2.5">
+        {question.options.map((option) => {
+          const isSelected = value === option;
+          return (
+            <label
+              key={option}
+              className={`flex cursor-pointer items-start gap-3 rounded-lg border-[1.5px] px-4 py-3.5 transition-colors ${
+                isSelected
+                  ? "border-[#d91f17] bg-red-50 text-[#b01710]"
+                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+              } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
+            >
+              <input
+                type="radio"
+                name={`question-${question.id}`}
+                disabled={disabled}
+                checked={isSelected}
+                className="mt-0.5 size-4 shrink-0 border-slate-300 text-[#d91f17] focus:ring-[#d91f17]/20 disabled:cursor-not-allowed"
+                onChange={() => {
+                  change(option);
+                  save(option);
+                }}
+              />
+              <span className="text-[15px] font-medium leading-6">{option}</span>
+            </label>
+          );
+        })}
+      </div>
     );
   }
 

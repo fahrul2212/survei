@@ -1,6 +1,6 @@
 # STICA Climate Transition Reporting Portal
 
-A production annual reporting portal for STICA member companies. React/Vite provides the responsive interface, Supabase provides authentication, PostgreSQL, RLS, versioned surveys and Edge Functions, and Cloudflare Workers Static Assets hosts the frontend.
+A production annual reporting portal for STICA member companies. React/Vite provides the responsive interface, Supabase provides authentication, PostgreSQL, RLS and versioned reporting data, and Cloudflare Workers hosts both the static application and the protected AI API boundary.
 
 ## Local development
 
@@ -22,7 +22,7 @@ npm run supabase:functions
 Create the first administrator in Supabase Auth, then set `app_metadata.role` to `platform_admin`. All company accounts are subsequently invited through the portal. See `ADMIN_GUIDE.md` for the operating workflow and historical import template.
 
 Product sequencing and long-term capability planning are documented in [`docs/roadmap.md`](docs/roadmap.md).
-Production secrets and the automated reminder scheduler are documented in [`docs/operations-setup.md`](docs/operations-setup.md).
+Production secrets and the automated reminder scheduler are documented in [`docs/operations-setup.md`](docs/operations-setup.md). The AI trust boundaries, endpoints, budgets and credential model are documented in [`docs/ai-security-architecture.md`](docs/ai-security-architecture.md).
 
 ## Cloudflare deployment
 
@@ -31,4 +31,4 @@ npx wrangler login
 npm run deploy
 ```
 
-Only the publishable key belongs in the frontend environment. Never commit or expose a Supabase secret/service-role key.
+Only the Supabase URL and publishable key belong in the frontend build environment. Configure the Supabase secret key, credential-encryption key and optional OpenAI fallback key as Cloudflare Worker secrets. Never commit them or expose them to the browser.

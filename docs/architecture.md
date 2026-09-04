@@ -40,9 +40,11 @@ Organization membership is the authorization source. `viewer` is read-only, `mem
 
 The company benchmark RPC returns completion aggregates only and suppresses peer metrics until five active companies are present. Administrator comparisons use authorized progress rows.
 
-### AI summaries
+### AI summaries and governance
 
-The `generate-ai-summary` Edge Function sends submitted snapshot evidence to the OpenAI Responses API with a strict JSON schema and stores model/prompt versions plus source question IDs. Summaries remain separate from canonical answers and are labelled as drafts requiring verification.
+Cloudflare Worker routes under `/api/ai/*` form the only AI provider boundary. The Worker verifies the Supabase access token with Auth, repeats authorization server-side, checks rate and monthly budget controls, loads an immutable submitted snapshot, and sends only the required evidence to the provider using a strict JSON schema. It records estimated and actual tokens and cost in Supabase. Summaries remain separate from canonical answers and are labelled as drafts requiring verification.
+
+Administrator settings, model pricing and usage are managed in the AI control centre. Provider credentials are encrypted by the Worker before storage and cannot be selected through the browser-facing Supabase role. See `docs/ai-security-architecture.md` for the complete trust model.
 
 ### Document uploads
 
@@ -50,7 +52,7 @@ The private `report-documents` bucket uses organization/submission paths. `submi
 
 ### API integrations
 
-Route external integrations through versioned Edge Functions. Validate signatures, use idempotency keys, log correlation IDs, and map external records to stable internal IDs rather than question wording.
+Route AI and other user-facing integrations through versioned Cloudflare Worker endpoints. Validate signatures and authenticated users, use idempotency keys where requests can be retried, log correlation IDs, and map external records to stable internal IDs rather than question wording. Supabase Edge Functions remain appropriate for database-scheduled reminder delivery.
 
 ## Export contract
 

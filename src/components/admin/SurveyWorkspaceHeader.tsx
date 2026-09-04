@@ -1,4 +1,4 @@
-import { ArrowLeft, Eye, EyeOff, Plus, RotateCcw, Send, XCircle } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, RotateCcw, Send, XCircle } from "lucide-react";
 import { surveyDisplayTitle, type SurveyVersion } from "../../lib/portal";
 import { Button, PageHeader, StatusBadge } from "../ui";
 
@@ -9,7 +9,6 @@ export function SurveyWorkspaceHeader({
   busy,
   onBack,
   onTogglePreview,
-  onAddQuestion,
   onPublish,
   onClose,
   onReopen,
@@ -20,7 +19,6 @@ export function SurveyWorkspaceHeader({
   busy: boolean;
   onBack: () => void;
   onTogglePreview: () => void;
-  onAddQuestion: () => void;
   onPublish: () => void;
   onClose: () => void;
   onReopen: () => void;
@@ -54,9 +52,6 @@ export function SurveyWorkspaceHeader({
             >
               {previewMode ? "Exit preview" : "Preview"}
             </Button>
-            {draft && !empty && (
-              <Button icon={Plus} onClick={onAddQuestion}>Add question</Button>
-            )}
             {draft && (
               <Button
                 icon={Send}

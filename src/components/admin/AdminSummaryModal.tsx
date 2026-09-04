@@ -3,6 +3,7 @@ import { AlertTriangle, Bot, CheckCircle2, RefreshCw, Sparkles, X } from "lucide
 import { supabase } from "../../lib/supabase";
 import { formatDateTime, type AiSummary, type AiSummaryContent } from "../../lib/portal";
 import { Button, EmptyState, Loading, type Notice } from "../ui";
+import { generateAiSummary } from "../../features/ai-control/api";
 
 export function AdminSummaryModal({
   submissionId,
@@ -64,21 +65,18 @@ export function AdminSummaryModal({
   async function generate() {
     if (!supabase || !submissionId) return;
     setBusy(true);
-    const { data, error } = await supabase.functions.invoke("generate-ai-summary", {
-      body: { submissionId },
-    });
-
-    if (error || data?.error) {
-      setNotice({
-        kind: "error",
-        message: data?.error ?? error?.message ?? "Unable to generate summary",
-      });
-    } else {
+    try {
+      await generateAiSummary(submissionId);
       setNotice({
         kind: "success",
         message: `AI summary generated for ${organizationName}.`,
       });
       await load();
+    } catch (error) {
+      setNotice({
+        kind: "error",
+        message: error instanceof Error ? error.message : "Unable to generate summary",
+      });
     }
     setBusy(false);
   }
@@ -273,7 +271,7 @@ export function AdminSummaryModal({
         {/* Footer */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-5 py-3.5 sm:px-6">
           <p className="text-xs text-slate-500">
-            Always verify against raw survey responses before sharing or external publication.
+            Generating sends the authorised submitted responses to the configured OpenAI API. Always verify the resulting draft against raw responses before sharing or external publication.
           </p>
           <Button size="small" variant="secondary" onClick={onClose}>
             Close

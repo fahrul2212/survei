@@ -47,7 +47,8 @@ Goal: turn validated submissions into useful, reviewable programme insight.
 - Completion and response-quality trends.
 - [Implemented] Anonymised company completion benchmarking with a five-company suppression threshold.
 - Executive summary view for administrators: what changed, where follow-up is needed, and which themes are recurring.
-- [Implemented] AI-assisted structured summaries generated through the OpenAI Responses API from submitted snapshots only, with source question IDs and model/prompt versioning.
+- [Implemented] AI-assisted structured summaries generated through a protected Cloudflare Worker from submitted snapshots only, with source question IDs and model/prompt versioning.
+- [Implemented] Administrator AI control centre with encrypted provider credential storage, editable model pricing, platform/company budgets, rate limiting, usage history, cost projection, and connection testing.
 
 ## Phase 5 - Evidence and integrations
 

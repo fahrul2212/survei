@@ -62,6 +62,7 @@ import { SurveyBuilder } from "../components/admin/SurveyBuilder";
 import { AdminCompanies } from "../components/admin/AdminCompanies";
 import { AdminOperations } from "../components/admin/AdminOperations";
 import { AdminSummaryModal } from "../components/admin/AdminSummaryModal";
+import { AdminAiControl } from "../features/ai-control/AdminAiControl";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -403,7 +404,8 @@ export function AdminPortal({ session }: { session: Session }) {
     ["companies", "Companies"],
     ["data", "Import & export"],
     ["analytics", "Analytics"],
-    ["operations", "Reminders & AI"],
+    ["operations", "Reminders & summaries"],
+    ["ai", "AI control centre"],
     ["audit", "Audit log"],
   ];
 
@@ -500,9 +502,7 @@ export function AdminPortal({ session }: { session: Session }) {
           setBusy={setBusy}
           setNotice={setNotice}
           setSelected={setSelected}
-          setVersions={setVersions}
           setQuestions={setQuestions}
-          setCarry={setCarry}
           loadQuestions={loadQuestions}
           load={load}
         />
@@ -762,6 +762,8 @@ export function AdminPortal({ session }: { session: Session }) {
           }}
         />
       )}
+
+      {view === "ai" && <AdminAiControl setNotice={setNotice} />}
 
       {/* ══════════════════════════ AUDIT LOG ════════════════════════════════ */}
       {view === "audit" && <AuditLogView orgs={orgs} />}

@@ -3,6 +3,7 @@ import { Bot, RefreshCw, Sparkles } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { formatDateTime, type AiSummary, type AiSummaryContent, type Submission, type SurveyVersion } from "../../lib/portal";
 import { Button, EmptyState, PageContainer, PageHeader, type Notice } from "../ui";
+import { generateAiSummary } from "../../features/ai-control/api";
 
 export function CompanySummary({ submissions, versions, canGenerate, setNotice }: {
   submissions: Submission[];
@@ -24,9 +25,13 @@ export function CompanySummary({ submissions, versions, canGenerate, setNotice }
   async function generate() {
     if (!supabase || !submissionId) return;
     setBusy(true);
-    const { data, error } = await supabase.functions.invoke("generate-ai-summary", { body: { submissionId } });
-    if (error || data?.error) setNotice({ kind: "error", message: data?.error ?? error?.message ?? "Unable to generate summary" });
-    else { setNotice({ kind: "success", message: "AI summary generated from the submitted snapshot." }); await load(); }
+    try {
+      await generateAiSummary(submissionId);
+      setNotice({ kind: "success", message: "AI summary generated from the submitted snapshot." });
+      await load();
+    } catch (error) {
+      setNotice({ kind: "error", message: error instanceof Error ? error.message : "Unable to generate summary" });
+    }
     setBusy(false);
   }
 
@@ -35,9 +40,12 @@ export function CompanySummary({ submissions, versions, canGenerate, setNotice }
 
   return <PageContainer>
     <PageHeader eyebrow="AI-assisted review" title="Climate plan summary" description="Generate a structured draft from an immutable submitted report. Always verify the source responses before external use." />
-    <section className="mb-6 flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-end sm:justify-between md:p-6">
-      <label className="grid min-w-0 flex-1 gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">Submitted survey<select value={submissionId} onChange={(event) => setSubmissionId(Number(event.target.value))} className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none focus:border-[#d91f17] focus:ring-2 focus:ring-red-100"><option value={0}>Choose a submitted report</option>{submitted.map((item) => <option key={item.id} value={item.id}>{label(item)}</option>)}</select></label>
-      <Button icon={summary ? RefreshCw : Sparkles} disabled={!submissionId || !canGenerate || busy} onClick={() => void generate()}>{busy ? "Generating…" : summary ? "Regenerate summary" : "Generate AI summary"}</Button>
+    <section className="mb-6 rounded-xl border border-slate-200 bg-white p-5 md:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <label className="grid min-w-0 flex-1 gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">Submitted survey<select value={submissionId} onChange={(event) => setSubmissionId(Number(event.target.value))} className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none focus:border-[#d91f17] focus:ring-2 focus:ring-red-100"><option value={0}>Choose a submitted report</option>{submitted.map((item) => <option key={item.id} value={item.id}>{label(item)}</option>)}</select></label>
+        <Button icon={summary ? RefreshCw : Sparkles} disabled={!submissionId || !canGenerate || busy} onClick={() => void generate()}>{busy ? "Generating…" : summary ? "Regenerate summary" : "Generate AI summary"}</Button>
+      </div>
+      <p className="mt-3 text-xs leading-5 text-slate-500">Generating sends the selected submitted responses to the configured OpenAI API for analysis. The result is an AI-assisted draft and must be verified before use.</p>
     </section>
     {!canGenerate && <p className="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Viewer accounts can read existing summaries but cannot send report data to the AI service.</p>}
     {!content ? <section className="rounded-xl border border-slate-200 bg-white"><EmptyState icon={Bot} title={summary?.status === "failed" ? "Summary generation failed" : "No AI summary yet"} description={summary?.error_message ?? "Select a submitted report and generate a concise evidence-grounded draft."} /></section> : <div className="grid gap-5 lg:grid-cols-2">
