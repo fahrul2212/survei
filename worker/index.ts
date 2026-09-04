@@ -12,14 +12,14 @@ async function api(request: Request, env: Env): Promise<Response> {
     const admin = adminClient(env);
     const path = new URL(request.url).pathname;
 
-    if (path === "/api/ai/summary") return summaryRoute(request, env, admin, caller);
+    if (path === "/api/ai/summary") return await summaryRoute(request, env, admin, caller);
 
     requirePlatformAdmin(caller);
-    if (path === "/api/ai/settings") return settingsRoute(request, env, admin, caller.user);
-    if (path === "/api/ai/settings/test") return testProviderRoute(request, env, admin);
-    if (path === "/api/ai/models") return modelsRoute(request, env, admin);
-    if (path === "/api/ai/usage") return usageRoute(request, admin);
-    if (path === "/api/ai/estimate") return estimateRoute(request, admin);
+    if (path === "/api/ai/settings") return await settingsRoute(request, env, admin, caller.user);
+    if (path === "/api/ai/settings/test") return await testProviderRoute(request, env, admin);
+    if (path === "/api/ai/models") return await modelsRoute(request, env, admin);
+    if (path === "/api/ai/usage") return await usageRoute(request, admin);
+    if (path === "/api/ai/estimate") return await estimateRoute(request, admin);
     return json({ error: "API route not found", code: "not_found", requestId }, 404);
   } catch (error) {
     return errorResponse(error, requestId);
