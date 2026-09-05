@@ -25,6 +25,8 @@ export async function requireCaller(request: Request, env: Env): Promise<Authent
   });
   const { data, error } = await authClient.auth.getUser(token);
   if (error || !data.user) throw new ApiError(401, "Session is no longer valid", "invalid_session");
+  if (data.user.app_metadata?.portal_disabled === true)
+    throw new ApiError(403, "Your portal access has been disabled. Contact an administrator.", "account_disabled");
   return {
     token,
     user: data.user,

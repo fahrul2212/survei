@@ -43,6 +43,7 @@ export function useSurveyBuilder(props: SurveyBuilderProps) {
   const [openingVersion, setOpeningVersion] = useState<number | null>(null);
   const [pendingDelete, setPendingDelete] = useState<SurveyQuestion | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
+  const [cloneFrom, setCloneFrom] = useState("");
   const [pendingLifecycle, setPendingLifecycle] = useState<"publish" | "close" | "reopen" | null>(
     null,
   );
@@ -68,9 +69,15 @@ export function useSurveyBuilder(props: SurveyBuilderProps) {
   const nextKey = () => nextStableKey(questions, selectedVersion);
 
   function beginCreateSurvey() {
+    setCloneFrom("");
     setYearDraft(createYearDraft(versions));
     setNotice(null);
     setView("create-year");
+  }
+  function beginDuplicateSurvey(version: SurveyVersion) {
+    setCloneFrom(String(version.id));
+    setYearDraft({year:String(version.reporting_year),name:`${version.name} (copy)`});
+    setNotice(null);setView("create-year");
   }
 
   function beginAddQuestion() {
@@ -310,6 +317,9 @@ export function useSurveyBuilder(props: SurveyBuilderProps) {
     previous,
     canSaveQuestion: isQuestionFormValid(form),
     beginCreateSurvey,
+    beginDuplicateSurvey,
+    cloneFrom,
+    setCloneFrom,
     beginAddQuestion,
     beginNewPage,
     cancelQuestion,

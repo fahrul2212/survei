@@ -10,6 +10,7 @@ import { AnalysisOutput } from "./AnalysisOutput";
 import { MappingReview } from "./MappingReview";
 
 type Props = {
+  canManageMappings?: boolean;
   mode: "admin" | "company";
   versions: SurveyVersion[];
   organizations?: Organization[];
@@ -17,7 +18,13 @@ type Props = {
 };
 const toggle = (items: number[], id: number) =>
   items.includes(id) ? items.filter((v) => v !== id) : [...items, id];
-export function AnalysisWorkspace({ mode, versions, organizations = [], setNotice }: Props) {
+export function AnalysisWorkspace({
+  mode,
+  versions,
+  organizations = [],
+  setNotice,
+  canManageMappings = mode === "admin",
+}: Props) {
   const availableYears = useMemo(
     () => [...new Set(versions.map((v) => v.reporting_year))].sort((a, b) => b - a),
     [versions],
@@ -210,7 +217,7 @@ export function AnalysisWorkspace({ mode, versions, organizations = [], setNotic
             }
           />
         )}
-        {mode === "admin" && <MappingReview />}
+        {canManageMappings && <MappingReview />}
       </section>
     </PageContainer>
   );

@@ -446,3 +446,8 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/send-report-reminders/deno.json"
 entrypoint = "./functions/send-report-reminders/index.ts"
+
+[functions.invite-internal-user]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/invite-internal-user/index.ts"

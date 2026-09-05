@@ -31,6 +31,7 @@ export async function requireUser(req: Request): Promise<User> {
   });
   const { data, error } = await client.auth.getUser();
   if (error || !data.user) throw new Response("Unauthorized", { status: 401 });
+  if (data.user.app_metadata?.portal_disabled === true) throw new Response("Access disabled", { status: 403 });
   return data.user;
 }
 

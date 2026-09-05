@@ -35,7 +35,7 @@ export function CreateSurveyView({ controller }: { controller: SurveyBuilderCont
           <label className={labelClass}>Closes<input name="closes" type="datetime-local" className={fieldClass} /></label>
         </div>
         <label className={labelClass}>Clone from existing survey
-          <select name="clone" className={fieldClass}>
+          <select name="clone" className={fieldClass} value={controller.cloneFrom} onChange={event=>controller.setCloneFrom(event.target.value)}>
             <option value="">Start empty</option>
             {versions.map((version) => <option key={version.id} value={version.id}>{version.reporting_year} · {version.name}</option>)}
           </select>

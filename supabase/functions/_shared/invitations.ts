@@ -86,11 +86,12 @@ async function enforceInvitationRate(admin: SupabaseClient, callerId: string): P
   if ((count ?? 0) >= 5) throw new InvitationError(429, "Too many invitations. Please wait one minute.");
 }
 
-async function sendWithResend(
+export async function sendWithResend(
   admin: SupabaseClient,
-  input: InvitationInput,
+  input: Pick<InvitationInput, "email" | "fullName">,
   companyName: string,
   expiresAt: string,
+  internalSetup?: (user: User) => Promise<void>,
 ): Promise<{ user: User; method: "resend" }> {
   const apiKey = Deno.env.get("RESEND_API_KEY") ?? "";
   const sender = cleanText(Deno.env.get("INVITATION_FROM_EMAIL") ?? Deno.env.get("REMINDER_FROM_EMAIL"), 320);
@@ -103,8 +104,10 @@ async function sendWithResend(
   if (error || !data.user || !data.properties?.hashed_token) {
     throw new InvitationError(400, error?.message ?? "Unable to create a secure invitation link");
   }
+  if (internalSetup) await internalSetup(data.user);
   const confirmationUrl = new URL(portalUrl());
   confirmationUrl.searchParams.set("invitation_token", data.properties.hashed_token);
+  if (internalSetup) confirmationUrl.searchParams.set("internal_invite", "1");
   const email = await renderEmail(admin, "invitation", {
     full_name: input.fullName,
     company_name: companyName,
@@ -163,7 +166,7 @@ export async function inviteCompanyUser(
   }
 
   const existingUser = await findUserByEmail(admin, input.email);
-  if (existingUser?.app_metadata?.role === "platform_admin") {
+  if (["platform_admin", "platform_analyst"].includes(existingUser?.app_metadata?.role)) {
     throw new InvitationError(409, "A platform administrator account cannot be converted into a company account");
   }
   if (existingUser?.email_confirmed_at) {

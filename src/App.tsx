@@ -16,10 +16,15 @@ const CompanyPortal = lazy(() =>
 const AdminPortal = lazy(() =>
   import("./pages/AdminPortal").then((module) => ({ default: module.AdminPortal })),
 );
+const AnalystPortal = lazy(() =>
+  import("./pages/AnalystPortal").then((module) => ({ default: module.AnalystPortal })),
+);
 
 export default function App() {
   const [session, setSession] = useState<Session | null | undefined>();
-  const [recovery, setRecovery] = useState(false);
+  const [recovery, setRecovery] = useState(
+    () => new URLSearchParams(window.location.search).get("internal_invite") === "1",
+  );
   const [sessionExpired, setSessionExpired] = useState(false);
   const activeSession = useRef(session);
   activeSession.current = session;
@@ -53,7 +58,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!session || session.user.app_metadata?.role === "platform_admin") {
+    if (
+      !session ||
+      ["platform_admin", "platform_analyst"].includes(session.user.app_metadata?.role)
+    ) {
       setInvitation(null);
       return;
     }
@@ -147,6 +155,21 @@ export default function App() {
 
   if (!session) return <Login />;
 
+  if (session.user.app_metadata?.portal_disabled === true)
+    return (
+      <main className="grid min-h-[100dvh] place-items-center bg-slate-50 p-5">
+        <section className="max-w-lg rounded-xl border border-slate-200 bg-white p-7">
+          <Logo />
+          <h1 className="mt-6 text-2xl font-bold">Portal access disabled</h1>
+          <p className="my-5 text-sm leading-6 text-slate-600">
+            Contact your administrator to restore access. Existing reports and audit records are
+            retained.
+          </p>
+          <Button onClick={() => void client.auth.signOut()}>Sign out</Button>
+        </section>
+      </main>
+    );
+
   if (invitation === undefined) return <Loading />;
 
   if (invitation) {
@@ -180,7 +203,12 @@ export default function App() {
               if (p !== confirmation) return setRecoveryError("Passwords do not match.");
               const r = await supabase!.auth.updateUser({ password: p });
               if (r.error) setRecoveryError(r.error.message);
-              else setRecovery(false);
+              else {
+                const url = new URL(window.location.href);
+                url.searchParams.delete("internal_invite");
+                window.history.replaceState({}, "", url);
+                setRecovery(false);
+              }
             }}
           >
             <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -228,6 +256,8 @@ export default function App() {
       )}
       {session.user.app_metadata?.role === "platform_admin" ? (
         <AdminPortal key={session.user.id} session={session} />
+      ) : session.user.app_metadata?.role === "platform_analyst" ? (
+        <AnalystPortal key={session.user.id} session={session} />
       ) : (
         <CompanyPortal key={session.user.id} session={session} />
       )}

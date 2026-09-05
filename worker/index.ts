@@ -1,4 +1,5 @@
 import { estimateRoute } from "./routes/estimate";
+import { accountsRoute, internalCatalog } from "./routes/accounts";
 import { modelsRoute, settingsRoute, testProviderRoute } from "./routes/settings";
 import { summaryRoute } from "./routes/summary";
 import { usageRoute } from "./routes/usage";
@@ -15,6 +16,8 @@ async function api(request: Request, env: Env): Promise<Response> {
     const caller = await requireCaller(request, env);
     const admin = adminClient(env);
     const path = new URL(request.url).pathname;
+    if (path === "/api/admin/accounts") return await accountsRoute(request, admin, caller);
+    if (path === "/api/internal/catalog") return await internalCatalog(request, admin, caller);
     if (path === "/api/v2/analysis/mappings") return await mappingRoute(request, admin, caller);
     if (/^\/api\/v2\/analysis\/[0-9a-f-]+\/narrative$/.test(path))
       return await narrativeRoute(request, env, admin, caller);

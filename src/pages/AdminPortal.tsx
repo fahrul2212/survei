@@ -65,6 +65,8 @@ import { SurveyAiExplorer } from "../features/ai-control/SurveyAiExplorer";
 import { SurveyDataImport } from "../features/imports/SurveyDataImport";
 import { monitoringSurvey, rememberRoute, routeValue } from "../features/reporting/survey-state";
 import { usePortalView } from "../features/reporting/usePortalView";
+import { AccountManagement } from "../features/accounts/AccountManagement";
+import { AccountSettings } from "./AccountSettings";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -174,6 +176,8 @@ export function AdminPortal({ session }: { session: Session }) {
     "operations",
     "ai",
     "audit",
+    "accounts",
+    "account",
   ]);
 
   // Core data
@@ -430,7 +434,8 @@ export function AdminPortal({ session }: { session: Session }) {
 
   const navItems: Array<[string, string, string?]> = [
     ["dashboard", "Progress"],
-    ["surveys", "Survey builder"],
+    ["surveys", "Surveys"],
+    ["accounts", "Accounts"],
     ["companies", "Companies"],
     ["data", "Import & export"],
     ["analytics", "Analytics"],
@@ -438,6 +443,7 @@ export function AdminPortal({ session }: { session: Session }) {
     ["operations", "Reminders & summaries"],
     ["ai", "AI control centre"],
     ["audit", "Audit log"],
+    ["account", "My account"],
   ];
 
   return (
@@ -852,6 +858,12 @@ export function AdminPortal({ session }: { session: Session }) {
 
       {/* ══════════════════════════ AUDIT LOG ════════════════════════════════ */}
       {view === "audit" && <AuditLogView orgs={orgs} />}
+      {view === "accounts" && <AccountManagement actorId={session.user.id} />}
+      {view === "account" && (
+        <PageContainer>
+          <AccountSettings session={session} />
+        </PageContainer>
+      )}
     </Shell>
   );
 }
