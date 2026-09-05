@@ -18,7 +18,8 @@ export async function gateway<T>(
 ): Promise<T> {
   const { data, error } = await admin.rpc(name, args);
   if (error) {
-    const status = error.code === "42501" ? 403 : error.code === "40001" ? 409 : 422;
+    const status =
+      error.code === "42501" ? 403 : ["40001", "PT409"].includes(error.code) ? 409 : 422;
     const allowed = [
       "Scope exceeds 50000 observations",
       "Scope exceeds source byte limit",

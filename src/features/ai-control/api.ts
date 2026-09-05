@@ -1,35 +1,13 @@
-import { supabase } from "../../lib/supabase";
-import { portalFetch, requestSessionRecovery } from "../../lib/session-recovery";
-import type { AiModelsResponse, AiSettingsResponse, AiSettingsUpdate, AiUsageResponse, SurveyAiResult, ComparisonChart } from "./types";
-
-type ApiErrorBody = { error?: string };
-
-async function token(): Promise<string> {
-  if (!supabase) throw new Error("Supabase is not configured");
-  const { data, error } = await supabase.auth.getSession();
-  if (error || !data.session?.access_token) { requestSessionRecovery(); throw new Error("Your session has expired. Please sign in again."); }
-  return data.session.access_token;
-}
-
-export async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const accessToken = await token();
-  const response = await portalFetch(path, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      ...(init?.body ? { "Content-Type": "application/json" } : {}),
-      ...init?.headers,
-    },
-  });
-  const body: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    const message = body && typeof body === "object" && "error" in body
-      ? (body as ApiErrorBody).error
-      : null;
-    throw new Error(message || "The AI service could not complete this request.");
-  }
-  return body as T;
-}
+import { api } from "../../lib/api-client";
+export { api } from "../../lib/api-client";
+import type {
+  AiModelsResponse,
+  AiSettingsResponse,
+  AiSettingsUpdate,
+  AiUsageResponse,
+  SurveyAiResult,
+  ComparisonChart,
+} from "./types";
 
 export function getAiSettings(): Promise<AiSettingsResponse> {
   return api("/api/ai/settings");
@@ -54,7 +32,11 @@ export function getAiUsage(): Promise<AiUsageResponse> {
   return api("/api/ai/usage");
 }
 
-export function estimateAiCost(inputTokens: number, outputTokens: number, model: string): Promise<{
+export function estimateAiCost(
+  inputTokens: number,
+  outputTokens: number,
+  model: string,
+): Promise<{
   estimatedCostUsd: number | null;
   pricingConfigured: boolean;
 }> {
@@ -78,6 +60,13 @@ export function exploreSurveyData(input: {
   return api("/api/ai/explore", { method: "POST", body: JSON.stringify(input) });
 }
 
-export function compareSurveyData(input: { years?: number[]; organizationIds?: number[]; questionKeys?: string[] }) {
-  return api<{ charts: ComparisonChart[]; threshold: number }>("/api/analysis", { method: "POST", body: JSON.stringify(input) });
+export function compareSurveyData(input: {
+  years?: number[];
+  organizationIds?: number[];
+  questionKeys?: string[];
+}) {
+  return api<{ charts: ComparisonChart[]; threshold: number }>("/api/analysis", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }

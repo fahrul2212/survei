@@ -28,12 +28,14 @@ export default function App() {
   const [sessionExpired, setSessionExpired] = useState(false);
   const activeSession = useRef(session);
   activeSession.current = session;
+  const [recoveryBusy, setRecoveryBusy] = useState(false);
   const [recoveryError, setRecoveryError] = useState("");
   const [invitation, setInvitation] = useState<UserInvitation | null | undefined>();
   const [inviteToken] = useState(() => {
     const value = new URLSearchParams(window.location.search).get("invitation_token") ?? "";
     return /^[A-Za-z0-9_-]{20,500}$/.test(value) ? value : "";
   });
+  const [inviteAccepted, setInviteAccepted] = useState(false);
   const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteError, setInviteError] = useState("");
 
@@ -65,10 +67,18 @@ export default function App() {
       setInvitation(null);
       return;
     }
+    let active = true;
     setInvitation(undefined);
     void loadPendingInvitation(session.user.id)
-      .then(setInvitation)
-      .catch(() => setInvitation(null));
+      .then((value) => {
+        if (active) setInvitation(value);
+      })
+      .catch(() => {
+        if (active) setInvitation(null);
+      });
+    return () => {
+      active = false;
+    };
   }, [session?.user.id, session?.user.app_metadata?.role]);
 
   if (!supabase) {
@@ -89,13 +99,13 @@ export default function App() {
 
   if (session === undefined) return <Loading />;
 
-  if (!session && inviteToken) {
+  if (inviteToken && !inviteAccepted) {
     return (
       <main className="grid min-h-[100dvh] place-items-center bg-slate-50 p-5">
         <section className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 md:p-8">
           <Logo />
           <p className="mt-8 text-[11px] font-bold uppercase tracking-wider text-[#d91f17]">
-            Company invitation
+            Portal invitation
           </p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
             Confirm your invitation
@@ -103,6 +113,7 @@ export default function App() {
           <p className="mt-3 text-sm leading-6 text-slate-600">
             Continue only if you expected an invitation to the STICA reporting portal. Your one-time
             credential is not used until you confirm.
+            {session && " Accepting will switch this browser to the invited account."}
           </p>
           {inviteError && (
             <p className="mt-5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
@@ -132,7 +143,10 @@ export default function App() {
                   });
                   if (verified.error || !verified.data.session)
                     throw verified.error ?? new Error("Invitation could not be verified");
-                  window.history.replaceState({}, "", "/");
+                  const destination = new URL(window.location.href);
+                  destination.searchParams.delete("invitation_token");
+                  window.history.replaceState({}, "", destination);
+                  setInviteAccepted(true);
                   setSession(verified.data.session);
                 } catch (error) {
                   setInviteError(
@@ -201,13 +215,24 @@ export default function App() {
               if (p.length < 12 || !/[A-Za-z]/.test(p) || !/\d/.test(p))
                 return setRecoveryError("Use at least 12 characters with letters and a number.");
               if (p !== confirmation) return setRecoveryError("Passwords do not match.");
-              const r = await supabase!.auth.updateUser({ password: p });
-              if (r.error) setRecoveryError(r.error.message);
-              else {
+              if (recoveryBusy) return;
+              setRecoveryBusy(true);
+              try {
+                const r = await supabase!.auth.updateUser({ password: p });
+                if (r.error) throw r.error;
+
                 const url = new URL(window.location.href);
                 url.searchParams.delete("internal_invite");
                 window.history.replaceState({}, "", url);
                 setRecovery(false);
+              } catch (error) {
+                setRecoveryError(
+                  error instanceof Error
+                    ? error.message
+                    : "Unable to update password. Please try again.",
+                );
+              } finally {
+                setRecoveryBusy(false);
               }
             }}
           >
@@ -238,7 +263,9 @@ export default function App() {
                 {recoveryError}
               </p>
             )}
-            <Button className="mt-2 h-12 text-[15px]">Save password</Button>
+            <Button type="submit" disabled={recoveryBusy} className="mt-2 h-12 text-[15px]">
+              {recoveryBusy ? "Saving�" : "Save password"}
+            </Button>
           </form>
         </section>
       </main>

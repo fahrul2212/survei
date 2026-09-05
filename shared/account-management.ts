@@ -5,6 +5,7 @@ export const internalRoles = {
 export type InternalRole = keyof typeof internalRoles;
 export type ManagedAccount = {
   id: string;
+  revision: string;
   email: string;
   name: string;
   role: string;

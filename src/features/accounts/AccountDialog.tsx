@@ -2,12 +2,12 @@ import { useState, type FormEvent } from "react";
 import { Dialog } from "../../components/common/Dialog";
 import { Button } from "../../components/ui";
 import { internalRoles, type ManagedAccount } from "../../../shared/account-management";
-import { api } from "../ai-control/api";
+import { api, PortalApiError } from "../../lib/api-client";
 
 const field =
   "mt-2 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-normal";
 export function AccountDialog({
-  account,
+  account: initialAccount,
   actorId,
   close,
   saved,
@@ -17,6 +17,9 @@ export function AccountDialog({
   close: () => void;
   saved: () => void;
 }) {
+  const [account, setAccount] = useState(initialAccount);
+  const [revision, setRevision] = useState(account?.revision);
+  const [conflict, setConflict] = useState(false);
   const [name, setName] = useState(account?.name ?? "");
   const [email, setEmail] = useState(account?.email ?? "");
   const [role, setRole] = useState(
@@ -57,6 +60,7 @@ export function AccountDialog({
         body: JSON.stringify({
           operation: account ? "update" : "invite",
           id: account?.id,
+          expectedRevision: revision,
           name,
           email,
           role,
@@ -65,7 +69,28 @@ export function AccountDialog({
       });
       saved();
     } catch (e) {
+      setConflict(e instanceof PortalApiError && e.code === "account_conflict");
       setError(e instanceof Error ? e.message : "Unable to save account");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function reloadDetails() {
+    if (!account || busy) return;
+    setBusy(true);
+    try {
+      const result = await api<{ users: ManagedAccount[] }>(`/api/admin/accounts?id=${account.id}`);
+      const latest = result.users[0];
+      if (!latest) throw new Error("This account is no longer available.");
+      setAccount(latest);
+      setName(latest.name);
+      setDisabled(latest.disabled);
+      setRole(Object.hasOwn(internalRoles, latest.role) ? latest.role : "company");
+      setRevision(latest.revision);
+      setConflict(false);
+      setError("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to reload account");
     } finally {
       setBusy(false);
     }
@@ -175,11 +200,16 @@ export function AccountDialog({
             {error}
           </p>
         )}
+        {conflict && (
+          <Button variant="secondary" disabled={busy} onClick={() => void reloadDetails()}>
+            Reload latest details (discard these edits)
+          </Button>
+        )}
         <footer className="flex justify-end gap-3">
           <Button variant="secondary" onClick={close} disabled={busy}>
             Cancel
           </Button>
-          <Button type="submit" disabled={busy}>
+          <Button type="submit" disabled={busy || conflict}>
             {busy ? "Saving…" : account ? "Save account" : "Send invitation"}
           </Button>
         </footer>

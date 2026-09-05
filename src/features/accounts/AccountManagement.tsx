@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { MailPlus, Users } from "lucide-react";
 import { Button, EmptyState, PageContainer, PageHeader } from "../../components/ui";
 import { internalRoles, type ManagedAccount } from "../../../shared/account-management";
-import { api } from "../ai-control/api";
+import { api } from "../../lib/api-client";
 import { AccountDialog } from "./AccountDialog";
 
 export function AccountManagement({ actorId }: { actorId: string }) {

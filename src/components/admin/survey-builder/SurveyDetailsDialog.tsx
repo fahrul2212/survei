@@ -35,10 +35,13 @@ export function SurveyDetailsDialog({
   const [opens, setOpens] = useState(""),
     [closes, setCloses] = useState(""),
     [confirmName, setConfirmName] = useState("");
+  const [conflict, setConflict] = useState(false);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let active = true;
     setError("");
+    setInspection(null);
+    setConflict(false);
     void supabase!
       .rpc("manage_survey", { target_id: version.id, operation: "inspect" })
       .then(({ data, error }) => {
@@ -84,6 +87,7 @@ export function SurveyDetailsDialog({
       if (error) throw error;
       await saved(remove);
     } catch (e) {
+      setConflict(!!e && typeof e === "object" && "code" in e && e.code === "PT409");
       setError(
         e && typeof e === "object" && "message" in e
           ? String(e.message)
@@ -188,6 +192,11 @@ export function SurveyDetailsDialog({
               {error}
             </p>
           )}
+          {conflict && (
+            <Button variant="secondary" disabled={busy} onClick={() => setAttempt((v) => v + 1)}>
+              Reload latest details (discard these edits)
+            </Button>
+          )}
           <footer className="flex justify-end gap-3">
             <Button variant="secondary" onClick={close} disabled={busy}>
               Cancel
@@ -196,6 +205,7 @@ export function SurveyDetailsDialog({
               type="submit"
               disabled={
                 busy ||
+                conflict ||
                 (remove && (!inspection.canDelete || confirmName !== inspection.survey.name))
               }
             >

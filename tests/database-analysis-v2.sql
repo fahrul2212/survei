@@ -27,7 +27,7 @@ begin
   if not denied then raise exception 'Cross-user run visible'; end if;
   perform public.analysis_v2_run(a,'complete',(run->>'id')::uuid,'{"schemaVersion":2,"facts":[],"evidence":[]}');
   perform public.analysis_v2_narrative(a,'start',(run->>'id')::uuid,'{"model":"fixture","inputTokens":100,"outputTokens":100,"estimatedCost":1}');
-  denied:=false; begin perform public.analysis_v2_narrative(a,'start',(run->>'id')::uuid,'{"model":"fixture","inputTokens":100,"outputTokens":100,"estimatedCost":1}'); exception when serialization_failure then denied:=true; end;
+  denied:=false; begin perform public.analysis_v2_narrative(a,'start',(run->>'id')::uuid,'{"model":"fixture","inputTokens":100,"outputTokens":100,"estimatedCost":1}'); exception when serialization_failure or sqlstate 'PT409' then denied:=true; end;
   if not denied then raise exception 'Duplicate provider reservation accepted'; end if;
   perform public.analysis_v2_narrative(a,'finish',(run->>'id')::uuid,'{"state":"outcome_unknown"}');
   if (select sum(coalesce(actual_cost_usd,estimated_cost_usd)) from ai_usage_events)<>1 then raise exception 'Unknown provider cost was released'; end if;

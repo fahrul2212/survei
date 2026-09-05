@@ -56,6 +56,7 @@ test("account update uses authenticated actor and rejects client-provided escala
     req({
       ...body,
       operation: "update",
+      expectedRevision: "a".repeat(32),
       id: target,
       disabled: false,
       actor: target,
@@ -103,4 +104,30 @@ test("directory pagination and internal catalog deny invalid requests", async ()
     ),
     (e) => e.status === 403,
   );
+});
+
+test("stale or missing account revisions are rejected before writing", async () => {
+  let calls = 0;
+  const db = {
+    rpc: async () => {
+      calls++;
+      return { data: null, error: { code: "PT409", message: "Account changed" } };
+    },
+  };
+  const update = {
+    ...body,
+    disabled: false,
+    operation: "update",
+    id: "10000000-0000-4000-8000-000000000002",
+  };
+  await assert.rejects(
+    accountsRoute(req(update), db, admin),
+    (e) => e.status === 409 && e.code === "account_conflict",
+  );
+  assert.equal(calls, 0);
+  await assert.rejects(
+    accountsRoute(req({ ...update, expectedRevision: "a".repeat(32) }), db, admin),
+    (e) => e.status === 409 && e.code === "account_conflict",
+  );
+  assert.equal(calls, 1);
 });

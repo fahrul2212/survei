@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ComparisonRequest, scopeFingerprint } from "./comparison-request";
 import { Search } from "lucide-react";
 import type { Organization, SurveyVersion } from "../../../lib/portal";
 import { Button, EmptyState, PageContainer, PageHeader, type Notice } from "../../../components/ui";
@@ -47,6 +48,7 @@ export function AnalysisWorkspace({
   const [run, setRun] = useState<AnalysisRun | null>(null),
     [busy, setBusy] = useState(false),
     [completedScope, setCompletedScope] = useState("");
+  const [comparison] = useState(() => new ComparisonRequest(createAnalysis));
   const scope: AnalysisRequest = {
     years,
     surveyVersionIds: [],
@@ -56,12 +58,14 @@ export function AnalysisWorkspace({
     datasetMode: dataset,
     cohortMode: cohort,
   };
-  const scopeKey = JSON.stringify(scope),
+  const scopeKey = scopeFingerprint(scope),
     stale = !!run && completedScope !== scopeKey;
   async function compare() {
+    if (busy) return;
+    setNotice(null);
     setBusy(true);
     try {
-      const result = await createAnalysis(scope, crypto.randomUUID());
+      const result = await comparison.execute(scope);
       setRun(result);
       setCompletedScope(scopeKey);
     } catch (e) {

@@ -29,7 +29,15 @@ export class SaveQueue<T> {
   discard(id: number) {
     this.pending.delete(id);
     this.failed.delete(id);
-    this.changed(this.unsaved ? "pending" : "saved");
+    this.changed(
+      this.failed.size
+        ? "failed"
+        : this.running
+          ? "saving"
+          : this.pending.size
+            ? "pending"
+            : "saved",
+    );
   }
 
   async flush(): Promise<boolean> {

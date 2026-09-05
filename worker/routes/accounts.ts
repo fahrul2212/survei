@@ -24,7 +24,7 @@ export async function accountsRoute(
       throw new ApiError(
         error.code === "42501" ? 403 : 409,
         error.message,
-        "account_operation_failed",
+        error.code === "PT409" ? "account_conflict" : "account_operation_failed",
       );
     return data as T;
   };
@@ -33,7 +33,13 @@ export async function accountsRoute(
     const page = Number(params.get("page") ?? 0);
     if (!Number.isInteger(page) || page < 0 || page > 10000)
       throw new ApiError(400, "Invalid account page");
-    return json(await call("list", { search: params.get("search") ?? "", page }));
+    return json(
+      await call(
+        "list",
+        { search: params.get("search") ?? "", page },
+        params.has("id") ? uuid(params.get("id")) : null,
+      ),
+    );
   }
   const body = await readJsonObject(request, 4000);
   if (body.operation === "resend") {
@@ -56,7 +62,13 @@ export async function accountsRoute(
   } catch {
     throw new ApiError(400, "Provide a valid name, role and account details.");
   }
-  if (!invite) return json(await call("update", input, uuid(body.id)));
+  if (!invite) {
+    if (typeof body.expectedRevision !== "string" || !/^[a-f0-9]{32}$/.test(body.expectedRevision))
+      throw new ApiError(409, "Reload account details before saving.", "account_conflict");
+    return json(
+      await call("update", { ...input, expectedRevision: body.expectedRevision }, uuid(body.id)),
+    );
+  }
   const exists = await call<{ exists: boolean }>("lookup", { email: input.email });
   if (exists.exists)
     throw new ApiError(

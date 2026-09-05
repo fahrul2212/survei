@@ -89,7 +89,7 @@ Deno.serve(async (request) => {
         }
         const result = await admin.rpc("manage_portal_accounts", {
           actor: caller.id,
-          operation: "update",
+          operation: "initialize",
           target: user.id,
           input,
         });

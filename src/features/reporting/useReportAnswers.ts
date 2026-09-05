@@ -42,7 +42,7 @@ export function useReportAnswers(props: Props) {
       confirm_review: confirmReview,
     });
     if (result.error) {
-      if (result.error.code === "40001") {
+      if (["40001", "PT409"].includes(result.error.code)) {
         const latest = await supabase
           .from("answers")
           .select("value,edit_version,provenance,reviewed_at")

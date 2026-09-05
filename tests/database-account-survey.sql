@@ -7,8 +7,8 @@ begin
  assert (result->>'total')::integer=3,'Directory count';
  assert not (result->'users'->0 ? 'raw_app_meta_data'),'No metadata disclosure';
  begin perform public.manage_portal_accounts(c,'list'); raise exception 'Company directory access allowed'; exception when insufficient_privilege then null;end;
- begin perform public.manage_portal_accounts(a,'update',a,'{"name":"Self","role":"platform_analyst","disabled":false}'); raise exception 'Self demotion allowed'; exception when insufficient_privilege then null;end;
- perform public.manage_portal_accounts(a,'update',b,'{"name":"Analyst","role":"platform_analyst","disabled":false}');
+ begin perform public.manage_portal_accounts(a,'update',a,'{"name":"Self","role":"platform_analyst","disabled":false}'::jsonb||jsonb_build_object('expectedRevision',app_private.account_revision(a))); raise exception 'Self demotion allowed'; exception when insufficient_privilege then null;end;
+ perform public.manage_portal_accounts(a,'update',b,'{"name":"Analyst","role":"platform_analyst","disabled":false}'::jsonb||jsonb_build_object('expectedRevision',app_private.account_revision(b)));
  result:=app_private.analysis_actor(b); assert result->>'organizationId' is null and result->>'admin'='false','Analyst scope';
  begin perform public.manage_portal_accounts(b,'list'); raise exception 'Analyst management allowed';exception when insufficient_privilege then null;end;
  perform set_config('request.jwt.claims',jsonb_build_object('role','authenticated','sub',b,'app_metadata',jsonb_build_object('role','platform_admin'))::text,true);
@@ -16,9 +16,9 @@ begin
  assert app_private.is_platform_analyst(),'Analyst permission absent';
  begin perform public.manage_survey(26,'inspect');raise exception 'Analyst survey mutation allowed';exception when insufficient_privilege then null;end;
  perform set_config('request.jwt.claims',jsonb_build_object('role','service_role','sub',a)::text,true);
- perform public.manage_portal_accounts(a,'update',b,'{"name":"Analyst","role":"platform_analyst","disabled":true}');
+ perform public.manage_portal_accounts(a,'update',b,'{"name":"Analyst","role":"platform_analyst","disabled":true}'::jsonb||jsonb_build_object('expectedRevision',app_private.account_revision(b)));
  begin perform app_private.analysis_actor(b);raise exception 'Disabled analyst access allowed';exception when insufficient_privilege then null;end;
- perform public.manage_portal_accounts(a,'update',c,'{"name":"Company","role":"company","disabled":true}');
+ perform public.manage_portal_accounts(a,'update',c,'{"name":"Company","role":"company","disabled":true}'::jsonb||jsonb_build_object('expectedRevision',app_private.account_revision(c)));
  perform set_config('request.jwt.claims',jsonb_build_object('role','authenticated','sub',c)::text,true);
  assert not app_private.is_organization_member(1),'Disabled membership retained access';
  perform set_config('request.jwt.claims',jsonb_build_object('role','authenticated','sub',a)::text,true);
