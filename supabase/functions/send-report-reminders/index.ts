@@ -1,16 +1,11 @@
-import { adminClient, json, preflight } from "../_shared/supabase.ts";
+import { adminClient, json, preflight, requireUser } from "../_shared/supabase.ts";
+import { renderEmail } from "../_shared/email-templates.ts";
 
 function safeEqual(left: string, right: string): boolean {
   if (left.length !== right.length) return false;
   let difference = 0;
   for (let index = 0; index < left.length; index += 1) difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
   return difference === 0;
-}
-
-function escapeHtml(value: unknown): string {
-  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;",
-  })[character] ?? character);
 }
 
 async function loadEmailDirectory(admin: ReturnType<typeof adminClient>): Promise<Map<string, string>> {
@@ -31,7 +26,19 @@ Deno.serve(async (req) => {
     const cronSecret = Deno.env.get("REMINDER_CRON_SECRET") ?? "";
     const resendKey = Deno.env.get("RESEND_API_KEY") ?? "";
     const suppliedSecret = req.headers.get("x-cron-secret") ?? "";
-    if (!cronSecret || !safeEqual(cronSecret, suppliedSecret)) return json({ error: "Unauthorized" }, 401);
+    const cronAuthorized = Boolean(cronSecret && suppliedSecret && safeEqual(cronSecret, suppliedSecret));
+    let action = "scheduled";
+    try {
+      const payload = await req.json() as { action?: string };
+      action = payload.action ?? action;
+    } catch { /* cron calls may have no body */ }
+    let caller: Awaited<ReturnType<typeof requireUser>> | null = null;
+    if (!cronAuthorized) {
+      try { caller = await requireUser(req); }
+      catch (response) { return response instanceof Response ? response : json({ error: "Unauthorized" }, 401); }
+      if (caller.app_metadata?.role !== "platform_admin") return json({ error: "Administrator access required" }, 403);
+      if (!new Set(["test", "run"]).has(action)) return json({ error: "Unauthorized" }, 401);
+    }
     if (!resendKey) return json({ error: "RESEND_API_KEY is not configured" }, 503);
 
     const sender = Deno.env.get("REMINDER_FROM_EMAIL") ?? "";
@@ -41,6 +48,28 @@ Deno.serve(async (req) => {
       if (new URL(portalUrl).protocol !== "https:") throw new Error("not https");
     } catch {
       return json({ error: "PORTAL_URL must be a valid HTTPS URL" }, 503);
+    }
+    if (action === "test") {
+      if (!caller?.email) return json({ error: "The administrator account has no email address" }, 400);
+      const sample = await renderEmail(admin, "reminder", {
+        company_name: "Sample Textile Company",
+        days_remaining: "7",
+        survey_name: "STICA Climate Transition Plan",
+        status: "in progress",
+        portal_url: portalUrl,
+      }, { value: portalUrl, label: "Open the STICA reporting portal" });
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ from: sender, to: [caller.email], subject: `[TEST] ${sample.subject}`, html: sample.html, text: sample.text }),
+      });
+      const responseBody = await response.json() as { id?: string; message?: string };
+      if (!response.ok) return json({ error: responseBody.message ?? "Email provider error" }, 502);
+      await admin.from("audit_events").insert({
+        actor_user_id: caller.id, event_type: "reminder.test_sent", entity_type: "email_template",
+        entity_id: "reminder", details: { provider: "resend" },
+      });
+      return json({ sent: 1, recipient: caller.email.replace(/^(.{2}).*(@.*)$/, "$1•••$2") });
     }
     const today = new Date();
     const todayKey = today.toISOString().slice(0, 10);
@@ -93,12 +122,18 @@ Deno.serve(async (req) => {
           }
           if (deliveryError || !delivery) { failed += 1; continue; }
 
+          const message = await renderEmail(admin, "reminder", {
+            company_name: String(organization.name),
+            days_remaining: String(daysRemaining),
+            survey_name: String(survey.name),
+            status: String(status).replaceAll("_", " "),
+            portal_url: portalUrl,
+          }, { value: portalUrl, label: "Open the STICA reporting portal" });
           const response = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({
-              from: sender, to: [email], subject: `STICA report reminder: ${daysRemaining} day${daysRemaining === 1 ? "" : "s"} remaining`,
-              html: `<p>Hello,</p><p><strong>${escapeHtml(organization.name)}</strong> has ${daysRemaining} day${daysRemaining === 1 ? "" : "s"} remaining to complete <strong>${escapeHtml(survey.name)}</strong>.</p><p>Current status: ${escapeHtml(status.replaceAll("_", " "))}.</p><p><a href="${escapeHtml(portalUrl)}">Open the STICA reporting portal</a></p>`,
+              from: sender, to: [email], subject: message.subject, html: message.html, text: message.text,
             }),
           });
           const body = await response.json() as { id?: string; message?: string };

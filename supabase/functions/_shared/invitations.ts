@@ -1,4 +1,5 @@
 import type { SupabaseClient, User } from "npm:@supabase/supabase-js@2.112.4";
+import { renderEmail } from "./email-templates.ts";
 
 export type CompanyRole = "viewer" | "member" | "company_admin";
 
@@ -77,11 +78,6 @@ function expiryTime(): string {
   return new Date(Date.now() + minutes * 60_000).toISOString();
 }
 
-function html(value: string): string {
-  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
-}
-
 async function enforceInvitationRate(admin: SupabaseClient, callerId: string): Promise<void> {
   const since = new Date(Date.now() - 60_000).toISOString();
   const { count, error } = await admin.from("user_invitations").select("id", { count: "exact", head: true })
@@ -93,6 +89,8 @@ async function enforceInvitationRate(admin: SupabaseClient, callerId: string): P
 async function sendWithResend(
   admin: SupabaseClient,
   input: InvitationInput,
+  companyName: string,
+  expiresAt: string,
 ): Promise<{ user: User; method: "resend" }> {
   const apiKey = Deno.env.get("RESEND_API_KEY") ?? "";
   const sender = cleanText(Deno.env.get("INVITATION_FROM_EMAIL") ?? Deno.env.get("REMINDER_FROM_EMAIL"), 320);
@@ -107,14 +105,21 @@ async function sendWithResend(
   }
   const confirmationUrl = new URL(portalUrl());
   confirmationUrl.searchParams.set("invitation_token", data.properties.hashed_token);
+  const email = await renderEmail(admin, "invitation", {
+    full_name: input.fullName,
+    company_name: companyName,
+    action_url: confirmationUrl.toString(),
+    expires_at: new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(expiresAt)) + " UTC",
+  }, { value: confirmationUrl.toString(), label: "Review and accept your invitation" });
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       from: sender,
       to: [input.email],
-      subject: "Your STICA reporting portal invitation",
-      html: `<p>Hello ${html(input.fullName)},</p><p>You have been invited to the STICA reporting portal.</p><p><a href="${html(confirmationUrl.toString())}">Review and accept your invitation</a></p><p>This one-time link expires shortly. The portal will ask you to confirm before the credential is used. If you did not expect this invitation, ignore this email.</p>`,
+      subject: email.subject,
+      html: email.html,
+      text: email.text,
     }),
   });
   if (!response.ok) throw new InvitationError(502, "The invitation email provider rejected the message");
@@ -139,7 +144,7 @@ export async function inviteCompanyUser(
   existingInvitationId?: string,
 ): Promise<{ invited: boolean; linked: boolean; invitationId: string | null; user: User }> {
   await enforceInvitationRate(admin, caller.id);
-  const organization = await admin.from("organizations").select("id,is_active").eq("id", input.organizationId).maybeSingle();
+  const organization = await admin.from("organizations").select("id,is_active,name").eq("id", input.organizationId).maybeSingle();
   if (organization.error) throw new InvitationError(400, organization.error.message);
   if (!organization.data?.is_active) throw new InvitationError(404, "Active company not found");
   await admin.from("user_invitations").update({ status: "expired" })
@@ -191,11 +196,11 @@ export async function inviteCompanyUser(
     return { invited: false, linked: true, invitationId: acceptedInvitationId, user: existingUser };
   }
 
+  const expiresAt = expiryTime();
   let sent: { user: User; method: "resend" | "supabase_auth" };
-  if (Deno.env.get("RESEND_API_KEY")) sent = await sendWithResend(admin, input);
+  if (Deno.env.get("RESEND_API_KEY")) sent = await sendWithResend(admin, input, String(organization.data.name), expiresAt);
   else sent = await sendWithSupabase(admin, input);
 
-  const expiresAt = expiryTime();
   let invitationId = existingInvitationId;
   if (existingInvitationId) {
     const current = await admin.from("user_invitations").select("sent_count").eq("id", existingInvitationId).single();

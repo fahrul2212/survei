@@ -13,7 +13,7 @@ Goal: make the annual reporting cycle easy to complete, easy to administer, and 
 - Conditional questions and sections for simple dependencies such as reseller status or Yes/No follow-ups.
 - Company save-and-continue workflow with visible save state, review of prefilled answers, submission lock, administrator submission reopen, and close/reopen controls for whole surveys.
 - Previous-year report history for each company.
-- Historical Excel/CSV import and flat or pivot Excel export.
+- [Implemented] Historical Excel/CSV import, direct SurveyMonkey detailed XLSX import with preview, and flat or pivot Excel export.
 - Admin progress summary, company status filters, lightweight analytics, and audit trail.
 
 ## Phase 2 - Operational hardening
@@ -23,15 +23,15 @@ Goal: reduce administrative effort and make production support predictable.
 - Add automated browser smoke coverage for company and administrator roles at 1600x900, 1024x768, and 390x844.
 - Add validation summaries that link directly to unanswered or invalid questions.
 - Add a review screen grouped by section before final submission.
-- Add invitation resend, expiry handling, and clearer onboarding states.
+- [Implemented] Add invitation resend, revoke, expiry handling, single-use onboarding links, and clearer onboarding states.
 - Add PDF export generated from immutable submitted snapshots.
-- Add observability for failed imports, failed saves, invitation delivery, and submission errors.
+- Add observability dashboards for failed imports, failed saves, invitation delivery, and submission errors (events are already recorded in the audit log).
 
 ## Phase 3 - Reporting operations and collaboration
 
 Goal: support larger cohorts and more realistic company teams without changing the reporting model.
 
-- [Implemented] Configurable, idempotent deadline reminders for companies that have not started or are still in progress.
+- [Implemented] Configurable, idempotent deadline reminders, editable plain-text templates, administrator test delivery, and manual run controls.
 - [Implemented] Multiple users per company with viewer, contributor, and company-admin roles.
 - Comments or clarification requests attached to a report or question.
 - Reopen workflow with reason, due date, and resolution status.
@@ -45,7 +45,7 @@ Goal: turn validated submissions into useful, reviewable programme insight.
 - Company progress over several reporting years.
 - [Implemented] Administrator company completion comparison by survey.
 - Completion and response-quality trends.
-- [Implemented] Anonymised company completion benchmarking with a five-company suppression threshold.
+- [Implemented] Anonymised completion and question-level numeric/choice benchmarking with a configurable minimum-cohort suppression threshold.
 - Executive summary view for administrators: what changed, where follow-up is needed, and which themes are recurring.
 - [Implemented] AI-assisted structured summaries generated through a protected Cloudflare Worker from submitted snapshots only, with source question IDs and model/prompt versioning.
 - [Implemented] Administrator AI control centre with encrypted provider credential storage, editable model pricing, platform/company budgets, rate limiting, usage history, cost projection, and connection testing.

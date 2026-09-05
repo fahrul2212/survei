@@ -14,6 +14,8 @@ supabase secrets set REMINDER_CRON_SECRET=... PORTAL_URL=https://your-portal.exa
 
 Use a verified sending domain for `REMINDER_FROM_EMAIL`. The browser never receives the Resend or cron secrets.
 
+Administrators can edit the invitation and reminder subject/body in **Reminders & summaries**. Templates are stored as plain text, support only the documented placeholders, and are escaped before HTML email is generated. Use **Send test** to deliver only to the signed-in administrator before enabling a campaign. **Run reminders now** still respects the active policy, survey deadline, configured day offsets, recipient de-duplication, and audit logging.
+
 Invitation links are single-use Supabase Auth credentials. Administrators do not create, view, or email passwords. A recipient opens the time-limited link, creates a password of at least 12 characters, and only then receives the invited company membership. Pending invitations can be resent or revoked and all lifecycle actions are audited. Keep the hosted Supabase **Email OTP expiry** aligned with `INVITATION_EXPIRY_MINUTES` (recommended: 3600 seconds / 60 minutes).
 
 In hosted Supabase Auth settings, also configure:
@@ -56,7 +58,11 @@ select vault.create_secret('THE_SAME_REMINDER_CRON_SECRET', 'reminder_cron_secre
 
 The schedule runs at 07:00 UTC each day. Only enabled policies whose survey has a future deadline and whose configured day offset matches are sent. Every attempted recipient/date has a unique delivery key, so retries do not duplicate an email.
 
-The Resend API key and verified sender are the only missing provider-specific values. Without them, invitation delivery can fall back to Supabase Auth email for a first invite, but automated report reminders remain disabled by design.
+The Resend API key and verified sender are the only provider-specific values. Without them, invitation delivery can fall back to Supabase Auth email for a first invite, but automated report reminders remain disabled by design.
+
+## SurveyMonkey import
+
+Use **Import & export** to select the matching non-published or closed survey and upload SurveyMonkey's detailed `.xlsx` response export. The browser validates the question-block count and shows a preview before any write. Imported responses are mapped to the selected survey's stable question keys; an existing company submission is skipped rather than overwritten. The standard STICA long-format `.xlsx`/`.csv` import remains available for historical data maintenance.
 
 ## Deployment
 

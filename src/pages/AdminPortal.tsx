@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
   ArrowLeft,
@@ -14,7 +14,6 @@ import {
   RotateCcw,
   Send,
   Table,
-  UploadCloud,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { SticaProgressReportDocument } from "../components/admin/SticaProgressReportDocument";
@@ -22,7 +21,6 @@ import {
   evaluateVisibility,
   formatDate,
   isAnswered,
-  normalizeImportMatrix,
   parseSurveyQuestion,
   slugify,
   surveyDisplayTitle,
@@ -38,7 +36,7 @@ import {
   type SurveyQuestion,
   type SurveyVersion,
 } from "../lib/portal";
-import { exportPivotXlsx, exportResponsesXlsx, readImportWorkbook } from "../lib/spreadsheet";
+import { exportPivotXlsx, exportResponsesXlsx } from "../lib/spreadsheet";
 import {
   Button,
   DataTablePagination,
@@ -64,6 +62,7 @@ import { AdminOperations } from "../components/admin/AdminOperations";
 import { AdminSummaryModal } from "../components/admin/AdminSummaryModal";
 import { AdminAiControl } from "../features/ai-control/AdminAiControl";
 import { SurveyAiExplorer } from "../features/ai-control/SurveyAiExplorer";
+import { SurveyDataImport } from "../features/imports/SurveyDataImport";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -185,7 +184,6 @@ export function AdminPortal({ session }: { session: Session }) {
   const [year, setYear] = useState("");
   const [company, setCompany] = useState("");
   const [question, setQuestion] = useState("");
-  const [importFileName, setImportFileName] = useState("");
 
   // Global state
   const [notice, setNotice] = useState<Notice>(null);
@@ -371,30 +369,6 @@ export function AdminPortal({ session }: { session: Session }) {
     }
   }
 
-  // ── Historical import ─────────────────────────────────────────────────────
-
-  async function importHistory(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!supabase) return;
-    const input = e.currentTarget.elements.namedItem("historyFile") as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    try {
-      setBusy(true);
-      const data = normalizeImportMatrix(await readImportWorkbook(file));
-      const r = await supabase.rpc("import_historical_responses", { import_rows: data });
-      if (r.error) throw r.error;
-      setNotice({ kind: "success", message: `${r.data} historical rows imported.` });
-      e.currentTarget.reset();
-      setImportFileName("");
-      await load(true, selected ?? undefined);
-    } catch (x) {
-      setNotice({ kind: "error", message: x instanceof Error ? x.message : "Import failed" });
-    } finally {
-      setBusy(false);
-    }
-  }
-
   // ── Render ────────────────────────────────────────────────────────────────
 
   if (loading) return <Loading text="Loading administrator workspace" />;
@@ -532,36 +506,7 @@ export function AdminPortal({ session }: { session: Session }) {
           <PageHeader eyebrow="Portable reporting data" title="Import & export" description="Move historical responses into STICA and export clean datasets for analysis." />
 
           <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Import */}
-            <form className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 sm:p-8" onSubmit={importHistory}>
-              <h3 className="text-xl font-bold text-slate-900">Historical Excel / CSV import</h3>
-              <p className="text-sm text-slate-500">
-                Required headers: <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-bold text-slate-600">company_name, company_slug, reporting_year, question_key, answer</code>
-              </p>
-              <div className="relative mt-2">
-                <input
-                  name="historyFile"
-                  type="file"
-                  accept=".xlsx,.csv"
-                  required
-                  onChange={(e) => setImportFileName(e.target.files?.[0]?.name ?? "")}
-                  className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                  id="file-upload"
-                />
-                <label htmlFor="file-upload" className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition-colors ${importFileName ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100'}`}>
-                   <UploadCloud size={28} className={importFileName ? "text-emerald-600" : "text-slate-400"} aria-hidden="true" />
-                  <strong className={`text-sm font-bold ${importFileName ? 'text-emerald-700' : 'text-slate-700'}`}>
-                    {importFileName ? importFileName : "Click to select .xlsx or .csv file"}
-                  </strong>
-                  <span className="text-xs font-semibold text-slate-500">Supports Excel workbooks and UTF-8 CSV</span>
-                </label>
-              </div>
-              <div className="mt-auto pt-2 text-right">
-                 <Button icon={UploadCloud} disabled={busy || !importFileName}>
-                  {busy ? "Importing data…" : "Import historical responses"}
-                </Button>
-              </div>
-            </form>
+            <SurveyDataImport versions={versions} setNotice={setNotice} onImported={() => load(true, selected ?? undefined)} />
 
             {/* Export */}
             <div className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 sm:p-8">

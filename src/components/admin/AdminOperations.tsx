@@ -3,6 +3,7 @@ import { BellRing, CheckCircle2, FileText, MailCheck } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { formatDateTime, type AiSummary, type Organization, type ReminderPolicy, type SurveyVersion } from "../../lib/portal";
 import { Button, EmptyState, PageContainer, PageHeader, type Notice } from "../ui";
+import { EmailOperations } from "../../features/notifications/EmailOperations";
 
 type Delivery = { id: number; status: string; recipient_email: string; error_message: string | null; sent_at: string | null; created_at: string };
 
@@ -177,6 +178,8 @@ export function AdminOperations({ versions, organizations, setNotice, onOpenSumm
           </div>
         )}
       </section>
+
+      <EmailOperations setNotice={setNotice} onDelivery={load} />
 
       {/* Registers */}
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
