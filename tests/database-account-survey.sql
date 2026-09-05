@@ -22,12 +22,12 @@ begin
  perform set_config('request.jwt.claims',jsonb_build_object('role','authenticated','sub',c)::text,true);
  assert not app_private.is_organization_member(1),'Disabled membership retained access';
  perform set_config('request.jwt.claims',jsonb_build_object('role','authenticated','sub',a)::text,true);
- insert into survey_versions(id,name,reporting_year) values(9001,'Unused draft',2026);
+ insert into survey_versions(id,name,reporting_year,updated_at) values(9001,'Unused draft',2026,now()-interval '1 second');
  result:=public.manage_survey(9001,'inspect');assert (result->>'canDelete')::boolean,'Unused draft cannot be deleted';
  stamp:=result->'survey'->>'updated_at';
  perform public.manage_survey(9001,'update',jsonb_build_object('name','Renamed draft','year',2027,'expectedUpdatedAt',stamp));
  assert (select name from survey_versions where id=9001)='Renamed draft','Rename failed';
- begin perform public.manage_survey(9001,'update',jsonb_build_object('name','Stale','year',2027,'expectedUpdatedAt',stamp));raise exception 'Stale edit accepted';exception when serialization_failure then null;end;
+ begin perform public.manage_survey(9001,'update',jsonb_build_object('name','Stale','year',2027,'expectedUpdatedAt',stamp));raise exception 'Stale edit accepted';exception when sqlstate 'PT409' then null;end;
  result:=public.manage_survey(26,'inspect');assert not (result->>'canDelete')::boolean,'Reports did not prevent deletion';
  begin perform public.manage_survey(26,'delete',jsonb_build_object('expectedUpdatedAt',result->'survey'->>'updated_at','confirmName',result->'survey'->>'name'));raise exception 'Used survey deleted';exception when raise_exception then if SQLERRM='Used survey deleted' then raise;end if;end;
  result:=public.manage_survey(9001,'inspect');

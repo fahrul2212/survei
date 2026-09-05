@@ -15,3 +15,9 @@ alter table question_definitions enable row level security;
 alter table question_revisions enable row level security;
 grant select on survey_questions,question_definitions,question_revisions to authenticated;
 grant usage on schema app_private to authenticated;
+
+-- Match the production timestamp trigger when exercising stale editor checks.
+create function app_private.set_updated_at() returns trigger language plpgsql set search_path='' as $$
+begin new.updated_at=now(); return new; end; $$;
+create trigger survey_versions_set_updated_at before update on survey_versions
+for each row execute function app_private.set_updated_at();

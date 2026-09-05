@@ -11,6 +11,7 @@ const files = [
   "supabase/migrations/20260905110050_analysis_narrative_reservations.sql",
   "tests/fixtures/account-survey-database.sql",
   "supabase/migrations/20260905133126_survey_and_internal_accounts.sql",
+  "supabase/migrations/20260905141432_survey_edit_conflict_response.sql",
   "tests/database-account-survey.sql",
 ];
 try {

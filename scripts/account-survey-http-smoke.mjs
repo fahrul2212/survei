@@ -33,7 +33,9 @@ try {
   requireData(await admin.client.rpc("manage_survey", { target_id: draft, operation: "update", input }));
   assert.equal((await inspect(draft)).survey.name, input.name);
   const stale = await admin.client.rpc("manage_survey", { target_id: draft, operation: "update", input });
-  assert.equal(stale.error?.code, "40001");
+  assert.equal(stale.status, 409);
+  assert.equal(stale.error?.code, "PT409");
+  assert.match(stale.error.message, /Reopen this dialog/);
   const duplicate = requireData(await admin.client.rpc("create_survey_year", {
     new_reporting_year: 2024, survey_name: `${name} copy`, open_at: null, close_at: null,
     clone_from_survey_version_id: draft,

@@ -156,7 +156,7 @@ export function Shell({
       </div>
 
       <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-        {admin ? "Administrator" : "Company workspace"}
+        {accountType ?? (admin ? "Administrator" : "Company workspace")}
       </p>
 
       <nav aria-label="Primary navigation" className="flex flex-col gap-1.5 w-full">
