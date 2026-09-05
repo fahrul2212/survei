@@ -35,6 +35,11 @@ async function main() {
   check("Retained 2025 survey has exactly 92 questions", !questionsResult.error && questionsResult.count === 92, questionsResult.error?.message || String(questionsResult.count));
   const progressResult = await admin.from("admin_submission_progress").select("organization_id").eq("reporting_year", 2025);
   check("Admin can read the seeded 2025 progress dashboard", !progressResult.error && progressResult.data.length >= 8, progressResult.error?.message || String(progressResult.data?.length));
+  const emailTemplateResult = await admin.from("email_templates").select("template_key");
+  check("Admin can manage both email templates", !emailTemplateResult.error && emailTemplateResult.data.length === 2, emailTemplateResult.error?.message || String(emailTemplateResult.data?.length));
+  const adminSession = await admin.auth.getSession();
+  const adminBenchmarkResponse = await fetch(`https://stica.webmaintain.tech/api/benchmark/questions?surveyVersionId=${versionResult.data.id}`, { headers: { Authorization: `Bearer ${adminSession.data.session.access_token}` } });
+  check("Admin cannot use the company benchmark endpoint", adminBenchmarkResponse.status === 403, String(adminBenchmarkResponse.status));
 
   const company = await login(env.TEST_CLIENT_EMAIL, env.TEST_CLIENT_PASSWORD);
   const { data: companyIdentity } = await company.auth.getUser();
@@ -46,6 +51,12 @@ async function main() {
   check("Client cannot read another company", !leakResult.error && leakResult.data.length === 0, leakResult.error?.message || String(leakResult.data?.length));
   const submissionsResult = await company.from("company_submissions").select("id,status,survey_version_id").eq("organization_id", visibleResult.data[0].id);
   check("Client sees only its own retained reports", !submissionsResult.error && submissionsResult.data.every((row) => row.survey_version_id === versionResult.data.id), submissionsResult.error?.message || String(submissionsResult.data?.length));
+  const hiddenTemplatesResult = await company.from("email_templates").select("template_key");
+  check("Client cannot read administrator email templates", Boolean(hiddenTemplatesResult.error) || hiddenTemplatesResult.data.length === 0, hiddenTemplatesResult.error?.message || String(hiddenTemplatesResult.data?.length));
+  const companySession = await company.auth.getSession();
+  const benchmarkResponse = await fetch(`https://stica.webmaintain.tech/api/benchmark/questions?surveyVersionId=${versionResult.data.id}`, { headers: { Authorization: `Bearer ${companySession.data.session.access_token}` } });
+  const benchmarkBody = await benchmarkResponse.json();
+  check("Company benchmark endpoint accepts a company session", benchmarkResponse.ok && Array.isArray(benchmarkBody.questions), benchmarkBody.error || String(benchmarkResponse.status));
   const otherSubmissionResult = await admin.from("company_submissions").select("id,organization_id").neq("organization_id", visibleResult.data[0].id).eq("survey_version_id", versionResult.data.id).limit(1).single();
   check("Admin can select a different seeded company report", !otherSubmissionResult.error, otherSubmissionResult.error?.message);
   const leakAnswersResult = await company.from("answers").select("id", { count: "exact", head: true }).eq("submission_id", otherSubmissionResult.data.id);
