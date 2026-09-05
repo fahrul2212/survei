@@ -9,10 +9,15 @@ The first release stays focused on secure annual reporting: versioned surveys, p
 - `src/components/primitives.tsx` owns reusable Tailwind controls and text-overflow behavior.
 - `src/components/shell.tsx` owns navigation, account identity, and responsive shell behavior.
 - `src/components/admin` owns focused administrator workflows such as audit activity, company directory, and survey workspace actions.
-- `src/components/question-field.tsx` owns answer inputs across company and preview experiences.
+- `src/components/question-field.tsx` dispatches shared answer controls in `src/components/questions` for company and preview experiences.
+- `shared/survey-answer.ts` defines structured answer values and validation; `shared/survey-import.ts` maps verified source wording and subcolumns.
+- `src/features/reporting` owns the serialized autosave queue and submission review dialog.
+- `shared/email-template.ts` renders the same escaped templates used by the browser preview and Supabase email functions.
 - `src/lib/portal.ts` contains domain types and pure data transformations.
 - `src/lib/spreadsheet.ts` owns workbook import/export behavior.
-- `src/styles.css` is the legacy style foundation. New cross-cutting overrides live in `src/styles/refinements.css`; feature-local layout should prefer Tailwind utilities.
+- `src/styles.css` owns theme tokens and base rules; feature-local layout uses Tailwind utilities.
+
+Use solid white, slate and STICA red surfaces throughout the portal and report previews. Do not introduce gradients, glass effects, decorative glow or background ornaments. Separate content with spacing, typography and borders; reserve shadows and translucent backdrops for temporary dialogs, drawers and notifications. AI analysis follows the same restrained visual language as other reporting tools.
 
 Presentational components receive data and callbacks. A component may call Supabase directly only when it owns an isolated end-to-end workflow, as `AuditLogView` does.
 
@@ -38,7 +43,7 @@ Organization membership is the authorization source. `viewer` is read-only, `mem
 
 ### Benchmarking
 
-The company benchmark RPC returns completion aggregates only and suppresses peer metrics until five active companies are present. Administrator comparisons use authorized progress rows.
+The completion benchmark RPC remains available. Question comparisons use Worker `POST /api/analysis` and `GET /api/benchmark/questions`, backed by `worker/services/analysis`. These routes calculate numeric averages/medians and allowlisted choice distributions from submitted reports without calling an AI provider. Admin filters may select companies; company callers cannot select peer identities and receive only their own detailed values plus permitted anonymous aggregates. Small positive and complementary choice cells suppress the entire distribution. See `docs/survey-parity-release.md` for cohort rules and verification.
 
 ### AI summaries and governance
 

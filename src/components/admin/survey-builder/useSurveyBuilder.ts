@@ -12,15 +12,30 @@ import {
   isQuestionFormValid,
   newQuestionForm,
   nextStableKey,
+  questionValidation,
   type QuestionForm,
   type SurveyBuilderView,
 } from "./model";
 import type { SurveyBuilderProps } from "./types";
+import { usePreviousQuestions } from "./usePreviousQuestions";
+import { publishChecks } from "./publish-checks";
 
 export function useSurveyBuilder(props: SurveyBuilderProps) {
   const {
-    versions, questions, carry, selected, busy, qSearch, qSectionFilter,
-    setBusy, setNotice, setQSectionFilter, setSelected, setQuestions, loadQuestions, load,
+    versions,
+    questions,
+    carry,
+    selected,
+    busy,
+    qSearch,
+    qSectionFilter,
+    setBusy,
+    setNotice,
+    setQSectionFilter,
+    setSelected,
+    setQuestions,
+    loadQuestions,
+    load,
   } = props;
   const [view, setView] = useState<SurveyBuilderView>("overview");
   const [form, setForm] = useState<QuestionForm>(EMPTY_QUESTION);
@@ -28,14 +43,22 @@ export function useSurveyBuilder(props: SurveyBuilderProps) {
   const [openingVersion, setOpeningVersion] = useState<number | null>(null);
   const [pendingDelete, setPendingDelete] = useState<SurveyQuestion | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
+  const [pendingLifecycle, setPendingLifecycle] = useState<"publish" | "close" | "reopen" | null>(
+    null,
+  );
 
   const selectedVersion = versions.find((version) => version.id === selected);
+  const previous = usePreviousQuestions(versions, selectedVersion);
   const sections = useMemo(() => getSurveySections(questions), [questions]);
   const filteredQuestions = useMemo(() => {
     const search = qSearch.trim().toLowerCase();
-    return questions.filter((question) =>
-      (!search || question.prompt.toLowerCase().includes(search) || question.stableKey.toLowerCase().includes(search))
-      && (!qSectionFilter || question.sectionKey === qSectionFilter));
+    return questions.filter(
+      (question) =>
+        (!search ||
+          question.prompt.toLowerCase().includes(search) ||
+          question.stableKey.toLowerCase().includes(search)) &&
+        (!qSectionFilter || question.sectionKey === qSectionFilter),
+    );
   }, [qSearch, qSectionFilter, questions]);
 
   useEffect(() => {
@@ -105,9 +128,13 @@ export function useSurveyBuilder(props: SurveyBuilderProps) {
       setSelected(versionId);
       await load(true, versionId);
       setView("workspace");
-      setNotice({ kind: "success", message: `Draft survey for ${yearDraft.year} created. You can now add or review questions.` });
+      setNotice({
+        kind: "success",
+        message: `Draft survey for ${yearDraft.year} created. You can now add or review questions.`,
+      });
     } catch (error) {
-      const duplicate = error && typeof error === "object" && "code" in error && error.code === "23505";
+      const duplicate =
+        error && typeof error === "object" && "code" in error && error.code === "23505";
       setNotice({
         kind: "error",
         message: duplicate
@@ -124,7 +151,11 @@ export function useSurveyBuilder(props: SurveyBuilderProps) {
     if (!supabase || !selected) return;
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
     const addAnother = form.id === null && submitter?.value === "another";
-    const savedPage = { sectionKey: form.sectionKey, sectionTitle: form.sectionTitle, category: form.category };
+    const savedPage = {
+      sectionKey: form.sectionKey,
+      sectionTitle: form.sectionTitle,
+      category: form.category,
+    };
     setBusy(true);
     setNotice(null);
     try {
@@ -136,20 +167,31 @@ export function useSurveyBuilder(props: SurveyBuilderProps) {
         question_prompt: form.prompt,
         question_help_text: form.help,
         response_type: form.type,
-        response_options: form.options.split("\n").map((option) => option.trim()).filter(Boolean),
-        response_validation: form.type === "single_choice" ? { presentation: form.presentation } : {},
+        response_options: form.options
+          .split("\n")
+          .map((option) => option.trim())
+          .filter(Boolean),
+        response_validation: questionValidation(form),
         required_response: form.required,
         target_section_key: slugify(form.sectionKey),
         target_section_title: form.sectionTitle,
         target_visibility_rule: form.condition
-          ? { questionKey: form.condition.toUpperCase(), operator: form.operator, ...(form.operator === "is_answered" ? {} : { value: form.expected }) }
+          ? {
+              questionKey: form.condition.toUpperCase(),
+              operator: form.operator,
+              ...(form.operator === "is_answered" ? {} : { value: form.expected }),
+            }
           : {},
         carry_source_question_key: form.carry.toUpperCase() || null,
       });
       if (result.error) throw result.error;
       await loadQuestions(selected);
       if (addAnother) {
-        setForm({ ...EMPTY_QUESTION, stableKey: incrementStableKey(form.stableKey) ?? nextKey(), ...savedPage });
+        setForm({
+          ...EMPTY_QUESTION,
+          stableKey: incrementStableKey(form.stableKey) ?? nextKey(),
+          ...savedPage,
+        });
         setQSectionFilter(savedPage.sectionKey);
         setNotice({ kind: "success", message: "Question saved. Add the next question." });
       } else {
@@ -192,15 +234,26 @@ export function useSurveyBuilder(props: SurveyBuilderProps) {
     if (!supabase || selectedVersion?.status !== "draft") return;
     const client = supabase;
     await runAction(
-      () => client.rpc("reorder_survey_question", { target_survey_question_id: question.id, direction }),
+      () =>
+        client.rpc("reorder_survey_question", {
+          target_survey_question_id: question.id,
+          direction,
+        }),
       () => loadQuestions(selectedVersion.id),
       "Unable to reorder question",
       false,
     );
   }
 
-  async function updateLifecycle(action: "publish" | "close" | "reopen") {
+  function updateLifecycle(action: "publish" | "close" | "reopen") {
+    setPendingLifecycle(action);
+  }
+
+  async function confirmLifecycle() {
+    const action = pendingLifecycle;
+    if (!action) return;
     if (!supabase || !selectedVersion) return;
+    if (action !== "close" && publishChecks(selectedVersion, questions).length) return;
     const client = supabase;
     const config = {
       publish: ["publish_survey_version", "Survey published. Companies can now access it."],
@@ -210,7 +263,11 @@ export function useSurveyBuilder(props: SurveyBuilderProps) {
     const [rpc, success] = config[action];
     await runAction(
       () => client.rpc(rpc, { target_survey_version_id: selectedVersion.id }),
-      async () => { await load(true, selectedVersion.id); setNotice({ kind: "success", message: success }); },
+      async () => {
+        await load(true, selectedVersion.id);
+        setPendingLifecycle(null);
+        setNotice({ kind: "success", message: success });
+      },
       `Unable to ${action} survey`,
     );
   }
@@ -236,11 +293,37 @@ export function useSurveyBuilder(props: SurveyBuilderProps) {
 
   return {
     ...props,
-    view, setView, form, setForm, yearDraft, setYearDraft, openingVersion, pendingDelete, setPendingDelete,
-    previewMode, setPreviewMode, selectedVersion, sections, filteredQuestions,
-    canSaveQuestion: isQuestionFormValid(form), beginCreateSurvey, beginAddQuestion, beginNewPage,
-    cancelQuestion, openVersion, createSurvey, saveQuestion, editQuestion, duplicateQuestion,
-    removeQuestion, reorderQuestion, updateLifecycle,
+    view,
+    setView,
+    form,
+    setForm,
+    yearDraft,
+    setYearDraft,
+    openingVersion,
+    pendingDelete,
+    setPendingDelete,
+    previewMode,
+    setPreviewMode,
+    selectedVersion,
+    sections,
+    filteredQuestions,
+    previous,
+    canSaveQuestion: isQuestionFormValid(form),
+    beginCreateSurvey,
+    beginAddQuestion,
+    beginNewPage,
+    cancelQuestion,
+    openVersion,
+    createSurvey,
+    saveQuestion,
+    editQuestion,
+    duplicateQuestion,
+    removeQuestion,
+    reorderQuestion,
+    updateLifecycle,
+    pendingLifecycle,
+    setPendingLifecycle,
+    confirmLifecycle,
   };
 }
 

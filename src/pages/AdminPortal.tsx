@@ -63,6 +63,8 @@ import { AdminSummaryModal } from "../components/admin/AdminSummaryModal";
 import { AdminAiControl } from "../features/ai-control/AdminAiControl";
 import { SurveyAiExplorer } from "../features/ai-control/SurveyAiExplorer";
 import { SurveyDataImport } from "../features/imports/SurveyDataImport";
+import { monitoringSurvey, rememberRoute, routeValue } from "../features/reporting/survey-state";
+import { usePortalView } from "../features/reporting/usePortalView";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -109,7 +111,9 @@ const EMPTY_Q: QForm = {
 
 // ── Utility ───────────────────────────────────────────────────────────────────
 
-async function allExports(filters: { year?: number; company?: string; question?: string } = {}): Promise<ExportRow[]> {
+async function allExports(
+  filters: { year?: number; company?: string; question?: string } = {},
+): Promise<ExportRow[]> {
   if (!supabase) return [];
   const result: ExportRow[] = [];
   for (let from = 0; ; from += 1000) {
@@ -132,7 +136,12 @@ async function allExports(filters: { year?: number; company?: string; question?:
 }
 
 function errorMessage(error: unknown, fallback: string) {
-  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
     return error.message;
   }
   return fallback;
@@ -153,10 +162,19 @@ function shortDelay(milliseconds: number) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
-
 export function AdminPortal({ session }: { session: Session }) {
   // Navigation
-  const [view, setView] = useState("dashboard");
+  const { view, setView } = usePortalView("dashboard", [
+    "dashboard",
+    "surveys",
+    "companies",
+    "data",
+    "analytics",
+    "ai-explorer",
+    "operations",
+    "ai",
+    "audit",
+  ]);
 
   // Core data
   const [versions, setVersions] = useState<SurveyVersion[]>([]);
@@ -164,7 +182,13 @@ export function AdminPortal({ session }: { session: Session }) {
   const [rows, setRows] = useState<ProgressRow[]>([]);
   const [questions, setQuestions] = useState<SurveyQuestion[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
-  const [monitoringSurveyId, setMonitoringSurveyId] = useState<number | null>(null);
+  const [monitoringSurveyId, updateMonitoringSurveyId] = useState<number | null>(
+    () => Number(routeValue("monitor")) || null,
+  );
+  const setMonitoringSurveyId = (id: number) => {
+    rememberRoute("monitor", String(id));
+    updateMonitoringSurveyId(id);
+  };
   const [carry, setCarry] = useState<Record<number, string>>({});
 
   // Filters & Search
@@ -174,7 +198,11 @@ export function AdminPortal({ session }: { session: Session }) {
   const [reopenTarget, setReopenTarget] = useState<ProgressRow | null>(null);
   const [reopenReason, setReopenReason] = useState("");
   // AI Summary modal
-  const [summaryTarget, setSummaryTarget] = useState<{ submissionId: number; organizationName: string; surveyName: string } | null>(null);
+  const [summaryTarget, setSummaryTarget] = useState<{
+    submissionId: number;
+    organizationName: string;
+    surveyName: string;
+  } | null>(null);
 
   // Company management (Modals & Edit)
   const [exports, setExports] = useState<ExportRow[]>([]);
@@ -194,10 +222,17 @@ export function AdminPortal({ session }: { session: Session }) {
   // ── Loaders ──────────────────────────────────────────────────────────────
 
   const fetchQuestions = useCallback(async (id: number) => {
-    if (!supabase) return { questions: [] as SurveyQuestion[], carry: {} as Record<number, string> };
+    if (!supabase)
+      return { questions: [] as SurveyQuestion[], carry: {} as Record<number, string> };
     const [a, b] = await Promise.all([
-      supabase.from("survey_questions").select(QUESTION_SELECT).eq("survey_version_id", id).order("display_order"),
-      supabase.from("question_carry_forward_rules").select("target_survey_question_id,source:question_definitions!inner(stable_key)"),
+      supabase
+        .from("survey_questions")
+        .select(QUESTION_SELECT)
+        .eq("survey_version_id", id)
+        .order("display_order"),
+      supabase
+        .from("question_carry_forward_rules")
+        .select("target_survey_question_id,source:question_definitions!inner(stable_key)"),
     ]);
     if (a.error) throw a.error;
     if (b.error) throw b.error;
@@ -212,93 +247,110 @@ export function AdminPortal({ session }: { session: Session }) {
     };
   }, []);
 
-  const loadQuestions = useCallback(async (id: number) => {
-    const data = await fetchQuestions(id);
-    setQuestions(data.questions);
-    setCarry(data.carry);
-  }, [fetchQuestions]);
+  const loadQuestions = useCallback(
+    async (id: number) => {
+      const data = await fetchQuestions(id);
+      setQuestions(data.questions);
+      setCarry(data.carry);
+    },
+    [fetchQuestions],
+  );
 
-  const load = useCallback(async (silent = false, preferredId?: number) => {
-    if (!supabase) return;
-    const client = supabase;
-    const requestId = ++loadRequest.current;
-    if (!silent) setLoading(true);
+  const load = useCallback(
+    async (silent = false, preferredId?: number) => {
+      if (!supabase) return;
+      const client = supabase;
+      const requestId = ++loadRequest.current;
+      if (!silent) setLoading(true);
 
-    const fetchSnapshot = async () => {
-      const sessionResult = await client.auth.getSession();
-      if (sessionResult.error) throw sessionResult.error;
-      if (!sessionResult.data.session) {
-        const restored = await client.auth.setSession({
-          access_token: session.access_token,
-          refresh_token: session.refresh_token,
-        });
-        if (restored.error) throw restored.error;
-      }
+      const fetchSnapshot = async () => {
+        const sessionResult = await client.auth.getSession();
+        if (sessionResult.error) throw sessionResult.error;
+        if (!sessionResult.data.session) {
+          const restored = await client.auth.setSession({
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+          });
+          if (restored.error) throw restored.error;
+        }
 
-      const [a, b, c] = await Promise.all([
-        client.from("survey_versions").select("*").order("reporting_year", { ascending: false }).order("id", { ascending: false }),
-        client.from("organizations").select("*").order("name"),
-        client.from("admin_submission_progress").select("*").order("reporting_year", { ascending: false }),
-      ]);
-      if (a.error) throw a.error;
-      if (b.error) throw b.error;
-      if (c.error) throw c.error;
+        const [a, b, c] = await Promise.all([
+          client
+            .from("survey_versions")
+            .select("*")
+            .order("reporting_year", { ascending: false })
+            .order("id", { ascending: false }),
+          client.from("organizations").select("*").order("name"),
+          client
+            .from("admin_submission_progress")
+            .select("*")
+            .order("reporting_year", { ascending: false }),
+        ]);
+        if (a.error) throw a.error;
+        if (b.error) throw b.error;
+        if (c.error) throw c.error;
 
-      const nextVersions = (a.data ?? []) as SurveyVersion[];
-      const nextSelected = preferredId ?? nextVersions[0]?.id ?? null;
-      const questionData = nextSelected
-        ? await fetchQuestions(nextSelected)
-        : { questions: [] as SurveyQuestion[], carry: {} as Record<number, string> };
+        const nextVersions = (a.data ?? []) as SurveyVersion[];
+        const nextSelected = preferredId ?? nextVersions[0]?.id ?? null;
+        const questionData = nextSelected
+          ? await fetchQuestions(nextSelected)
+          : { questions: [] as SurveyQuestion[], carry: {} as Record<number, string> };
 
-      return {
-        versions: nextVersions,
-        orgs: (b.data ?? []) as Organization[],
-        rows: (c.data ?? []) as ProgressRow[],
-        selected: nextSelected,
-        ...questionData,
+        return {
+          versions: nextVersions,
+          orgs: (b.data ?? []) as Organization[],
+          rows: (c.data ?? []) as ProgressRow[],
+          selected: nextSelected,
+          ...questionData,
+        };
       };
-    };
 
-    try {
-      let snapshot;
       try {
-        snapshot = await fetchSnapshot();
-      } catch (firstError) {
-        if (!retryableAdminLoad(firstError)) throw firstError;
-        await shortDelay(250);
-        const refreshed = await client.auth.refreshSession();
-        if (refreshed.error) throw firstError;
-        snapshot = await fetchSnapshot();
-      }
+        let snapshot;
+        try {
+          snapshot = await fetchSnapshot();
+        } catch (firstError) {
+          if (!retryableAdminLoad(firstError)) throw firstError;
+          await shortDelay(250);
+          const refreshed = await client.auth.refreshSession();
+          if (refreshed.error) throw firstError;
+          snapshot = await fetchSnapshot();
+        }
 
-      if (requestId !== loadRequest.current) return;
-      setVersions(snapshot.versions);
-      setOrgs(snapshot.orgs);
-      setRows(snapshot.rows);
-      setSelected(snapshot.selected);
-      setQuestions(snapshot.questions);
-      setCarry(snapshot.carry);
-      if (!silent) setNotice(null);
-    } catch (e) {
-      if (requestId === loadRequest.current) {
-        setNotice({ kind: "error", message: errorMessage(e, "Unable to load admin data") });
+        if (requestId !== loadRequest.current) return;
+        setVersions(snapshot.versions);
+        setOrgs(snapshot.orgs);
+        setRows(snapshot.rows);
+        setSelected(snapshot.selected);
+        setQuestions(snapshot.questions);
+        setCarry(snapshot.carry);
+        if (!silent) setNotice(null);
+      } catch (e) {
+        if (requestId === loadRequest.current) {
+          setNotice({ kind: "error", message: errorMessage(e, "Unable to load admin data") });
+        }
+      } finally {
+        if (!silent && requestId === loadRequest.current) setLoading(false);
       }
-    } finally {
-      if (!silent && requestId === loadRequest.current) setLoading(false);
-    }
-  }, [fetchQuestions, session.access_token, session.refresh_token]);
+    },
+    [fetchQuestions, session.access_token, session.refresh_token],
+  );
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   // ── Derived state ─────────────────────────────────────────────────────────
 
   const selectedVersion = versions.find((v) => v.id === selected);
-  const current = versions.find((v) => v.id === monitoringSurveyId && v.status === "published")
-    ?? versions.find((v) => v.status === "published");
+  const current = monitoringSurvey(versions, monitoringSurveyId);
   const currentRows = current ? rows.filter((r) => r.survey_version_id === current.id) : [];
-  
+
   const years = [...new Set(rows.map((r) => r.reporting_year))].sort((a, b) => b - a);
-  const visibleExports = exports.slice(exportPage * EXPORT_PAGE_SIZE, (exportPage + 1) * EXPORT_PAGE_SIZE);
+  const visibleExports = exports.slice(
+    exportPage * EXPORT_PAGE_SIZE,
+    (exportPage + 1) * EXPORT_PAGE_SIZE,
+  );
 
   const filteredQuestions = useMemo(() => {
     return questions.filter((q) => {
@@ -325,7 +377,10 @@ export function AdminPortal({ session }: { session: Session }) {
     if (x.error) {
       setNotice({ kind: "error", message: x.error.message });
     } else {
-      setNotice({ kind: "success", message: `Reopened report for ${reopenTarget.organization_name}.` });
+      setNotice({
+        kind: "success",
+        message: `Reopened report for ${reopenTarget.organization_name}.`,
+      });
       setReopenTarget(null);
       setReopenReason("");
       await load(true, selected ?? undefined);
@@ -386,7 +441,14 @@ export function AdminPortal({ session }: { session: Session }) {
   ];
 
   return (
-    <Shell admin view={view} setView={setView} items={navItems} user={session.user} name="STICA Administration">
+    <Shell
+      admin
+      view={view}
+      setView={setView}
+      items={navItems}
+      user={session.user}
+      name="STICA Administration"
+    >
       <NoticeBar notice={notice} clear={() => setNotice(null)} />
 
       {/* ── Reopen dialog ── */}
@@ -394,12 +456,26 @@ export function AdminPortal({ session }: { session: Session }) {
         <div
           className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4"
           role="presentation"
-          onMouseDown={(e) => { if (e.target === e.currentTarget && !busy) setReopenTarget(null); }}
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !busy) setReopenTarget(null);
+          }}
         >
-          <section className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl md:p-8" role="dialog" aria-modal="true" aria-labelledby="reopen-title">
-            <p className="mb-2 text-[11px] font-extrabold uppercase tracking-widest text-[#d91f17]">Reopen submission</p>
-            <h2 id="reopen-title" className="text-2xl font-bold tracking-tight text-slate-900">Reopen for {reopenTarget.organization_name}?</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">This allows the company to edit and resubmit their responses for reporting year {reopenTarget.reporting_year}.</p>
+          <section
+            className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl md:p-8"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reopen-title"
+          >
+            <p className="mb-2 text-[11px] font-extrabold uppercase tracking-widest text-[#d91f17]">
+              Reopen submission
+            </p>
+            <h2 id="reopen-title" className="text-2xl font-bold tracking-tight text-slate-900">
+              Reopen for {reopenTarget.organization_name}?
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              This allows the company to edit and resubmit their responses for reporting year{" "}
+              {reopenTarget.reporting_year}.
+            </p>
             <div className="mt-6 flex flex-col gap-5">
               <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                 Reason for reopening (logged to audit trail)
@@ -413,7 +489,12 @@ export function AdminPortal({ session }: { session: Session }) {
                 />
               </label>
               <div className="flex flex-col-reverse justify-end gap-2 border-t border-slate-100 pt-5 sm:flex-row">
-                <button type="button" className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50" onClick={() => setReopenTarget(null)} disabled={busy}>
+                <button
+                  type="button"
+                  className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50"
+                  onClick={() => setReopenTarget(null)}
+                  disabled={busy}
+                >
                   Cancel
                 </button>
                 <button
@@ -503,15 +584,23 @@ export function AdminPortal({ session }: { session: Session }) {
       {/* ══════════════════════════ DATA ═════════════════════════════════════ */}
       {view === "data" && (
         <PageContainer>
-          <PageHeader eyebrow="Portable reporting data" title="Import & export" description="Move historical responses into STICA and export clean datasets for analysis." />
+          <PageHeader
+            eyebrow="Portable reporting data"
+            title="Import & export"
+            description="Move historical responses into STICA and export clean datasets for analysis."
+          />
 
           <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <SurveyDataImport versions={versions} setNotice={setNotice} onImported={() => load(true, selected ?? undefined)} />
+            <SurveyDataImport
+              versions={versions}
+              setNotice={setNotice}
+              onImported={() => load(true, selected ?? undefined)}
+            />
 
             {/* Export */}
             <div className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-6 sm:p-8">
               <h3 className="text-xl font-bold text-slate-900">Flexible export</h3>
-              
+
               <div className="flex rounded-lg border border-slate-200 bg-slate-50 p-1">
                 <button
                   type="button"
@@ -528,52 +617,60 @@ export function AdminPortal({ session }: { session: Session }) {
                   Pivot / matrix format
                 </button>
               </div>
-              
+
               <p className="text-[13px] font-semibold text-slate-500">
                 {exportFormat === "flat"
                   ? "One row per answer — ideal for data warehousing and statistical analysis."
                   : "One row per company per year, columns per question — ideal for comparisons and board reporting."}
               </p>
-              
+
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                   Year
-                  <select 
-                    value={year} 
+                  <select
+                    value={year}
                     onChange={(e) => setYear(e.target.value)}
                     className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                   >
                     <option value="">All reporting years</option>
-                    {years.map((y) => <option key={y} value={y}>{y}</option>)}
+                    {years.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                   Company
-                  <select 
-                    value={company} 
+                  <select
+                    value={company}
                     onChange={(e) => setCompany(e.target.value)}
                     className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                   >
                     <option value="">All companies</option>
-                    {orgs.map((o) => <option key={o.id} value={o.slug}>{o.name}</option>)}
+                    {orgs.map((o) => (
+                      <option key={o.id} value={o.slug}>
+                        {o.name}
+                      </option>
+                    ))}
                   </select>
                 </label>
               </div>
-              
+
               <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">
                 Question ID filter
-                <input 
-                  value={question} 
-                  onChange={(e) => setQuestion(e.target.value)} 
+                <input
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
                   placeholder="e.g. GOV-001 (Optional)"
                   className="w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none transition-all focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10"
                 />
               </label>
-              
+
               <Button variant="secondary" onClick={() => void prepare()} disabled={busy}>
                 {busy ? "Preparing preview…" : "Preview export data"}
               </Button>
-              
+
               <div className="mt-2 flex flex-col justify-end gap-3 border-t border-slate-200 pt-6 sm:flex-row">
                 <Button
                   variant="secondary"
@@ -586,9 +683,14 @@ export function AdminPortal({ session }: { session: Session }) {
                   }}
                   disabled={busy}
                 >
-                  <Printer size={16} aria-hidden="true" className="mr-1.5" /> Print / Save Official PDF
+                  <Printer size={16} aria-hidden="true" className="mr-1.5" /> Print / Save Official
+                  PDF
                 </Button>
-                <Button icon={FileSpreadsheet} onClick={() => void downloadExport()} disabled={busy}>
+                <Button
+                  icon={FileSpreadsheet}
+                  onClick={() => void downloadExport()}
+                  disabled={busy}
+                >
                   {busy ? "Generating file…" : `Download Excel (${exportFormat})`}
                 </Button>
               </div>
@@ -649,9 +751,13 @@ export function AdminPortal({ session }: { session: Session }) {
                 />
               ) : (
                 <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
-                  <div className="border-b border-slate-200 bg-slate-50/70 p-4">
-                    <h3 className="text-base font-bold text-slate-900">{exports.length} response rows</h3>
-                    <p className="text-xs text-slate-500">Raw individual answers for selected filters</p>
+                  <div className="border-b border-slate-200 bg-slate-50 p-4">
+                    <h3 className="text-base font-bold text-slate-900">
+                      {exports.length} response rows
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Raw individual answers for selected filters
+                    </p>
                   </div>
                   <div className="w-full overflow-x-auto">
                     <table className="w-full min-w-[760px] text-left text-sm text-slate-600">
@@ -667,13 +773,36 @@ export function AdminPortal({ session }: { session: Session }) {
                       </thead>
                       <tbody>
                         {visibleExports.map((r, i) => (
-                          <tr key={i} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                            <td className="px-4 py-3 font-bold text-slate-900">{r.reporting_year}</td>
-                            <td className="max-w-64 truncate px-4 py-3" title={r.survey_name}>{r.survey_name}</td>
-                            <td className="max-w-52 truncate px-4 py-3" title={r.company_name}>{r.company_name}</td>
-                            <td className="px-4 py-3"><code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">{r.question_key}</code></td>
-                            <td className="max-w-[28rem] truncate px-4 py-3" title={r.question_prompt}>{r.question_prompt}</td>
-                            <td className="max-w-64 truncate px-4 py-3" title={valueAsText(r.answer)}>{valueAsText(r.answer)}</td>
+                          <tr
+                            key={i}
+                            className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+                          >
+                            <td className="px-4 py-3 font-bold text-slate-900">
+                              {r.reporting_year}
+                            </td>
+                            <td className="max-w-64 truncate px-4 py-3" title={r.survey_name}>
+                              {r.survey_name}
+                            </td>
+                            <td className="max-w-52 truncate px-4 py-3" title={r.company_name}>
+                              {r.company_name}
+                            </td>
+                            <td className="px-4 py-3">
+                              <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">
+                                {r.question_key}
+                              </code>
+                            </td>
+                            <td
+                              className="max-w-[28rem] truncate px-4 py-3"
+                              title={r.question_prompt}
+                            >
+                              {r.question_prompt}
+                            </td>
+                            <td
+                              className="max-w-64 truncate px-4 py-3"
+                              title={valueAsText(r.answer)}
+                            >
+                              {valueAsText(r.answer)}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -699,7 +828,14 @@ export function AdminPortal({ session }: { session: Session }) {
         <AdminAnalytics organizations={orgs} rows={rows} currentRows={currentRows} />
       )}
 
-      {view === "ai-explorer" && <SurveyAiExplorer mode="admin" versions={versions} organizations={orgs} setNotice={setNotice} />}
+      {view === "ai-explorer" && (
+        <SurveyAiExplorer
+          mode="admin"
+          versions={versions}
+          organizations={orgs}
+          setNotice={setNotice}
+        />
+      )}
 
       {view === "operations" && (
         <AdminOperations

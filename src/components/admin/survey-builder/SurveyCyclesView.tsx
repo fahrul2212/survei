@@ -37,7 +37,7 @@ export function SurveyCyclesView({ controller }: { controller: SurveyBuilderCont
                 <small className="mt-1 block text-xs font-medium text-slate-500">Annual reporting workspace</small>
               </span>
               <span className="col-span-2 flex items-center justify-between gap-4 pl-20 sm:col-span-1 sm:justify-end sm:pl-0">
-                <StatusBadge status={version.status} />
+                <StatusBadge status={version.status} label={version.status === "draft" ? "Draft" : undefined} />
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700">
                   {busy && selected === version.id ? "Opening…" : <>Open <ArrowRight size={15} aria-hidden="true" /></>}
                 </span>

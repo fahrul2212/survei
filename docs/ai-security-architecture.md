@@ -83,6 +83,13 @@ This implementation follows the current [OpenAI Usage Policies](https://openai.c
 | `GET /api/ai/usage` | Platform administrator | Read current-month usage, spend and projection |
 | `POST /api/ai/estimate` | Platform administrator | Estimate cost using saved pricing |
 | `POST /api/ai/summary` | Platform administrator or company contributor | Generate a summary from an authorized submitted snapshot |
+| `POST /api/ai/explore` | Platform administrator or active company member | Query selected questions, companies (admin only), and one or multiple reporting years with source evidence |
+| `POST /api/analysis` | Platform administrator or active company member | Deterministic comparison charts; no external AI request |
+| `GET /api/benchmark/questions` | Active company member | Own values and permitted anonymous question statistics |
+
+The explorer and chart routes share `worker/services/analysis` for filtering, pagination, evidence construction and aggregation. Evidence is separated by survey version even when two versions share a reporting year. Company evidence contains no peer company names, raw peer answers, free-text comments or arbitrary unrecognised choice values. Numeric values exclude blanks; each company contributes at most one value to each metric. A configured minimum of five requires six contributing companies in company-facing aggregates, protecting at least five other respondents when the caller contributes. Positive and complementary choice cells must also meet the threshold; otherwise the entire distribution is withheld. Source links expand only evidence already authorized for that caller.
+
+Requests exceeding filter, row or model-context limits fail explicitly; the explorer and summary do not silently truncate answers and present the remainder as a complete analysis. Large selections should be narrowed by question, year or (admin only) company. AI outputs remain advisory and cannot modify canonical responses.
 
 ## Credential lifecycle
 

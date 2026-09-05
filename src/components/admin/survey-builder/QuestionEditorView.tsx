@@ -4,6 +4,8 @@ import { slugify, type QuestionType, type SurveyQuestion } from "../../../lib/po
 import { Button } from "../../ui";
 import type { QuestionForm, SurveySection } from "./model";
 import type { SurveyBuilderController } from "./useSurveyBuilder";
+import type { PreviousQuestion } from "./usePreviousQuestions";
+import { AnswerDetailsEditor } from "./AnswerDetailsEditor";
 
 const fieldClass = "w-full rounded-lg border-[1.5px] border-slate-200 bg-white px-4 py-3 text-[15px] font-normal normal-case tracking-normal text-slate-900 outline-none focus:border-[#d91f17] focus:ring-3 focus:ring-[#d91f17]/10";
 const labelClass = "flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500";
@@ -24,7 +26,8 @@ export function QuestionEditorView({ controller }: { controller: SurveyBuilderCo
         <PageSelector form={form} sections={sections} setForm={setForm} />
         <QuestionBasics form={form} questionNumber={form.id ? questions.findIndex((question) => question.id === form.id) + 1 : questions.length + 1} setForm={setForm} />
         {(form.type === "single_choice" || form.type === "multiple_choice") && <ChoiceEditor form={form} setForm={setForm} />}
-        <AdvancedSettings form={form} questions={questions} setForm={setForm} />
+        <AnswerDetailsEditor form={form} setForm={setForm} />
+        <AdvancedSettings form={form} questions={questions} setForm={setForm} previous={controller.previous} />
         <footer className="mt-2 grid grid-cols-2 gap-3 border-t border-slate-200 pt-6 sm:flex sm:items-center sm:justify-end">
           <Button className="order-1 sm:order-none" variant="secondary" onClick={cancelQuestion} disabled={busy}>Cancel</Button>
           {!form.id && <Button className="order-3 col-span-2 sm:order-none sm:col-auto" type="submit" name="saveMode" value="another" disabled={busy || !canSaveQuestion}>Save &amp; add another</Button>}
@@ -131,8 +134,9 @@ function ChoiceEditor({ form, setForm }: FormSectionProps) {
   );
 }
 
-function AdvancedSettings({ form, questions, setForm }: FormSectionProps & { questions: SurveyQuestion[] }) {
-  const availableQuestions = questions.filter((question) => question.id !== form.id);
+function AdvancedSettings({ form, questions, setForm, previous }: FormSectionProps & { questions: SurveyQuestion[]; previous: { questions: PreviousQuestion[]; error: string } }) {
+  const position = questions.find(question => question.id === form.id)?.displayOrder ?? Infinity;
+  const availableQuestions = questions.filter((question) => question.displayOrder < position);
   const conditionQuestion = questions.find((question) => question.stableKey === form.condition);
   const questionOptions = (emptyLabel: string) => <>
     <option value="">{emptyLabel}</option>
@@ -156,7 +160,13 @@ function AdvancedSettings({ form, questions, setForm }: FormSectionProps & { que
         <fieldset className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50 p-5">
           <div><legend className="text-sm font-bold text-slate-900">Prefill from last year</legend><p className="text-xs text-slate-500">Choose a previous question when this answer should be carried forward.</p></div>
           <label className={labelClass}>Previous question
-            <select value={form.carry} className={fieldClass} onChange={(event) => setForm((current) => ({ ...current, carry: event.target.value }))}>{questionOptions("No prefilled answer")}</select>
+            <select value={form.carry} disabled={Boolean(previous.error)} className={fieldClass} onChange={(event) => setForm((current) => ({ ...current, carry: event.target.value }))}>
+              <option value="">No prefilled answer</option>
+              {form.carry && !previous.questions.some(question => question.key === form.carry) && <option value={form.carry}>{form.carry} (existing mapping — source unavailable)</option>}
+              {previous.questions.map(question => <option key={question.key} value={question.key}>{question.year} · {question.key}: {question.prompt}</option>)}
+            </select>
+            {previous.error && <span role="alert" className="text-red-700">{previous.error}</span>}
+            {!previous.error && !previous.questions.length && <span className="font-normal normal-case tracking-normal">No questions from an earlier reporting year are available.</span>}
           </label>
         </fieldset>
         <fieldset className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50 p-5">

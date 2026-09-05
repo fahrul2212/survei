@@ -3,23 +3,11 @@ import { Mail, Play, Save, Send } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { Button, type Notice } from "../../components/ui";
 
+import { emailPlaceholders as allowed, validateEmailTemplate } from "../../../shared/email-template";
+import { EmailPreview } from "./EmailPreview";
+
 type TemplateKey = "invitation" | "reminder";
 type Template = { template_key: TemplateKey; subject_template: string; body_template: string; updated_at: string };
-
-const allowed: Record<TemplateKey, string[]> = {
-  invitation: ["full_name", "company_name", "action_url", "expires_at"],
-  reminder: ["company_name", "days_remaining", "survey_name", "status", "portal_url"],
-};
-
-function validate(template: Template): string | null {
-  const placeholders = Array.from(`${template.subject_template} ${template.body_template}`.matchAll(/{{\s*([a-z_]+)\s*}}/g), (match) => match[1]);
-  const invalid = placeholders.filter((placeholder) => !allowed[template.template_key].includes(placeholder));
-  if (invalid.length) return `Unsupported placeholder: {{${invalid[0]}}}`;
-  const requiredLink = template.template_key === "invitation" ? "action_url" : "portal_url";
-  if (!placeholders.includes(requiredLink)) return `The body must include {{${requiredLink}}}.`;
-  if (!template.subject_template.trim() || !template.body_template.trim()) return "Subject and message are required.";
-  return null;
-}
 
 export function EmailOperations({ setNotice, onDelivery }: { setNotice: (notice: Notice) => void; onDelivery: () => Promise<void> }) {
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -39,7 +27,7 @@ export function EmailOperations({ setNotice, onDelivery }: { setNotice: (notice:
 
   async function save(template: Template) {
     if (!supabase) return;
-    const problem = validate(template);
+    const problem = validateEmailTemplate(template.template_key, { subject: template.subject_template, body: template.body_template });
     if (problem) return setNotice({ kind: "error", message: problem });
     setBusy(`save-${template.template_key}`);
     const userId = (await supabase.auth.getUser()).data.user?.id;
@@ -72,7 +60,7 @@ export function EmailOperations({ setNotice, onDelivery }: { setNotice: (notice:
       <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
         <div><p className="text-xs font-bold uppercase tracking-wider text-slate-500">Email content and testing</p><h2 className="mt-0.5 text-base font-bold text-slate-900">Email templates</h2></div>
         <div className="flex flex-wrap gap-2">
-          <Button size="small" variant="secondary" icon={Send} disabled={busy !== null} onClick={() => void invoke("test")}>Send test</Button>
+          <Button size="small" variant="secondary" icon={Send} disabled={busy !== null} onClick={() => void invoke("test")}>Send saved reminder test</Button>
           <Button size="small" variant="secondary" icon={Play} disabled={busy !== null} onClick={() => void invoke("run")}>Run reminders now</Button>
         </div>
       </div>
@@ -83,6 +71,7 @@ export function EmailOperations({ setNotice, onDelivery }: { setNotice: (notice:
             <label className="grid gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">Subject<input value={template.subject_template} maxLength={200} onChange={(event) => change(template.template_key, "subject_template", event.target.value)} className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-normal normal-case tracking-normal text-slate-900 outline-none focus:border-[#d91f17] focus:ring-2 focus:ring-red-100" /></label>
             <label className="grid gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500">Message<textarea value={template.body_template} maxLength={5000} rows={8} onChange={(event) => change(template.template_key, "body_template", event.target.value)} className="resize-y rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-normal normal-case leading-6 tracking-normal text-slate-900 outline-none focus:border-[#d91f17] focus:ring-2 focus:ring-red-100" /></label>
             <p className="text-xs leading-5 text-slate-500">Available placeholders: {allowed[template.template_key].map((item) => `{{${item}}}`).join(", ")}</p>
+            <EmailPreview templateKey={template.template_key} template={{ subject: template.subject_template, body: template.body_template }} />
             <div className="flex justify-end"><Button size="small" type="submit" variant="secondary" icon={Save} disabled={busy !== null}>{busy === `save-${template.template_key}` ? "Saving…" : "Save template"}</Button></div>
           </form>
         ))}

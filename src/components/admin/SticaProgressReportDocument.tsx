@@ -307,30 +307,13 @@ export function SticaProgressReportDocument({
       {/* ══════════════════════════════════════════════════════════════════════
           PAGE 1: OFFICIAL STICA RED COVER (Matches PDF Page 1)
          ══════════════════════════════════════════════════════════════════════ */}
-      <section className="stica-report-cover relative flex min-h-[900px] flex-col justify-between overflow-hidden rounded-2xl bg-[#d91f17] p-8 text-white shadow-lg sm:p-14 md:min-h-[1050px] md:p-20 print:min-h-[297mm] print:rounded-none print:shadow-none">
-        {/* Background Globe Network Graphic (SVG styled after STICA cover) */}
-        <div className="pointer-events-none absolute inset-0 opacity-15" aria-hidden="true">
-          <svg className="h-full w-full" viewBox="0 0 800 800" fill="none" stroke="currentColor">
-            <circle cx="400" cy="400" r="280" strokeWidth="1.5" strokeDasharray="6 6" />
-            <circle cx="400" cy="400" r="200" strokeWidth="1.5" />
-            <ellipse cx="400" cy="400" rx="280" ry="110" strokeWidth="1.5" />
-            <ellipse cx="400" cy="400" rx="110" ry="280" strokeWidth="1.5" />
-            <line x1="120" y1="400" x2="680" y2="400" strokeWidth="1.5" />
-            <line x1="400" y1="120" x2="400" y2="680" strokeWidth="1.5" />
-            <path
-              d="M 220 280 Q 400 350 580 280 T 400 600 Z"
-              strokeWidth="2"
-              fill="none"
-              strokeLinecap="round"
-            />
-          </svg>
-        </div>
+      <section className="stica-report-cover relative flex min-h-[900px] flex-col justify-between overflow-hidden rounded-2xl bg-[#d91f17] p-8 text-white sm:p-14 md:min-h-[1050px] md:p-20 print:min-h-[297mm] print:rounded-none">
 
         {/* Top Branding */}
         <div className="relative z-10">
           <div className="flex items-center gap-4">
-            <div className="flex size-14 items-center justify-center rounded-xl bg-white/10 p-2.5 backdrop-blur-xs border border-white/20">
-              <Globe2 size={32} className="text-white" />
+            <div className="flex size-14 items-center justify-center rounded-xl border border-white bg-white p-2.5">
+              <Globe2 size={32} className="text-[#d91f17]" />
             </div>
             <div>
               <p className="text-sm font-extrabold uppercase tracking-[0.25em] text-white">
@@ -370,7 +353,7 @@ export function SticaProgressReportDocument({
 
         {/* Bottom White Emblem Badge & Publication Info (Matches PDF Page 1) */}
         <div className="relative z-10 flex flex-col justify-between gap-6 border-t border-white/25 pt-8 sm:flex-row sm:items-end">
-          <div className="rounded-xl bg-white p-5 text-slate-900 shadow-md">
+          <div className="rounded-xl bg-white p-5 text-slate-900">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#d91f17]">
               STICA Company Climate Action Program
             </p>
@@ -421,7 +404,7 @@ export function SticaProgressReportDocument({
         {/* Highlight KPI Grid (Styled after Page 6 of STICA PDF) */}
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {/* Card 1: Participation & Reporting */}
-          <article className="rounded-xl border border-slate-200 bg-slate-50/70 p-5">
+          <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Participation &amp; Reporting
             </span>
@@ -446,7 +429,7 @@ export function SticaProgressReportDocument({
           </article>
 
           {/* Card 2: Data Quality & Verification */}
-          <article className="rounded-xl border border-slate-200 bg-slate-50/70 p-5">
+          <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Data Quality &amp; Verification
             </span>
@@ -471,7 +454,7 @@ export function SticaProgressReportDocument({
           </article>
 
           {/* Card 3: Emissions Performance */}
-          <article className="rounded-xl border border-slate-200 bg-slate-50/70 p-5">
+          <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Emissions Performance
             </span>
@@ -546,7 +529,7 @@ export function SticaProgressReportDocument({
               {companyDisclosures.map((company, index) => (
                 <tr
                   key={company.slug}
-                  className={`transition-colors ${index % 2 === 1 ? "bg-slate-50/80" : "bg-white"} print-row`}
+                  className={`transition-colors ${index % 2 === 1 ? "bg-slate-50" : "bg-white"} print-row`}
                 >
                   <td className="p-3">
                     <strong className="block text-slate-900 font-bold">{company.name}</strong>
@@ -649,7 +632,7 @@ export function SticaProgressReportDocument({
                               return (
                                 <div
                                   key={rIdx}
-                                  className="rounded-lg border border-slate-200 bg-slate-50/60 p-3 text-xs"
+                                  className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs"
                                 >
                                   {!singleCompany && (
                                     <div className="mb-1 flex items-center justify-between text-slate-500">

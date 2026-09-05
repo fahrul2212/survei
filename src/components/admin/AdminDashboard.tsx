@@ -1,6 +1,23 @@
-import { useState, useMemo } from "react";
-import { ArrowRight, CheckCircle2, ClipboardList, Clock3, FileText, UsersRound } from "lucide-react";
-import { Button, DataTablePagination, EmptyState, PageContainer, PageHeader, ProgressBar, SearchField, StatusBadge } from "../ui";
+import { useState, useMemo, useEffect } from "react";
+import { monitoringSurvey } from "../../features/reporting/survey-state";
+import {
+  ArrowRight,
+  CheckCircle2,
+  ClipboardList,
+  Clock3,
+  FileText,
+  UsersRound,
+} from "lucide-react";
+import {
+  Button,
+  DataTablePagination,
+  EmptyState,
+  PageContainer,
+  PageHeader,
+  ProgressBar,
+  SearchField,
+  StatusBadge,
+} from "../ui";
 import type { Organization, ProgressRow, SurveyVersion } from "../../lib/portal";
 
 export function AdminDashboard({
@@ -27,8 +44,12 @@ export function AdminDashboard({
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
 
-  const activeSurveys = versions.filter((v) => v.status === "published");
-  const current = activeSurveys.find((v) => v.id === currentSurveyId) ?? activeSurveys[0];
+  const activeSurveys = versions.filter((v) => v.status !== "draft");
+  const current = monitoringSurvey(versions, currentSurveyId);
+  useEffect(() => {
+    setPage(0);
+    setDashStatusFilter("all");
+  }, [current?.id]);
   const currentRows = current ? rows.filter((r) => r.survey_version_id === current.id) : [];
 
   const filteredDashboardRows = useMemo(() => {
@@ -47,7 +68,9 @@ export function AdminDashboard({
   }, [currentRows, dashSearch, dashStatusFilter]);
 
   const submitted = currentRows.filter((r) => r.status === "submitted").length;
-  const inProgress = currentRows.filter((r) => r.status === "draft" || r.status === "reopened").length;
+  const inProgress = currentRows.filter(
+    (r) => r.status === "draft" || r.status === "reopened",
+  ).length;
   const notStarted = currentRows.filter((r) => r.status === "not_started").length;
 
   const totalPages = Math.max(1, Math.ceil(filteredDashboardRows.length / pageSize));
@@ -60,34 +83,59 @@ export function AdminDashboard({
       <PageHeader
         eyebrow="Platform administration"
         title="Reporting progress"
-        description={current ? `A clear view of company participation for the ${current.reporting_year} reporting cycle.` : "Create and publish a survey to start monitoring company participation."}
-        actions={<Button icon={ClipboardList} variant="primary" onClick={() => setView("surveys")}>{current ? "Manage survey" : "Create survey"}</Button>}
+        description={
+          current
+            ? `Company participation for ${current.reporting_year} · ${current.status === "closed" ? "Archived survey" : "Active survey"}.`
+            : "There is no active or archived reporting cycle. Draft surveys are available in the survey builder."
+        }
+        actions={
+          <Button icon={ClipboardList} variant="primary" onClick={() => setView("surveys")}>
+            Manage surveys
+          </Button>
+        }
       />
 
       {current && (
         <section className="mb-8 flex flex-col gap-4 rounded-xl border border-red-200 bg-red-50 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div className="flex items-start gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-red-200 bg-white text-[#d91f17]"><Clock3 size={19} aria-hidden="true" /></span>
+            <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-red-200 bg-white text-[#d91f17]">
+              <Clock3 size={19} aria-hidden="true" />
+            </span>
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-[#b81711]">Current reporting cycle</p>
-              <h2 className="mt-1 text-lg font-bold text-slate-900">{current.reporting_year} · {current.name}</h2>
-              <p className="mt-1 text-sm text-slate-600">{submitted} of {currentRows.length} companies have submitted.</p>
+              <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-[#b81711]">
+                {current.status === "closed"
+                  ? "Archived reporting cycle"
+                  : "Active reporting cycle"}
+              </p>
+              <h2 className="mt-1 text-lg font-bold text-slate-900">
+                {current.reporting_year} · {current.name}
+              </h2>
+              <p className="mt-1 text-sm text-slate-600">
+                {submitted} of {currentRows.length} companies have submitted.
+              </p>
             </div>
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-64">
             {activeSurveys.length > 1 && (
               <label className="grid gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                Active survey
+                Survey · active and archived
                 <select
                   className="min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold normal-case tracking-normal text-slate-900 outline-none focus:border-[#d91f17] focus:ring-2 focus:ring-red-100"
                   value={current?.id ?? ""}
                   onChange={(event) => onCurrentSurveyChange(Number(event.target.value))}
                 >
-                  {activeSurveys.map((survey) => <option key={survey.id} value={survey.id}>{survey.reporting_year} · {survey.name}</option>)}
+                  {activeSurveys.map((survey) => (
+                    <option key={survey.id} value={survey.id}>
+                      {survey.reporting_year} · {survey.name} (
+                      {survey.status === "closed" ? "Archived" : "Active"})
+                    </option>
+                  ))}
                 </select>
               </label>
             )}
-            <Button variant="secondary" onClick={() => setView("companies")}>Review companies <ArrowRight size={15} aria-hidden="true" /></Button>
+            <Button variant="secondary" onClick={() => setView("companies")}>
+              Review companies <ArrowRight size={15} aria-hidden="true" />
+            </Button>
           </div>
         </section>
       )}
@@ -95,28 +143,36 @@ export function AdminDashboard({
       <section className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
         <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 md:p-5">
           <UsersRound size={18} className="mb-3 text-slate-400" aria-hidden="true" />
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Companies</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Total Companies
+          </span>
           <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
             {orgs.filter((o) => o.is_active).length}
           </strong>
         </article>
         <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 md:p-5">
           <CheckCircle2 size={18} className="mb-3 text-emerald-600" aria-hidden="true" />
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Submitted</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Submitted
+          </span>
           <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
             {submitted}
           </strong>
         </article>
         <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 md:p-5">
           <Clock3 size={18} className="mb-3 text-blue-600" aria-hidden="true" />
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">In progress</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            In progress
+          </span>
           <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
             {inProgress}
           </strong>
         </article>
         <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 md:p-5">
           <ClipboardList size={18} className="mb-3 text-slate-400" aria-hidden="true" />
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Not started</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Not started
+          </span>
           <strong className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
             {notStarted}
           </strong>
@@ -126,7 +182,9 @@ export function AdminDashboard({
       <section className="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
         <div className="flex flex-col gap-4 border-b border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between md:p-5">
           <div>
-            <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">Company participation</p>
+            <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              Company participation
+            </p>
             <div className="flex items-center gap-2.5">
               <h3 className="text-lg font-bold text-slate-900">
                 {current ? `${current.reporting_year} reporting cycle` : "All companies"}
@@ -138,78 +196,104 @@ export function AdminDashboard({
               )}
             </div>
           </div>
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-            <SearchField
-              placeholder="Search company or email…"
-              value={dashSearch}
-              onChange={(e) => {
-                setDashSearch(e.target.value);
-                setPage(0);
-              }}
-              className="w-full sm:w-[260px]"
-            />
-            <Button variant="secondary" onClick={() => setView("data")}>
-              Export data
-            </Button>
-          </div>
+          {currentRows.length > 0 && (
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+              <SearchField
+                placeholder="Search company or email…"
+                value={dashSearch}
+                onChange={(e) => {
+                  setDashSearch(e.target.value);
+                  setPage(0);
+                }}
+                className="w-full sm:w-[260px]"
+              />
+              <Button variant="secondary" onClick={() => setView("data")}>
+                Export data
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Status Filter Tabs */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-slate-50/50 p-3.5 sm:p-4">
-          {[
-            ["all", `All (${currentRows.length})`],
-            ["submitted", `Submitted (${submitted})`],
-            ["in_progress", `In Progress (${inProgress})`],
-            ["not_started", `Not Started (${notStarted})`],
-          ].map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => {
-                setDashStatusFilter(key);
-                setPage(0);
-              }}
-              className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
-                dashStatusFilter === key
-                  ? "border border-slate-900 bg-slate-900 text-white shadow-sm"
-                  : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        {currentRows.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-slate-50 p-3.5 sm:p-4">
+            {[
+              ["all", `All (${currentRows.length})`],
+              ["submitted", `Submitted (${submitted})`],
+              ["in_progress", `In Progress (${inProgress})`],
+              ["not_started", `Not Started (${notStarted})`],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  setDashStatusFilter(key);
+                  setPage(0);
+                }}
+                className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                  dashStatusFilter === key
+                    ? "border border-slate-900 bg-slate-900 text-white shadow-sm"
+                    : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {filteredDashboardRows.length === 0 && currentRows.length === 0 ? (
-            <EmptyState
-              icon={ClipboardList}
-              title="No company progress yet"
-              description="Once a reporting cycle is published and companies begin responding, their progress will appear here."
-              action={<Button variant="primary" onClick={() => setView("companies")}>Review companies</Button>}
-            />
-          ) : (
-          <div className="overflow-x-auto text-sm text-slate-600" role="table" aria-label="Company reporting progress">
-            <div className="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1.1fr)_minmax(8rem,0.9fr)_7.5rem_13rem] items-center gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 md:grid" role="row">
+          <EmptyState
+            icon={ClipboardList}
+            title="No company progress yet"
+            description="Once a reporting cycle is published and companies begin responding, their progress will appear here."
+            action={
+              <Button variant="primary" onClick={() => setView("companies")}>
+                Review companies
+              </Button>
+            }
+          />
+        ) : (
+          <div
+            className="overflow-x-auto text-sm text-slate-600"
+            role="table"
+            aria-label="Company reporting progress"
+          >
+            <div
+              className="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1.1fr)_minmax(8rem,0.9fr)_7.5rem_13rem] items-center gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 md:grid"
+              role="row"
+            >
               <span role="columnheader">Company</span>
               <span role="columnheader">Contact</span>
               <span role="columnheader">Progress</span>
               <span role="columnheader">Status</span>
-              <span role="columnheader" className="text-right">Action</span>
+              <span role="columnheader" className="text-right">
+                Action
+              </span>
             </div>
             <div className="divide-y divide-slate-100" role="rowgroup">
               {pagedDashboardRows.map((r) => (
                 <article
                   key={`${r.organization_id}-${r.survey_version_id}`}
-                  className="flex flex-col gap-3 p-4 transition-colors hover:bg-slate-50/70 md:grid md:grid-cols-[minmax(0,1.3fr)_minmax(0,1.1fr)_minmax(8rem,0.9fr)_7.5rem_13rem] md:items-center md:gap-4 md:px-5 md:py-3.5"
+                  className="flex flex-col gap-3 p-4 transition-colors hover:bg-slate-50 md:grid md:grid-cols-[minmax(0,1.3fr)_minmax(0,1.1fr)_minmax(8rem,0.9fr)_7.5rem_13rem] md:items-center md:gap-4 md:px-5 md:py-3.5"
                   role="row"
                 >
                   {/* Company Name & Mobile Status */}
-                  <div className="flex min-w-0 items-start justify-between gap-3 md:block" role="cell">
+                  <div
+                    className="flex min-w-0 items-start justify-between gap-3 md:block"
+                    role="cell"
+                  >
                     <div className="min-w-0">
-                      <strong className="block truncate text-sm font-bold text-slate-900" title={r.organization_name}>
+                      <strong
+                        className="block truncate text-sm font-bold text-slate-900"
+                        title={r.organization_name}
+                      >
                         {r.organization_name}
                       </strong>
-                      <span className="mt-0.5 block truncate text-xs text-slate-500 md:hidden" title={r.contact_email ?? "Not set"}>
+                      <span
+                        className="mt-0.5 block truncate text-xs text-slate-500 md:hidden"
+                        title={r.contact_email ?? "Not set"}
+                      >
                         {r.contact_email ?? "No contact email"}
                       </span>
                     </div>
@@ -220,7 +304,10 @@ export function AdminDashboard({
 
                   {/* Desktop Contact Email */}
                   <div className="hidden min-w-0 md:block" role="cell">
-                    <span className="block truncate text-sm text-slate-600" title={r.contact_email ?? "Not set"}>
+                    <span
+                      className="block truncate text-sm text-slate-600"
+                      title={r.contact_email ?? "Not set"}
+                    >
                       {r.contact_email ?? "Not set"}
                     </span>
                   </div>
@@ -254,6 +341,12 @@ export function AdminDashboard({
                         <Button
                           size="small"
                           variant="ghost"
+                          disabled={current?.status !== "published"}
+                          title={
+                            current?.status === "closed"
+                              ? "Reopen the survey cycle before reopening an individual report."
+                              : "Allow this company to edit its submitted report"
+                          }
                           onClick={() => onReopen(r)}
                           className="text-xs text-slate-600 hover:text-slate-900"
                         >
@@ -261,13 +354,20 @@ export function AdminDashboard({
                         </Button>
                       </div>
                     ) : (
-                      <span className="hidden text-slate-300 md:inline md:pr-4" aria-label="No action available">—</span>
+                      <span
+                        className="hidden text-slate-300 md:inline md:pr-4"
+                        aria-label="No action available"
+                      >
+                        —
+                      </span>
                     )}
                   </div>
                 </article>
               ))}
               {filteredDashboardRows.length === 0 && (
-                <div className="p-8 text-center text-slate-500">No companies matching the filter.</div>
+                <div className="p-8 text-center text-slate-500">
+                  No companies matching the filter.
+                </div>
               )}
             </div>
             <DataTablePagination
@@ -280,7 +380,7 @@ export function AdminDashboard({
               itemName="companies"
             />
           </div>
-          )}
+        )}
       </section>
     </PageContainer>
   );

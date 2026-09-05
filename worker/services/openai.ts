@@ -51,6 +51,7 @@ export async function generateStructuredResponse<T>({
 }): Promise<{ content: T; usage: ProviderUsage }> {
   await requireSafeContent(apiKey, input, "input");
   const providerResponse = await fetch("https://api.openai.com/v1/responses", {
+    signal: AbortSignal.timeout(60_000),
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({

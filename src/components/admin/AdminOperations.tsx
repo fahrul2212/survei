@@ -101,7 +101,7 @@ export function AdminOperations({ versions, organizations, setNotice, onOpenSumm
 
       {/* Deadline reminder schedules */}
       <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
-        <div className="border-b border-slate-200 bg-slate-50/50 px-5 py-4 md:px-6">
+        <div className="border-b border-slate-200 bg-slate-50 px-5 py-4 md:px-6">
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Automated notification</p>
           <h2 className="mt-0.5 text-base font-bold text-slate-900">Deadline reminder schedules</h2>
         </div>
@@ -184,7 +184,7 @@ export function AdminOperations({ versions, organizations, setNotice, onOpenSumm
       {/* Registers */}
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
-          <div className="border-b border-slate-200 bg-slate-50/50 px-5 py-4">
+          <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
             <h2 className="text-base font-bold text-slate-900">Recent email delivery</h2>
             <p className="mt-0.5 text-xs text-slate-500">
               {failedCount ? `${failedCount} delivery failures need attention` : "Latest automated delivery attempts"}
@@ -223,7 +223,7 @@ export function AdminOperations({ versions, organizations, setNotice, onOpenSumm
         </section>
 
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
-          <div className="border-b border-slate-200 bg-slate-50/50 px-5 py-4">
+          <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
             <h2 className="text-base font-bold text-slate-900">Executive summary register</h2>
             <p className="mt-0.5 text-xs text-slate-500">Traceable drafts tied to submitted reporting snapshots</p>
           </div>
@@ -241,7 +241,7 @@ export function AdminOperations({ versions, organizations, setNotice, onOpenSumm
                 return (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between gap-4 px-5 py-3.5 transition-colors hover:bg-slate-50/70"
+                    className="flex items-center justify-between gap-4 px-5 py-3.5 transition-colors hover:bg-slate-50"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">

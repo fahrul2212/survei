@@ -65,9 +65,11 @@ export type AiSettingsUpdate = Omit<AiControlSettings, "provider" | "updatedAt">
 
 export type AiModelOption = {
   id: string;
-  pricing: (Pick<AiPricing, "inputPricePerMillionUsd" | "outputPricePerMillionUsd"> & {
-    verifiedAt: string;
-  }) | null;
+  pricing:
+    | (Pick<AiPricing, "inputPricePerMillionUsd" | "outputPricePerMillionUsd"> & {
+        verifiedAt: string;
+      })
+    | null;
 };
 
 export type AiModelsResponse = {
@@ -76,6 +78,8 @@ export type AiModelsResponse = {
 };
 
 export type SurveyAiResult = {
+  evidence: SurveyEvidence[];
+  charts: ComparisonChart[];
   content: {
     answer: string;
     key_findings: string[];
@@ -91,4 +95,29 @@ export type SurveyAiResult = {
     categories: string[];
     evidence_rows: number;
   };
+};
+
+export type SurveyEvidence = {
+  scope: string;
+  reporting_year: number;
+  survey_name: string;
+  survey_version_id: number;
+  question_key: string;
+  category: string;
+  prompt: string;
+  field?: string;
+  organization?: string;
+  answer?: unknown;
+  aggregate?: {
+    responses: number;
+    average?: number;
+    median?: number;
+    distribution?: Record<string, number>;
+  };
+};
+export type ComparisonChart = SurveyEvidence & {
+  comparison_key?: string;
+  unit?: string;
+  aggregate: NonNullable<SurveyEvidence["aggregate"]>;
+  companies: Array<{ name: string; value: unknown }>;
 };

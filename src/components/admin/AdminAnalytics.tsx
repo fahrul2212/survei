@@ -267,7 +267,7 @@ export function AdminAnalytics({
             </div>
             <div className="mt-5 grid gap-5 lg:grid-cols-2">
               {comparisonRows.map((comparison, index) => (
-                <article key={index} className="rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+                <article key={index} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                   <select
                     value={index === 0 ? firstOrganizationId : secondOrganizationId}
                     onChange={(event) =>
@@ -669,25 +669,25 @@ export function AdminAnalytics({
                     <h3 className="text-base font-bold text-slate-900">Numeric metrics across reporting cohort</h3>
                     <p className="mt-0.5 text-xs text-slate-500">Statistical aggregate of submitted numeric values</p>
                     <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                      <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                         <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Average value</span>
                         <strong className="mt-1 block text-2xl font-extrabold text-slate-900 tabular-nums">
                           {numericStats.avg.toLocaleString()}
                         </strong>
                       </div>
-                      <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                         <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Minimum</span>
                         <strong className="mt-1 block text-2xl font-extrabold text-slate-900 tabular-nums">
                           {numericStats.min.toLocaleString()}
                         </strong>
                       </div>
-                      <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                         <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Maximum</span>
                         <strong className="mt-1 block text-2xl font-extrabold text-slate-900 tabular-nums">
                           {numericStats.max.toLocaleString()}
                         </strong>
                       </div>
-                      <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                         <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Total reported</span>
                         <strong className="mt-1 block text-2xl font-extrabold text-slate-900 tabular-nums">
                           {numericStats.total.toLocaleString()}
@@ -699,7 +699,7 @@ export function AdminAnalytics({
 
                 {/* Company Drill-down Table */}
                 <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
-                  <div className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h3 className="text-base font-bold text-slate-900">Company responses</h3>
                       <p className="text-xs text-slate-500">Individual answers submitted by participating companies</p>
@@ -717,7 +717,7 @@ export function AdminAnalytics({
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-slate-600">
-                      <thead className="border-b border-slate-200 bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
                         <tr>
                           <th className="px-5 py-3">Company</th>
                           <th className="px-5 py-3">Status</th>
@@ -737,7 +737,7 @@ export function AdminAnalytics({
                             const valText = valueAsText(r.answer);
                             const hasVal = valText && valText !== "null";
                             return (
-                              <tr key={r.company_slug} className="transition-colors hover:bg-slate-50/60">
+                              <tr key={r.company_slug} className="transition-colors hover:bg-slate-50">
                                 <td className="px-5 py-3.5">
                                   <strong className="block text-sm font-bold text-slate-900">
                                     {r.company_name}

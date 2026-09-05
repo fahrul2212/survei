@@ -44,29 +44,20 @@ type SubmissionRow = {
 type PriorityAction = { source_question_ids?: number[] };
 type SummaryContent = { priority_actions?: PriorityAction[] } & Record<string, unknown>;
 
-function boundedValue(value: unknown, maximumCharacters = 6_000): unknown {
-  if (typeof value === "string") return value.slice(0, maximumCharacters);
-  if (typeof value === "number" || typeof value === "boolean" || value === null) return value;
-  const serialized = JSON.stringify(value);
-  if (!serialized) return null;
-  return serialized.length <= maximumCharacters ? value : `${serialized.slice(0, maximumCharacters)}…`;
-}
-
 function boundedEvidenceInput(survey: unknown, evidence: Array<Record<string, unknown>>, maximumCharacters = 120_000): string {
-  const accepted: Array<Record<string, unknown>> = [];
-  for (const item of evidence) {
-    const candidate = { ...item, answer: boundedValue(item.answer) };
-    const serialized = JSON.stringify({ survey, evidence: [...accepted, candidate] });
-    if (serialized.length > maximumCharacters) break;
-    accepted.push(candidate);
+  const serialized = JSON.stringify({ survey, evidence });
+  if (serialized.length > maximumCharacters) {
+    throw new ApiError(422,
+      "This report exceeds the summary context limit. Use the question explorer to analyze a smaller selection; no answers have been omitted.",
+      "scope_too_large");
   }
-  return JSON.stringify({ survey, evidence: accepted });
+  return serialized;
 }
 
 async function checkContributor(admin: SupabaseClient, caller: AuthenticatedCaller, organizationId: number): Promise<void> {
   if (caller.platformAdmin) return;
-  const { data, error } = await admin.from("organization_members").select("role")
-    .eq("organization_id", organizationId).eq("user_id", caller.user.id).maybeSingle();
+  const { data, error } = await admin.from("organization_members").select("role,organization:organizations!inner(is_active)")
+    .eq("organization_id", organizationId).eq("user_id", caller.user.id).eq("organization.is_active", true).maybeSingle();
   if (error) throw databaseError(error, "Unable to verify company access");
   if (!data || !["member", "company_admin"].includes(String(data.role))) {
     throw new ApiError(403, "Contributor access required", "contributor_required");

@@ -59,6 +59,7 @@ export function Shell({
   user,
   name,
   children,
+  beforeSignOut,
 }: {
   admin?: boolean;
   view: string;
@@ -67,6 +68,7 @@ export function Shell({
   user: User;
   name: string;
   children: ReactNode;
+  beforeSignOut?: () => Promise<boolean>;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
@@ -278,7 +280,7 @@ export function Shell({
             <button
               type="button"
               className="inline-flex h-9 items-center justify-center gap-2 rounded-lg px-2 text-[#d91f17] font-semibold transition-colors hover:bg-red-50 md:px-3"
-              onClick={() => void supabase?.auth.signOut()}
+              onClick={async () => { if (!beforeSignOut || await beforeSignOut()) await supabase?.auth.signOut(); }}
               aria-label="Sign out of portal"
               title="Sign out"
             >

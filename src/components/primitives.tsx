@@ -117,14 +117,14 @@ const statusClasses: Record<ReportingStatus, string> = {
   closed: "border-slate-200 bg-slate-100 text-slate-700",
 };
 
-export function StatusBadge({ status, inverse = false }: { status: ReportingStatus; inverse?: boolean }) {
+export function StatusBadge({ status, inverse = false, label }: { status: ReportingStatus; inverse?: boolean; label?: string }) {
   return (
     <span className={cn(
       "inline-flex w-fit self-start whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em]",
       inverse ? "border-white bg-white text-[#b81711]" : statusClasses[status],
     )}>
       <span aria-hidden="true" className={cn("size-1.5 rounded-full", inverse ? "bg-[#d91f17]" : status === "submitted" || status === "published" ? "bg-emerald-500" : status === "reopened" ? "bg-amber-500" : status === "draft" ? "bg-blue-500" : "bg-slate-400")} />
-      {statusLabels[status]}
+      {label ?? statusLabels[status]}
     </span>
   );
 }

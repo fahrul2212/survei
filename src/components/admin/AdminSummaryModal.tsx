@@ -192,7 +192,7 @@ export function AdminSummaryModal({
               {/* Insights: Strengths, Gaps, Notable Changes */}
               <div className="grid gap-5 md:grid-cols-3">
                 {/* Strengths */}
-                <article className="flex flex-col rounded-xl border border-emerald-200 bg-emerald-50/30 p-5">
+                <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <CheckCircle2 size={16} className="text-emerald-600" />
                     <h3 className="text-sm font-bold text-slate-900">Strengths</h3>
@@ -208,7 +208,7 @@ export function AdminSummaryModal({
                 </article>
 
                 {/* Evidence Gaps */}
-                <article className="flex flex-col rounded-xl border border-amber-200 bg-amber-50/30 p-5">
+                <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <AlertTriangle size={16} className="text-amber-600" />
                     <h3 className="text-sm font-bold text-slate-900">Evidence Gaps</h3>
@@ -224,7 +224,7 @@ export function AdminSummaryModal({
                 </article>
 
                 {/* Notable Changes */}
-                <article className="flex flex-col rounded-xl border border-blue-200 bg-blue-50/30 p-5">
+                <article className="flex flex-col rounded-xl border border-slate-200 bg-white p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <Sparkles size={16} className="text-blue-600" />
                     <h3 className="text-sm font-bold text-slate-900">Notable Changes</h3>

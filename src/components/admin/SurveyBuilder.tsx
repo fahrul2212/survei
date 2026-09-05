@@ -5,6 +5,7 @@ import { SurveyCyclesView } from "./survey-builder/SurveyCyclesView";
 import { SurveyWorkspaceView } from "./survey-builder/SurveyWorkspaceView";
 import type { SurveyBuilderProps } from "./survey-builder/types";
 import { useSurveyBuilder } from "./survey-builder/useSurveyBuilder";
+import { SurveyLifecycleDialog } from "./survey-builder/SurveyLifecycleDialog";
 
 export function SurveyBuilder(props: SurveyBuilderProps) {
   const controller = useSurveyBuilder(props);
@@ -21,6 +22,7 @@ export function SurveyBuilder(props: SurveyBuilderProps) {
         {views[controller.view]}
       </div>
       <DeleteQuestionDialog controller={controller} />
+      {controller.pendingLifecycle && <SurveyLifecycleDialog controller={controller} />}
     </>
   );
 }

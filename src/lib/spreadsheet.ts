@@ -1,5 +1,6 @@
 import type { ExportRow, JsonAnswer, SurveyQuestion } from "./portal";
-import { slugify, valueAsText } from "./portal";
+import { parseCsv, slugify, valueAsText } from "./portal";
+import { importBlock, matchQuestion } from "../../shared/survey-import";
 
 type Cell = {
   value: string | number;
@@ -138,7 +139,6 @@ export async function exportPivotXlsx(rows: ExportRow[], fileName: string): Prom
 
 export async function readImportWorkbook(file: File): Promise<unknown[][]> {
   if (file.name.toLowerCase().endsWith(".csv")) {
-    const { parseCsv } = await import("./portal");
     return parseCsv(await file.text());
   }
 
@@ -191,27 +191,7 @@ function answerForBlock(row: unknown[], subHeaders: unknown[], start: number, en
     if (!present(row[column])) continue;
     entries.push({ label: String(subHeaders[column] ?? "").trim(), value: row[column] });
   }
-  if (!entries.length) return null;
-  if (question.type === "number") {
-    const value = Number(entries[0].value);
-    return Number.isFinite(value) ? value : String(entries[0].value).trim();
-  }
-  if (question.type === "multiple_choice") {
-    const selected = entries.flatMap(({ label, value }) => {
-      const text = String(value).trim();
-      const marker = typeof value === "boolean" || /^(?:1|yes|true|selected|checked)$/i.test(text);
-      if (marker && label && !/^response$/i.test(label)) return [label];
-      return text.split(/\s*[;|]\s*/).filter(Boolean);
-    });
-    return Array.from(new Set(selected));
-  }
-  if (question.type === "textarea" && (end - start) > 1) {
-    return entries.map(({ label, value }) => `${label && !/^response$/i.test(label) ? `${label} ` : ""}${String(value).trim()}`).join("\n");
-  }
-  if (question.type === "yes_no" || question.type === "single_choice" || question.type === "date") {
-    return String(entries[0].value).trim();
-  }
-  return entries.map(({ value }) => String(value).trim()).join("\n");
+  return importBlock(entries, question);
 }
 
 export function parseSurveyMonkeyExport(matrix: unknown[][], questions: SurveyQuestion[]): SurveyMonkeyParseResult {
@@ -224,7 +204,8 @@ export function parseSurveyMonkeyExport(matrix: unknown[][], questions: SurveyQu
   if (starts.length !== questions.length) {
     throw new Error(`Question mapping stopped: the workbook contains ${starts.length} question blocks but the selected survey contains ${questions.length}. Choose the matching survey version.`);
   }
-  const orderedQuestions = [...questions].sort((left, right) => left.displayOrder - right.displayOrder);
+  const orderedQuestions = starts.map(start => matchQuestion(headers[start], questions));
+  if (new Set(orderedQuestions.map(question => question.id)).size !== questions.length) throw new Error("Duplicate question blocks detected. Review the workbook headers.");
   const firstEnd = starts[1] ?? headers.length;
   const companyColumn = Array.from({ length: firstEnd - starts[0] }, (_, offset) => starts[0] + offset)
     .find((column) => /^company:?$/i.test(String(subHeaders[column] ?? "").trim()));

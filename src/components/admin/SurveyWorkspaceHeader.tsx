@@ -38,7 +38,7 @@ export function SurveyWorkspaceHeader({
         meta={(
           <>
             <span>{questionCount} {questionCount === 1 ? "question" : "questions"}</span>
-            <StatusBadge status={version.status} />
+            <StatusBadge status={version.status} label={draft ? "Draft" : undefined} />
           </>
         )}
         actions={(
@@ -60,17 +60,17 @@ export function SurveyWorkspaceHeader({
                 onClick={onPublish}
                 title={empty ? "Add at least one question before publishing" : undefined}
               >
-                {busy ? "Publishing…" : "Publish survey"}
+                Publish survey
               </Button>
             )}
             {version.status === "published" && (
               <Button icon={XCircle} variant="danger" disabled={busy} onClick={onClose}>
-                {busy ? "Closing…" : "Close survey"}
+                Close survey
               </Button>
             )}
             {version.status === "closed" && (
               <Button icon={RotateCcw} variant="primary" disabled={busy} onClick={onReopen}>
-                {busy ? "Reopening…" : "Reopen survey"}
+                Reopen survey
               </Button>
             )}
           </>

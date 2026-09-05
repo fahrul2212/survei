@@ -44,7 +44,7 @@ export function DataTablePagination({
 
   return (
     <div
-      className={`flex flex-col items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/60 px-4 py-3 sm:flex-row sm:px-5 ${className}`}
+      className={`flex flex-col items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-4 py-3 sm:flex-row sm:px-5 ${className}`}
     >
       <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
         <span>

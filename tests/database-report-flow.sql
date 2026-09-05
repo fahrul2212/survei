@@ -1,0 +1,120 @@
+-- Run in the same transaction as the pending migration, then ROLLBACK.
+-- Only transaction-local synthetic records are written. No user communications.
+do $$
+declare
+  actor uuid := gen_random_uuid(); org bigint; other_org bigint;
+  survey bigint; other_survey bigint; definition bigint; revision bigint;
+  question bigint; other_question bigint; report bigint; foreign_report bigint;
+  result jsonb; failed boolean; affected integer;
+begin
+  perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
+  insert into auth.users(id, email, raw_app_meta_data, raw_user_meta_data)
+    values(actor, 'flow-test-' || actor || '@example.invalid', '{}', '{}');
+  insert into public.organizations(name,slug) values('Flow test', 'flow-' || actor) returning id into org;
+  insert into public.organizations(name,slug) values('Other flow test', 'other-flow-' || actor) returning id into other_org;
+  insert into public.organization_members(organization_id,user_id,role) values(org,actor,'member');
+  insert into public.survey_versions(reporting_year,name,status) values(2198,'Transaction-only flow test','draft') returning id into survey;
+  insert into public.survey_versions(reporting_year,name,status) values(2199,'Other transaction-only survey','draft') returning id into other_survey;
+  insert into public.question_definitions(stable_key,category) values('FLOWTEST-999991','Test') returning id into definition;
+  insert into public.question_revisions(question_id,revision_number,prompt,question_type)
+    values(definition,1,'Transaction-only answer','text') returning id into revision;
+  insert into public.survey_questions(survey_version_id,question_revision_id,display_order,section_key,section_title)
+    values(survey,revision,1,'test-page','Test page') returning id into question;
+  insert into public.survey_questions(survey_version_id,question_revision_id,display_order,section_key,section_title)
+    values(other_survey,revision,1,'test-page','Test page') returning id into other_question;
+  update public.survey_versions set status='published' where id in(survey,other_survey);
+  insert into public.company_submissions(organization_id,survey_version_id,created_by)
+    values(org,survey,actor) returning id into report;
+  insert into public.company_submissions(organization_id,survey_version_id,created_by)
+    values(other_org,survey,actor) returning id into foreign_report;
+  perform set_config('request.jwt.claims', jsonb_build_object('sub',actor,'role','authenticated','app_metadata','{}'::jsonb)::text, true);
+  set local role authenticated;
+  reset role;
+  update public.survey_versions set opens_at=statement_timestamp()+interval '1 day',closes_at=statement_timestamp()+interval '2 days' where id=survey;
+  set local role authenticated;
+  failed := false;
+  begin perform public.save_report_answer(report,question,'"Too early"',null,false);
+    exception when insufficient_privilege then failed := true; end;
+  assert failed, 'Future reporting window blocks answers';
+  assert not exists(select 1 from public.answers where submission_id=report), 'Rejected save rolls back answer insertion';
+  reset role;
+  update public.survey_versions set opens_at=statement_timestamp()-interval '2 days',closes_at=statement_timestamp()-interval '1 day' where id=survey;
+  set local role authenticated;
+  failed := false;
+  begin perform public.save_report_answer(report,question,'"Too late"',null,false);
+    exception when insufficient_privilege then failed := true; end;
+  assert failed, 'Expired reporting window blocks answers';
+  failed := false;
+  begin perform public.submit_submission(report);
+    exception when insufficient_privilege then failed := true; end;
+  assert failed, 'Expired reporting window blocks submission';
+  failed := false;
+  begin update public.company_submissions set current_section='bypass' where id=report;
+    exception when insufficient_privilege then failed := true; end;
+  assert failed, 'Direct edits cannot bypass the reporting deadline';
+  reset role;
+  update public.survey_versions set opens_at=null,closes_at=null where id=survey;
+  set local role authenticated;
+  result := public.save_report_answer(report,question,'"First edit"',null,false);
+  assert (result->>'edit_version')::int = 1, 'First save version';
+  result := public.save_report_answer(report,question,'"Second edit"',1,false);
+  assert (result->>'edit_version')::int = 2, 'Version advanced';
+  failed := false;
+  begin perform public.save_report_answer(report,question,'"Stale edit"',1,false);
+    exception when serialization_failure then failed := true; end;
+  assert failed, 'Stale edits must be rejected';
+  assert (select value = '"Second edit"'::jsonb from public.answers where submission_id=report), 'Conflict preserves saved answer';
+  failed := false;
+  begin perform public.save_report_answer(foreign_report,question,'"Foreign edit"',null,false);
+    exception when insufficient_privilege then failed := true; end;
+  assert failed, 'Other companies must be inaccessible';
+  failed := false;
+  begin perform public.save_report_answer(report,other_question,'"Wrong question"',null,false);
+    exception when invalid_parameter_value then failed := true; end;
+  assert failed, 'Questions must belong to report';
+  update public.answers set value='"Bypass"' where submission_id=report;
+  get diagnostics affected = row_count;
+  assert affected = 0, 'Direct company updates must not bypass version checks';
+  reset role;
+  update public.organization_members set role='viewer' where user_id=actor;
+  set local role authenticated;
+  failed := false;
+  begin perform public.save_report_answer(report,question,'"Viewer edit"',2,false);
+    exception when insufficient_privilege then failed := true; end;
+  assert failed, 'Viewers cannot write';
+  reset role;
+  update public.organization_members set role='member' where user_id=actor;
+  update public.answers set value='"Prior year"',provenance='prefilled',reviewed_at=null where submission_id=report;
+  set local role authenticated;
+  failed := false;
+  begin perform public.submit_submission(report);
+    exception when raise_exception then failed := true; end;
+  assert failed, 'Unreviewed prefill blocks submission';
+  result := public.save_report_answer(report,question,'"Prior year"',3,true);
+  assert result->>'provenance' = 'prefilled' and result->>'reviewed_at' is not null, 'Review retains source provenance';
+  assert (select current_section='test-page' from public.company_submissions where id=report), 'Resume page persisted';
+  result := public.save_report_answer(report,question,null,4,false);
+  assert (select value='null'::jsonb from public.answers where submission_id=report), 'Clearing answer is supported';
+  reset role;
+  update public.survey_versions set status='closed' where id=survey;
+  set local role authenticated;
+  failed := false;
+  begin perform public.save_report_answer(report,question,'"Closed edit"',5,false);
+    exception when insufficient_privilege then failed := true; end;
+  assert failed, 'Closed surveys cannot be edited';
+  failed := false;
+  begin perform public.submit_submission(report);
+    exception when insufficient_privilege then failed := true; end;
+  assert failed, 'Closed surveys cannot be submitted';
+  reset role;
+  update public.survey_versions set status='published' where id=survey;
+  set local role authenticated;
+  perform public.submit_submission(report);
+  failed := false;
+  begin perform public.save_report_answer(report,question,'"Late edit"',5,false);
+    exception when insufficient_privilege then failed := true; end;
+  assert failed, 'Submitted reports cannot be edited';
+  reset role;
+end;
+$$;
+select 'Report flow: all transactional assertions passed' as result;

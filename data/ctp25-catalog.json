@@ -1,0 +1,2303 @@
+{
+  "source": "https://www.surveymonkey.com/r/CTP25-copy",
+  "capturedAt": "2026-09-05",
+  "questionCount": 92,
+  "pageCount": 32,
+  "questions": [
+    {
+      "n": 1,
+      "stableKey": "CTP25-001",
+      "prompt": "Please provide us with the following contact information:",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266976",
+        "fields": [
+          {
+            "key": "Name",
+            "label": "Name:",
+            "type": "text",
+            "required": false
+          },
+          {
+            "key": "Company",
+            "label": "Company:",
+            "type": "text",
+            "required": false
+          },
+          {
+            "key": "Company Turnover (please specify currency)",
+            "label": "Company Turnover (please specify currency):",
+            "type": "text",
+            "required": false
+          },
+          {
+            "key": "Role / Title",
+            "label": "Role / Title:",
+            "type": "text",
+            "required": false
+          },
+          {
+            "key": "Email Address",
+            "label": "Email Address:",
+            "type": "email",
+            "required": false
+          },
+          {
+            "key": "Phone Number",
+            "label": "Phone Number:",
+            "type": "tel",
+            "required": false
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-01",
+      "sectionTitle": "Company information",
+      "category": "Company information",
+      "visibilityRule": {}
+    },
+    {
+      "n": 2,
+      "stableKey": "CTP25-002",
+      "prompt": "Please provide details for a secondary STICA contact person, if applicable (otherwise leave blank):",
+      "type": "textarea",
+      "options": [],
+      "required": false,
+      "validation": {
+        "sourceQuestionId": "300267045",
+        "fields": [
+          {
+            "key": "Name",
+            "label": "Name:",
+            "type": "text",
+            "required": false
+          },
+          {
+            "key": "Role / Title",
+            "label": "Role / Title:",
+            "type": "text",
+            "required": false
+          },
+          {
+            "key": "Email Address",
+            "label": "Email Address:",
+            "type": "email",
+            "required": false
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-01",
+      "sectionTitle": "Company information",
+      "category": "Company information",
+      "visibilityRule": {}
+    },
+    {
+      "n": 3,
+      "stableKey": "CTP25-003",
+      "prompt": "Company type (choose the most appropriate type):",
+      "type": "single_choice",
+      "options": [
+        "Brand (sell less than 5% other brands in addition to your own)",
+        "Retailer (you sell more than 5% of other brands in addition to your own)",
+        "Other (please specify):"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266982",
+        "comment": {
+          "label": "Other (please specify):",
+          "option": "Other (please specify):"
+        }
+      },
+      "sectionKey": "ctp25-page-01",
+      "sectionTitle": "Company information",
+      "category": "Company information",
+      "visibilityRule": {}
+    },
+    {
+      "n": 4,
+      "stableKey": "CTP25-004",
+      "prompt": "Company segment (check all that apply):",
+      "type": "multiple_choice",
+      "options": [
+        "Fashion",
+        "Outdoor",
+        "Sport",
+        "Workwear",
+        "Home interior",
+        "Other (please specify):"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266983",
+        "comment": {
+          "label": "Other (please specify):",
+          "option": "Other (please specify):"
+        }
+      },
+      "sectionKey": "ctp25-page-01",
+      "sectionTitle": "Company information",
+      "category": "Company information",
+      "visibilityRule": {}
+    },
+    {
+      "n": 5,
+      "stableKey": "CTP25-005",
+      "prompt": "Product category/segment (check all that apply):",
+      "type": "multiple_choice",
+      "options": [
+        "Soft goods (textile based apparel products and accessories)",
+        "Home textiles",
+        "Footwear",
+        "Hard goods (metals, plastics and non-textile based products)",
+        "Mixed gear (products with textiles and hard components)",
+        "Beauty",
+        "Other (please specify):"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266984",
+        "comment": {
+          "label": "Other (please specify):",
+          "option": "Other (please specify):"
+        }
+      },
+      "sectionKey": "ctp25-page-01",
+      "sectionTitle": "Company information",
+      "category": "Company information",
+      "visibilityRule": {}
+    },
+    {
+      "n": 6,
+      "stableKey": "CTP25-006",
+      "prompt": "How many people are employed by your company, according to the most recent data?",
+      "type": "text",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267066"
+      },
+      "sectionKey": "ctp25-page-01",
+      "sectionTitle": "Company information",
+      "category": "Company information",
+      "visibilityRule": {}
+    },
+    {
+      "n": 7,
+      "stableKey": "CTP25-007",
+      "prompt": "What year did your company join STICA?",
+      "type": "single_choice",
+      "options": [
+        "2019",
+        "2020",
+        "2021",
+        "2022",
+        "2023",
+        "2024",
+        "2025"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266985",
+        "presentation": "dropdown"
+      },
+      "sectionKey": "ctp25-page-01",
+      "sectionTitle": "Company information",
+      "category": "Company information",
+      "visibilityRule": {}
+    },
+    {
+      "n": 8,
+      "stableKey": "CTP25-008",
+      "prompt": "Regarding verification for Scopes 1 & 2, has your company obtained third-party assurance or verification of its GHG emissions inventory for Scopes 1 and 2 for your latest reported year? You can read more about third-party assurance here. Keep in mind, the spot checks currently provided by STICA for some members are not rigorous enough to qualify as third-party verification. Also, data quality checks by consultants (like Cemasys and Carbonfact, etc.) that help in GHG accounting are not considered third-party verification either.",
+      "type": "single_choice",
+      "options": [
+        "Yes, our company's total Scopes 1 & 2 GHG calculations have been verified through a reasonable assurance made by an accredited auditor",
+        "Yes, our company's total Scopes 1 & 2 GHG calculations have been verified through a limited assurance made by an accredited auditor",
+        "Yes, our company's total Scopes 1 & 2 GHG calculations have been verified through a third-party against ISO 14064-3",
+        "Yes, our company's total Scopes 1 & 2 GHG calculations have not been verified by a third-party, but our Scopes 1 & 2 target has been approved by the SBTi",
+        "Our company’s Scopes 1 & 2 GHG calculations will be verified by an independent third-party",
+        "Our company is considering Scopes 1 & 2 verification from a third-party",
+        "Our company is not considering Scopes 1 & 2 verification from a third-party at this time"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267046",
+        "references": [
+          {
+            "label": "here.",
+            "url": "https://carbonbetter.com/story/role-of-3rd-party-assurance/"
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-01",
+      "sectionTitle": "Company information",
+      "category": "Company information",
+      "visibilityRule": {}
+    },
+    {
+      "n": 9,
+      "stableKey": "CTP25-009",
+      "prompt": "Regarding verification of Scope 3 - has your company obtained third-party assurance or verification of its GHG emissions inventory for your latest reported year? You can read more about third-party assurance here. Keep in mind, the spot checks currently provided by STICA for some members are not rigorous enough to qualify as third-party verification. Also, data quality checks by consultants (like Cemasys and Carbonfact, etc.) that help in GHG accounting are not considered third-party verification either.",
+      "type": "single_choice",
+      "options": [
+        "Yes, our company's total Scope 3 GHG calculations have been verified through a reasonable assurance made by an accredited auditor",
+        "Yes, our company's total Scope 3 GHG calculations have been verified through a limited assurance made by an accredited auditor",
+        "Yes, our company's total Scope 3 GHG calculations have been verified through a third-party against ISO 14064-3",
+        "Yes, our company's total Scope 3 GHG calculations have not been verified by a third-party, but our Scopes 1 & 2 target has been approved by the SBTi",
+        "Our company has had some of our Scope 3 GHG emissions verified by an independent third-party (please clarify in more detail below)",
+        "Our company’s Scope 3 GHG calculations will be verified by an independent third-party",
+        "Our company is considering Scope 3 verification from a third-party",
+        "Our company is not considering Scope 3 verification from a third-party at this time"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266986",
+        "comment": {
+          "label": "If your company GHG emissions have only been partially verified, please explain further below (what % have been verified and why). If your calculations will be verified by an independent third-party, please specify by when."
+        },
+        "references": [
+          {
+            "label": "here",
+            "url": "https://carbonbetter.com/story/role-of-3rd-party-assurance/"
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-01",
+      "sectionTitle": "Company information",
+      "category": "Company information",
+      "visibilityRule": {}
+    },
+    {
+      "n": 10,
+      "stableKey": "CTP25-010",
+      "prompt": "Have you set a long-term net zero target?",
+      "type": "single_choice",
+      "options": [
+        "Yes, approved by the SBTi",
+        "No, but we have committed to setting a net zero target through the SBTi",
+        "Yes, we have set a long-term net zero target but not through the SBTi",
+        "Yes, we have set long-term net zero target but not through the standards mentioned above",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266987",
+        "comment": {
+          "label": "If you have set a net zero target, which year is your target? And how do you define net zero?"
+        }
+      },
+      "sectionKey": "ctp25-page-01",
+      "sectionTitle": "Company information",
+      "category": "Company information",
+      "visibilityRule": {}
+    },
+    {
+      "n": 11,
+      "stableKey": "CTP25-011",
+      "prompt": "Have you set land-related emissions targets?",
+      "type": "single_choice",
+      "options": [
+        "Yes, we have SBTi-approved Forest, Land and Agriculture Guidance (FLAG) targets",
+        "Yes, we have set targets using SBTi's FLAG definition but the targets are not yet approved",
+        "Yes, but not using SBTi's FLAG definition",
+        "No, but we have measured the land-related emissions",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266988"
+      },
+      "sectionKey": "ctp25-page-01",
+      "sectionTitle": "Company information",
+      "category": "Company information",
+      "visibilityRule": {}
+    },
+    {
+      "n": 12,
+      "stableKey": "CTP25-012",
+      "prompt": "Does your company measure your total emissions per product (check all that apply)?",
+      "type": "multiple_choice",
+      "options": [
+        "Yes, through LCAs",
+        "Yes, through EPDs",
+        "Yes, using other product-specific methodologies",
+        "Yes, as a KPI using our total company emissions per purchased product",
+        "Yes, as a KPI using our total company emissions per sold product",
+        "Yes, other",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266989"
+      },
+      "sectionKey": "ctp25-page-01",
+      "sectionTitle": "Company information",
+      "category": "Company information",
+      "visibilityRule": {}
+    },
+    {
+      "n": 13,
+      "stableKey": "CTP25-013",
+      "prompt": "Does your company publicly disclose how many items you purchased or sold during your financial year (reporting period)?",
+      "type": "single_choice",
+      "options": [
+        "Yes, we disclose how many items we purchased and sold",
+        "Yes, we disclose how many items we sold",
+        "Yes, we disclose how many items we purchased",
+        "No, we do not disclose this information"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267047"
+      },
+      "sectionKey": "ctp25-page-01",
+      "sectionTitle": "Company information",
+      "category": "Company information",
+      "visibilityRule": {}
+    },
+    {
+      "n": 14,
+      "stableKey": "CTP25-014",
+      "prompt": "Has your company finalized your climate action transition plan for Scopes 1 & 2?",
+      "type": "single_choice",
+      "options": [
+        "Completed and taking actions",
+        "Partially completed and taking actions",
+        "Development in progress and building a strategy",
+        "Not yet started (please specify by when you will start and by when it will be completed)"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266975",
+        "comment": {
+          "label": "Not yet started (please specify by when you will start and by when it will be completed)",
+          "option": "Not yet started (please specify by when you will start and by when it will be completed)"
+        }
+      },
+      "sectionKey": "ctp25-page-02",
+      "sectionTitle": "Climate Transition Plans",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 15,
+      "stableKey": "CTP25-015",
+      "prompt": "What is the time frame for your Scopes 1 & 2 transition plan (i.e. 2025, 2030, 2040)?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267043"
+      },
+      "sectionKey": "ctp25-page-02",
+      "sectionTitle": "Climate Transition Plans",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 16,
+      "stableKey": "CTP25-016",
+      "prompt": "Has your company finalized your climate action transition plan for Scope 3?",
+      "type": "single_choice",
+      "options": [
+        "Completed and taking actions",
+        "Partially completed and taking actions",
+        "Development in progress and building a strategy",
+        "Not yet started (please specify by when you will start and by when it will be completed)"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266990",
+        "comment": {
+          "label": "Not yet started (please specify by when you will start and by when it will be completed)",
+          "option": "Not yet started (please specify by when you will start and by when it will be completed)"
+        }
+      },
+      "sectionKey": "ctp25-page-02",
+      "sectionTitle": "Climate Transition Plans",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 17,
+      "stableKey": "CTP25-017",
+      "prompt": "What is the timeframe for your Scope 3 transition plan (i.e. 2025, 2030, 2040)?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267044"
+      },
+      "sectionKey": "ctp25-page-02",
+      "sectionTitle": "Climate Transition Plans",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 18,
+      "stableKey": "CTP25-018",
+      "prompt": "Is your company’s transition plan formally approved by either your owners, Board of Directors, CEO and/or senior management team?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266991",
+        "comment": {
+          "label": "If you answered yes, please specify who exactly has approved your plan. If you answered no, please explain why not and if you expect to have it approved, and by when."
+        }
+      },
+      "sectionKey": "ctp25-page-02",
+      "sectionTitle": "Climate Transition Plans",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 19,
+      "stableKey": "CTP25-019",
+      "prompt": "Has your company assigned board-level oversight (responsible for ensuring the development and implementation) of the climate transition plan?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No",
+        "Our oversight is structured in a different way (please explain below)"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266992",
+        "comment": {
+          "label": "Our oversight is structured in a different way (please explain below)",
+          "option": "Our oversight is structured in a different way (please explain below)"
+        }
+      },
+      "sectionKey": "ctp25-page-02",
+      "sectionTitle": "Climate Transition Plans",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 20,
+      "stableKey": "CTP25-020",
+      "prompt": "Does your organization's board have competence in climate issues?Addressing climate change requires specific expertise related to climate change and its impacts, and the potential direct and indirect effects on the business. Ensuring this capability exists within governance structures indicates an organization’s competence in delivering on its climate plan and increases the chance of success.",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266993",
+        "comment": {
+          "label": "If you answered yes, please explain below:"
+        }
+      },
+      "sectionKey": "ctp25-page-02",
+      "sectionTitle": "Climate Transition Plans",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 21,
+      "stableKey": "CTP25-021",
+      "prompt": "Does your company link executive pay and bonuses to decarbonization?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266994"
+      },
+      "sectionKey": "ctp25-page-02",
+      "sectionTitle": "Climate Transition Plans",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 22,
+      "stableKey": "CTP25-022",
+      "prompt": "Does your company publicly disclose how executive pay and bonuses are tied to decarbonization?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266995"
+      },
+      "sectionKey": "ctp25-page-03",
+      "sectionTitle": "Climate Transition Plans (cont.)",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 23,
+      "stableKey": "CTP25-023",
+      "prompt": "Is there a C-suite level person responsible for climate action in your company?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267048"
+      },
+      "sectionKey": "ctp25-page-04",
+      "sectionTitle": "Climate Transition Plans (cont.)",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 24,
+      "stableKey": "CTP25-024",
+      "prompt": "We want to know how confident you are in the transition plan you are working with. Are you currently using your transition plan to guide company strategic decisions and actions?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267049",
+        "sourcePromptAliases": [
+          "Are you currently using your transition plan to guide company strategic decisions and actions?"
+        ]
+      },
+      "sectionKey": "ctp25-page-04",
+      "sectionTitle": "Climate Transition Plans (cont.)",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 25,
+      "stableKey": "CTP25-025",
+      "prompt": "We want to know how confident you are in the transition plan you are working with. Are you currently using your transition plan to guide company financial decisions and actions?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267050"
+      },
+      "sectionKey": "ctp25-page-04",
+      "sectionTitle": "Climate Transition Plans (cont.)",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 26,
+      "stableKey": "CTP25-026",
+      "prompt": "Is your company projected to meet your Scopes 1 & 2 climate targets based on your current transition plan?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No (please specify below how much of an emissions gap remains, why, and what you will do to address this gap)"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267051",
+        "comment": {
+          "label": "No (please specify below how much of an emissions gap remains, why, and what you will do to address this gap)",
+          "option": "No (please specify below how much of an emissions gap remains, why, and what you will do to address this gap)"
+        }
+      },
+      "sectionKey": "ctp25-page-04",
+      "sectionTitle": "Climate Transition Plans (cont.)",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 27,
+      "stableKey": "CTP25-027",
+      "prompt": "Is your company projected to meet your Scope 3 climate targets based on your current transition plan?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No (please specify below how much of an emissions gap remains, why, and what you will do to address this gap)"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267052",
+        "comment": {
+          "label": "No (please specify below how much of an emissions gap remains, why, and what you will do to address this gap)",
+          "option": "No (please specify below how much of an emissions gap remains, why, and what you will do to address this gap)"
+        }
+      },
+      "sectionKey": "ctp25-page-04",
+      "sectionTitle": "Climate Transition Plans (cont.)",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 28,
+      "stableKey": "CTP25-028",
+      "prompt": "Does your company's financial growth plan align with your climate transition plan?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No (please explain further)"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267053",
+        "comment": {
+          "label": "No (please explain further)",
+          "option": "No (please explain further)"
+        }
+      },
+      "sectionKey": "ctp25-page-04",
+      "sectionTitle": "Climate Transition Plans (cont.)",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 29,
+      "stableKey": "CTP25-029",
+      "prompt": "Have you made your climate action transition plan publicly available (for instance, in your annual report, on your website, in other public communication channels?",
+      "type": "single_choice",
+      "options": [
+        "Yes, and it includes Scopes 1, 2 and 3",
+        "Only Scopes 1 & 2",
+        "Only Scope 3",
+        "No, but we plan to do so within the year",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267054",
+        "comment": {
+          "label": "If some or all of your plan is public please provide the link to this information here:"
+        }
+      },
+      "sectionKey": "ctp25-page-04",
+      "sectionTitle": "Climate Transition Plans (cont.)",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 30,
+      "stableKey": "CTP25-030",
+      "prompt": "Do you have a mechanism in place for stakeholders to provide feedback on your transition plan?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267055",
+        "comment": {
+          "label": "If you answered yes, please explain below. Which stakeholders have you consulted?"
+        }
+      },
+      "sectionKey": "ctp25-page-04",
+      "sectionTitle": "Climate Transition Plans (cont.)",
+      "category": "Climate Transition Plans",
+      "visibilityRule": {}
+    },
+    {
+      "n": 31,
+      "stableKey": "CTP25-031",
+      "prompt": "Does your organization have a process for identifying, assessing, and responding to climate-related impacts, risks and opportunities?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266977"
+      },
+      "sectionKey": "ctp25-page-05",
+      "sectionTitle": "Climate Related Risk Assessment",
+      "category": "Climate Related Risk Assessment",
+      "visibilityRule": {}
+    },
+    {
+      "n": 32,
+      "stableKey": "CTP25-032",
+      "prompt": "Which risk and/or opportunity types are considered in your organization's climate-related risk assessments (check all that apply)?",
+      "type": "multiple_choice",
+      "options": [
+        "Transition risks (e.g. carbon pricing, changing consumer preferences etc.)",
+        "Physical risks (e.g. more extreme weather events)",
+        "Opportunities (e.g. resource efficiency, new product lines and/or business models)",
+        "Other"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266978",
+        "comment": {
+          "label": "Please feel free to expand on your answer here, especially if you answered Other:"
+        }
+      },
+      "sectionKey": "ctp25-page-06",
+      "sectionTitle": "Climate Related Risk Assessment (cont.)",
+      "category": "Climate Related Risk Assessment",
+      "visibilityRule": {}
+    },
+    {
+      "n": 33,
+      "stableKey": "CTP25-033",
+      "prompt": "Did your company publicly report on climate-related governance, risk management, strategy and metrics and targets in your latest Annual Report (or comparable) (check all that apply)?",
+      "type": "multiple_choice",
+      "options": [
+        "We reported on climate-related governance",
+        "We reported on climate risk management",
+        "We reported on our climate strategy",
+        "We reported on climate related metrics and targets",
+        "No, we have not reported on these areas"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266979",
+        "comment": {
+          "label": "Please feel free to expand on your answer here, especially if you answered No:"
+        }
+      },
+      "sectionKey": "ctp25-page-07",
+      "sectionTitle": "Climate Related Risk Assessment (cont.)",
+      "category": "Climate Related Risk Assessment",
+      "visibilityRule": {}
+    },
+    {
+      "n": 34,
+      "stableKey": "CTP25-034",
+      "prompt": "Does your company have clearly defined KPIs and “SMART” targets to manage the key/material climate-related risks that have been approved by your Senior Management Team (or comparable)?",
+      "type": "single_choice",
+      "options": [
+        "Yes, fully (i.e. for all material climate-related risks and opportunities)",
+        "Yes, partially (i.e. for some, but not all, material climate-related risks and opportunities)",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266980"
+      },
+      "sectionKey": "ctp25-page-07",
+      "sectionTitle": "Climate Related Risk Assessment (cont.)",
+      "category": "Climate Related Risk Assessment",
+      "visibilityRule": {}
+    },
+    {
+      "n": 35,
+      "stableKey": "CTP25-035",
+      "prompt": "What actions have you taken or do you plan to take to reduce your Scopes 1 & 2 emissions (check all that apply)?",
+      "type": "multiple_choice",
+      "options": [
+        "Improved energy efficiency at owned/operated facilities",
+        "Produced or procured renewable electricity (and/or renewable energy credits) for our owned or operated facilities",
+        "Reduced fuel consumption of owned or operated vehicles or other alternatives",
+        "Electrification of vehicles",
+        "Reduced onsite use of fuels through electrification or other energy sources for owned or operated facilities",
+        "Procured the renewable fuels (i.e, biogas) for on-site use at our facilities",
+        "Adopted the use of refrigerants with low global warming potential (GWP) at our owned or operated facilities",
+        "Other (please specify below)",
+        "None of the above"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266996",
+        "comment": {
+          "label": "Other (please specify below)",
+          "option": "Other (please specify below)"
+        }
+      },
+      "sectionKey": "ctp25-page-08",
+      "sectionTitle": "Scopes 1 & 2 Emissions",
+      "category": "Scopes 1 & 2 Emissions",
+      "visibilityRule": {}
+    },
+    {
+      "n": 36,
+      "stableKey": "CTP25-036",
+      "prompt": "In regards to Scopes 1 & 2, has your company quantified how much emission reductions you hope to achieve per action, and set a timeline/deadline for each action?",
+      "type": "single_choice",
+      "options": [
+        "Yes, we have quantified the emission reduction potential per action, set a timeline/deadline for each action",
+        "Yes, we have quantified the emission reduction potential per action, and set timelines/deadlines for only some of the action areas",
+        "We have quantified the emission reduction potential per action only",
+        "No, we have not done any of the above for Scopes 1 & 2"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266997"
+      },
+      "sectionKey": "ctp25-page-08",
+      "sectionTitle": "Scopes 1 & 2 Emissions",
+      "category": "Scopes 1 & 2 Emissions",
+      "visibilityRule": {}
+    },
+    {
+      "n": 37,
+      "stableKey": "CTP25-037",
+      "prompt": "Has your company set a target for sourcing 100% renewable electricity in Scope 2 by 2030?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266998"
+      },
+      "sectionKey": "ctp25-page-08",
+      "sectionTitle": "Scopes 1 & 2 Emissions",
+      "category": "Scopes 1 & 2 Emissions",
+      "visibilityRule": {}
+    },
+    {
+      "n": 38,
+      "stableKey": "CTP25-038",
+      "prompt": "What actions have you taken or do you plan to take to reduce your company’s Scope 3 emissions (select all that are relevant)?",
+      "type": "multiple_choice",
+      "options": [
+        "Engaging suppliers to support them in measuring their GHG emissions",
+        "Engaging suppliers to support them in setting GHG targets",
+        "Engaging with suppliers to support them in implementing energy efficiency measures",
+        "Engaging with suppliers to support them in implementing renewable energy",
+        "Helping / demanding relevant suppliers phase out coal",
+        "Engaging suppliers to support them in implementing cleaner thermal processes (i.e. electrification, more sustainable biomass)",
+        "Increasing materials with lower GHG profiles",
+        "Reducing the GHG impacts of our packaging",
+        "Reducing the impacts of inbound distribution (transportation models, logistic, packing density)",
+        "Reducing the impacts of outbound distribution (transportation models, logistics, packing density)",
+        "Implementing circular business models",
+        "Decreasing volumes of new products",
+        "Other (please specify below)",
+        "None (we have not taken any actions yet)"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266999",
+        "comment": {
+          "label": "Other (please specify below)",
+          "option": "Other (please specify below)"
+        }
+      },
+      "sectionKey": "ctp25-page-09",
+      "sectionTitle": "Scope 3 Emissions",
+      "category": "Scope 3 Emissions",
+      "visibilityRule": {}
+    },
+    {
+      "n": 39,
+      "stableKey": "CTP25-039",
+      "prompt": "In regards to Scope 3, has your company quantified how much emission reductions you hope to achieve per action, and set a timeline/deadline for each action?",
+      "type": "single_choice",
+      "options": [
+        "Yes, we have quantified the emission reduction potential per action, and set a timeline/deadline for each action",
+        "Yes, we have quantified the emission reduction potential per action, and set timelines/deadlines for only some of the action areas",
+        "We have quantified the emission reduction potential per action only",
+        "No, we have not done any of the above for Scope 3"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267000"
+      },
+      "sectionKey": "ctp25-page-09",
+      "sectionTitle": "Scope 3 Emissions",
+      "category": "Scope 3 Emissions",
+      "visibilityRule": {}
+    },
+    {
+      "n": 40,
+      "stableKey": "CTP25-040",
+      "prompt": "Does your company disclose your suppliers list publicly?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "Partially",
+        "No"
+      ],
+      "required": false,
+      "validation": {
+        "sourceQuestionId": "300267064",
+        "comment": {
+          "label": "If you disclose it, please provide link to supplier list:"
+        }
+      },
+      "sectionKey": "ctp25-page-10",
+      "sectionTitle": "Supplier Engagement",
+      "category": "Supplier Engagement",
+      "visibilityRule": {}
+    },
+    {
+      "n": 41,
+      "stableKey": "CTP25-041",
+      "prompt": "Do you specify the tier level for these suppliers?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "Partially",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267065",
+        "comment": {
+          "label": "Feel free to expand on your answer here:"
+        }
+      },
+      "sectionKey": "ctp25-page-11",
+      "sectionTitle": "Supplier Engagement (cont.)",
+      "category": "Supplier Engagement",
+      "visibilityRule": {}
+    },
+    {
+      "n": 42,
+      "stableKey": "CTP25-042",
+      "prompt": "What % of your company’s purchased volume (pcs) comes from suppliers that measure GHG emissions at the facility level, set targets, and/or have action plans?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300266981",
+        "presentation": "matrix",
+        "fields": [
+          {
+            "key": "Tier 1 Suppliers",
+            "label": "Tier 1 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 2 Suppliers",
+            "label": "Tier 2 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 3 Suppliers",
+            "label": "Tier 3 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 4 Suppliers",
+            "label": "Tier 4 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-12",
+      "sectionTitle": "Supplier Engagement (cont.)",
+      "category": "Supplier Engagement",
+      "visibilityRule": {}
+    },
+    {
+      "n": 43,
+      "stableKey": "CTP25-043",
+      "prompt": "What % of your company’s purchased volume (pcs) comes from suppliers actively implementing decarbonisation actions (that is doing more than measuring, target setting and planning)?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267001",
+        "presentation": "matrix",
+        "fields": [
+          {
+            "key": "Tier 1 Suppliers",
+            "label": "Tier 1 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 2 Suppliers",
+            "label": "Tier 2 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 3 Suppliers",
+            "label": "Tier 3 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 4 Suppliers",
+            "label": "Tier 4 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-12",
+      "sectionTitle": "Supplier Engagement (cont.)",
+      "category": "Supplier Engagement",
+      "visibilityRule": {}
+    },
+    {
+      "n": 44,
+      "stableKey": "CTP25-044",
+      "prompt": "What % of your company’s purchased volume (pcs) comes from suppliers you collect primary climate data from?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267002",
+        "presentation": "matrix",
+        "fields": [
+          {
+            "key": "Tier 1 Suppliers",
+            "label": "Tier 1 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 2 Suppliers",
+            "label": "Tier 2 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 3 Suppliers",
+            "label": "Tier 3 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 4 Suppliers",
+            "label": "Tier 4 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-12",
+      "sectionTitle": "Supplier Engagement (cont.)",
+      "category": "Supplier Engagement",
+      "visibilityRule": {}
+    },
+    {
+      "n": 45,
+      "stableKey": "CTP25-045",
+      "prompt": "What % of your company’s purchased volume (pcs) comes from suppliers with contracts with your company that include climate related requirements?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267056",
+        "presentation": "matrix",
+        "fields": [
+          {
+            "key": "Tier 1 Suppliers",
+            "label": "Tier 1 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 2 Suppliers",
+            "label": "Tier 2 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 3 Suppliers",
+            "label": "Tier 3 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 4 Suppliers",
+            "label": "Tier 4 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-12",
+      "sectionTitle": "Supplier Engagement (cont.)",
+      "category": "Supplier Engagement",
+      "visibilityRule": {}
+    },
+    {
+      "n": 46,
+      "stableKey": "CTP25-046",
+      "prompt": "What % of your company’s purchased volume (pcs) comes from suppliers with contracts with your company that include economic/financial incentives for climate action?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267057",
+        "presentation": "matrix",
+        "fields": [
+          {
+            "key": "Tier 1 Suppliers",
+            "label": "Tier 1 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 2 Suppliers",
+            "label": "Tier 2 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 3 Suppliers",
+            "label": "Tier 3 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          },
+          {
+            "key": "Tier 4 Suppliers",
+            "label": "Tier 4 Suppliers:",
+            "type": "select",
+            "options": [
+              "0%",
+              "1-25%",
+              "26-50%",
+              "51-75%",
+              "76-100%",
+              "Don't know / No data available yet"
+            ]
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-12",
+      "sectionTitle": "Supplier Engagement (cont.)",
+      "category": "Supplier Engagement",
+      "visibilityRule": {}
+    },
+    {
+      "n": 47,
+      "stableKey": "CTP25-047",
+      "prompt": "Has your company set an official public target to phase out coal-fired boilers from relevant suppliers as soon as possible, and at the latest by 2030?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267003",
+        "comment": {
+          "label": "If you answered yes, please specify which Tiers are included and what fuel will be used as an alternative (gas, biomass, electrification, etc)?"
+        }
+      },
+      "sectionKey": "ctp25-page-12",
+      "sectionTitle": "Supplier Engagement (cont.)",
+      "category": "Supplier Engagement",
+      "visibilityRule": {}
+    },
+    {
+      "n": 48,
+      "stableKey": "CTP25-048",
+      "prompt": "Does your company publicly disclose how incentives for supppliers are tied to decarabonization, such as longer-term commitments and contracts, increased orders, price premiums?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267058"
+      },
+      "sectionKey": "ctp25-page-12",
+      "sectionTitle": "Supplier Engagement (cont.)",
+      "category": "Supplier Engagement",
+      "visibilityRule": {}
+    },
+    {
+      "n": 49,
+      "stableKey": "CTP25-049",
+      "prompt": "What are currently the biggest challenges for ensuring your suppliers are engaged in climate action at the pace and scale that is needed (list a maximum of three challenges)?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267004",
+        "fields": [
+          {
+            "key": "#1",
+            "label": "#1",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "#2",
+            "label": "#2",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "#3",
+            "label": "#3",
+            "type": "text",
+            "required": true
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-12",
+      "sectionTitle": "Supplier Engagement (cont.)",
+      "category": "Supplier Engagement",
+      "visibilityRule": {}
+    },
+    {
+      "n": 50,
+      "stableKey": "CTP25-050",
+      "prompt": "Are you a retailer (i.e. you sell other brands in addition to your own)?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267005",
+        "comment": {
+          "label": "If you are a retailer, what % of your sales are from selling other brands?"
+        }
+      },
+      "sectionKey": "ctp25-page-13",
+      "sectionTitle": "The following questions are for retailers only",
+      "category": "The following questions are for retailers only",
+      "visibilityRule": {}
+    },
+    {
+      "n": 51,
+      "stableKey": "CTP25-051",
+      "prompt": "Does your climate action transition plan include a strategy for ensuring current or future external brands meet your requirements for climate action?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267006"
+      },
+      "sectionKey": "ctp25-page-14",
+      "sectionTitle": "For Retailers",
+      "category": "For Retailers",
+      "visibilityRule": {}
+    },
+    {
+      "n": 52,
+      "stableKey": "CTP25-052",
+      "prompt": "Have you set climate action reduction targets for the external brands you are selling (for instance, do they need to set climate targets in order to sell on your platform, and/or by what % they should reduce their emissions in order to sell through your platform)?",
+      "type": "single_choice",
+      "options": [
+        "No",
+        "Yes (briefly clarify what specific targets you have set for external brands and why)"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267007",
+        "comment": {
+          "label": "Yes (briefly clarify what specific targets you have set for external brands and why)",
+          "option": "Yes (briefly clarify what specific targets you have set for external brands and why)"
+        }
+      },
+      "sectionKey": "ctp25-page-14",
+      "sectionTitle": "For Retailers",
+      "category": "For Retailers",
+      "visibilityRule": {}
+    },
+    {
+      "n": 53,
+      "stableKey": "CTP25-053",
+      "prompt": "What are currently the biggest challenges for ensuring sufficient climate action from the external brands you work with (list a maximum of three challenges)?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267008",
+        "fields": [
+          {
+            "key": "#1",
+            "label": "#1",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "#2",
+            "label": "#2",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "#3",
+            "label": "#3",
+            "type": "text",
+            "required": true
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-14",
+      "sectionTitle": "For Retailers",
+      "category": "For Retailers",
+      "visibilityRule": {}
+    },
+    {
+      "n": 54,
+      "stableKey": "CTP25-054",
+      "prompt": "Does your climate transition plan include a plan for sourcing materials that have a lower climate impact than conventional materials?",
+      "type": "single_choice",
+      "options": [
+        "No",
+        "Yes (As you know, basing this strategy on material profiles using global average data can be misleading. Briefly explain how your company defines lower climate impact materials.)"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267009",
+        "comment": {
+          "label": "Yes (As you know, basing this strategy on material profiles using global average data can be misleading. Briefly explain how your company defines lower climate impact materials.)",
+          "option": "Yes (As you know, basing this strategy on material profiles using global average data can be misleading. Briefly explain how your company defines lower climate impact materials.)"
+        }
+      },
+      "sectionKey": "ctp25-page-15",
+      "sectionTitle": "Materials Strategy",
+      "category": "Materials Strategy",
+      "visibilityRule": {}
+    },
+    {
+      "n": 55,
+      "stableKey": "CTP25-055",
+      "prompt": "Does your climate transition plan include targets for sourcing materials that have a lower climate impact than conventional materials?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267010"
+      },
+      "sectionKey": "ctp25-page-15",
+      "sectionTitle": "Materials Strategy",
+      "category": "Materials Strategy",
+      "visibilityRule": {}
+    },
+    {
+      "n": 56,
+      "stableKey": "CTP25-056",
+      "prompt": "What are currently the biggest challenges for sourcing lower climate impact materials at the pace and scale that is needed (list a maximum of three challenges)?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267011",
+        "fields": [
+          {
+            "key": "#1",
+            "label": "#1",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "#2",
+            "label": "#2",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "#3",
+            "label": "#3",
+            "type": "text",
+            "required": true
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-15",
+      "sectionTitle": "Materials Strategy",
+      "category": "Materials Strategy",
+      "visibilityRule": {}
+    },
+    {
+      "n": 57,
+      "stableKey": "CTP25-057",
+      "prompt": "Does your climate transition plan include sourcing transportation that has a lower climate impact (train, boat, electric vehicles, etc.) and/or include other strategies for reducing emissions in transportation?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267012"
+      },
+      "sectionKey": "ctp25-page-16",
+      "sectionTitle": "Transportation",
+      "category": "Transportation",
+      "visibilityRule": {}
+    },
+    {
+      "n": 58,
+      "stableKey": "CTP25-058",
+      "prompt": "Does your climate transition plan include a target for sourcing transportation that has a lower climate impact (train, boat, electric vehicles, etc)?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267013",
+        "comment": {
+          "label": "If you answered yes, please feel free to specify your target here:"
+        }
+      },
+      "sectionKey": "ctp25-page-16",
+      "sectionTitle": "Transportation",
+      "category": "Transportation",
+      "visibilityRule": {}
+    },
+    {
+      "n": 59,
+      "stableKey": "CTP25-059",
+      "prompt": "What are currently the biggest challenges for reducing the carbon footprint of your transportation (list a maximum of three challenges)?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267014",
+        "fields": [
+          {
+            "key": "#1",
+            "label": "#1",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "#2",
+            "label": "#2",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "#3",
+            "label": "#3",
+            "type": "text",
+            "required": true
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-16",
+      "sectionTitle": "Transportation",
+      "category": "Transportation",
+      "visibilityRule": {}
+    },
+    {
+      "n": 60,
+      "stableKey": "CTP25-060",
+      "prompt": "Circular business models can be an important way for your company to decouple business growth from resource consumption and GHG emissions. Are circular business models (repair, re-sale, rental) included in your transition plan?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267015"
+      },
+      "sectionKey": "ctp25-page-17",
+      "sectionTitle": "Circular Business Models",
+      "category": "Circular Business Models",
+      "visibilityRule": {}
+    },
+    {
+      "n": 61,
+      "stableKey": "CTP25-061",
+      "prompt": "More specifically, which of the following circular business models are included in your climate transition plan (check all that apply)?",
+      "type": "multiple_choice",
+      "options": [
+        "Repair services",
+        "Buying back or facilitating the use OR resale of used products",
+        "Offering product leasing or subscription services",
+        "Other (please specify)"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267016",
+        "comment": {
+          "label": "Other (please specify)",
+          "option": "Other (please specify)"
+        }
+      },
+      "sectionKey": "ctp25-page-18",
+      "sectionTitle": "Circular Business Models (cont.)",
+      "category": "Circular Business Models",
+      "visibilityRule": {}
+    },
+    {
+      "n": 62,
+      "stableKey": "CTP25-062",
+      "prompt": "What % of your business revenue is projected to come from circular business models by 2030 (choose one)?",
+      "type": "single_choice",
+      "options": [
+        "0%",
+        "1-5%",
+        "6 -10%",
+        "11-20%",
+        "21-30%",
+        "More than 30%",
+        "We do not know at this time"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267017"
+      },
+      "sectionKey": "ctp25-page-19",
+      "sectionTitle": "Circular Business Models (cont.)",
+      "category": "Circular Business Models",
+      "visibilityRule": {}
+    },
+    {
+      "n": 63,
+      "stableKey": "CTP25-063",
+      "prompt": "To date, has your company launched one or more circular business initiatives?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267018"
+      },
+      "sectionKey": "ctp25-page-19",
+      "sectionTitle": "Circular Business Models (cont.)",
+      "category": "Circular Business Models",
+      "visibilityRule": {}
+    },
+    {
+      "n": 64,
+      "stableKey": "CTP25-064",
+      "prompt": "What are currently the biggest challenges for implementing circular business models at the pace and scale that is needed (list a maximum of three challenges)?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267019",
+        "fields": [
+          {
+            "key": "#1",
+            "label": "#1",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "#2",
+            "label": "#2",
+            "type": "text",
+            "required": true
+          },
+          {
+            "key": "#3",
+            "label": "#3",
+            "type": "text",
+            "required": true
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-19",
+      "sectionTitle": "Circular Business Models (cont.)",
+      "category": "Circular Business Models",
+      "visibilityRule": {}
+    },
+    {
+      "n": 65,
+      "stableKey": "CTP25-065",
+      "prompt": "Does your company measure the GHGs resulting from the use of your company’s products and services on an annual basis?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267020"
+      },
+      "sectionKey": "ctp25-page-20",
+      "sectionTitle": "Customer Use",
+      "category": "Customer Use",
+      "visibilityRule": {}
+    },
+    {
+      "n": 66,
+      "stableKey": "CTP25-066",
+      "prompt": "What KPIs do you use to measure the GHGs created during the user phase (for example, how many times the product is worn or washed) and/or what methodology do you use to estimate the climate impact of your company's products during customer use (for example, using the HIGG product module tool, using the PEF approach, etc)?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267021"
+      },
+      "sectionKey": "ctp25-page-21",
+      "sectionTitle": "Customer Use (cont.)",
+      "category": "Customer Use",
+      "visibilityRule": {}
+    },
+    {
+      "n": 67,
+      "stableKey": "CTP25-067",
+      "prompt": "How do you collect data regarding the use of your garments (select all that apply)?",
+      "type": "multiple_choice",
+      "options": [
+        "QR codes",
+        "RFID tags",
+        "Other solutions (please specify below)",
+        "We do not currently collect data"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267022",
+        "comment": {
+          "label": "Other solutions (please specify below)",
+          "option": "Other solutions (please specify below)"
+        }
+      },
+      "sectionKey": "ctp25-page-22",
+      "sectionTitle": "Customer Use (cont.)",
+      "category": "Customer Use",
+      "visibilityRule": {}
+    },
+    {
+      "n": 68,
+      "stableKey": "CTP25-068",
+      "prompt": "Does your company measure product longevity?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267023"
+      },
+      "sectionKey": "ctp25-page-22",
+      "sectionTitle": "Customer Use (cont.)",
+      "category": "Customer Use",
+      "visibilityRule": {}
+    },
+    {
+      "n": 69,
+      "stableKey": "CTP25-069",
+      "prompt": "What methodology and/or KPIs do you use to measure product longevity?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267024"
+      },
+      "sectionKey": "ctp25-page-23",
+      "sectionTitle": "Customer Use (cont.)",
+      "category": "Customer Use",
+      "visibilityRule": {}
+    },
+    {
+      "n": 70,
+      "stableKey": "CTP25-070",
+      "prompt": "Does your company actively engage customers in climate action?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267025",
+        "comment": {
+          "label": "If you answered yes, please feel free to specify how you engage customers here:"
+        }
+      },
+      "sectionKey": "ctp25-page-24",
+      "sectionTitle": "Customer Use (cont.)",
+      "category": "Customer Use",
+      "visibilityRule": {}
+    },
+    {
+      "n": 71,
+      "stableKey": "CTP25-071",
+      "prompt": "Has your company specified the financial costs or investments needed per action to implement your transition plan?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "Partially",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267026"
+      },
+      "sectionKey": "ctp25-page-25",
+      "sectionTitle": "Economic Incentives & Financial Integration",
+      "category": "Economic Incentives & Financial Integration",
+      "visibilityRule": {}
+    },
+    {
+      "n": 72,
+      "stableKey": "CTP25-072",
+      "prompt": "Has your company developed a transition plan that addresses how you will decouple economic growth from climate impact? In other words, does your plan address how you can meet both your company’s financial goals and your climate targets (for example, increasing price per piece, increasing second hand sales, reducing excess inventory, etc.)?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "Partially",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267027"
+      },
+      "sectionKey": "ctp25-page-25",
+      "sectionTitle": "Economic Incentives & Financial Integration",
+      "category": "Economic Incentives & Financial Integration",
+      "visibilityRule": {}
+    },
+    {
+      "n": 73,
+      "stableKey": "CTP25-073",
+      "prompt": "Does your company use an internal carbon pricing mechanism to incentivise better climate action decisions?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "Partially",
+        "No, but we are planning to",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267028"
+      },
+      "sectionKey": "ctp25-page-25",
+      "sectionTitle": "Economic Incentives & Financial Integration",
+      "category": "Economic Incentives & Financial Integration",
+      "visibilityRule": {}
+    },
+    {
+      "n": 74,
+      "stableKey": "CTP25-074",
+      "prompt": "Does your company use any other financial tools to support your climate action work (green bonds, climate financing for suppliers, etc.)?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No, but we are planning to",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267029",
+        "comment": {
+          "label": "If yes, please explain further"
+        }
+      },
+      "sectionKey": "ctp25-page-25",
+      "sectionTitle": "Economic Incentives & Financial Integration",
+      "category": "Economic Incentives & Financial Integration",
+      "visibilityRule": {}
+    },
+    {
+      "n": 75,
+      "stableKey": "CTP25-075",
+      "prompt": "What % of your annual revenues does your company spend or invest in climate action and decarbonization?",
+      "type": "single_choice",
+      "options": [
+        "Less than 1%",
+        "1-5%",
+        "6-10%",
+        "More than 10%",
+        "Do not know"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267059",
+        "comment": {
+          "label": "Feel free to expand on your answer here:"
+        }
+      },
+      "sectionKey": "ctp25-page-25",
+      "sectionTitle": "Economic Incentives & Financial Integration",
+      "category": "Economic Incentives & Financial Integration",
+      "visibilityRule": {}
+    },
+    {
+      "n": 76,
+      "stableKey": "CTP25-076",
+      "prompt": "Carbon Removals and neutralization: The IPCC scenarios are clear - emission reductions are vital but unfortunately no longer enough to meet the 1.5 degree target. So the world will need permanent carbon removals. The SBTi Corporate Net-Zero standard states that any residual emissions at the target year need to be neutralized with durable carbon removals. By then, the market for durable carbon removals needs to be able to meet this demand. There is a shared responsibility to support innovation and scaling of methods for durable carbon removals. Does your company have any commitment or investment plan for supporting and scaling carbon removals?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267060",
+        "references": [
+          {
+            "label": "SBTi Corporate Net-Zero standard",
+            "url": "https://sciencebasedtargets.org/net-zero"
+          }
+        ]
+      },
+      "sectionKey": "ctp25-page-25",
+      "sectionTitle": "Economic Incentives & Financial Integration",
+      "category": "Economic Incentives & Financial Integration",
+      "visibilityRule": {}
+    },
+    {
+      "n": 77,
+      "stableKey": "CTP25-077",
+      "prompt": "Beyond Value Chain Mitigation: There is a gap between what companies and nations have pledged and what the world needs to meet the 1.5 degree target. Financing climate mitigation beyond the company's value chains is crucial and strongly recommended by SBTi. It is not to be confused with carbon offsetting, rather it is a contribution to the global transition to Net-Zero. Is your company engaged in Beyond Value Chain Mitigation (BVCM)?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267061"
+      },
+      "sectionKey": "ctp25-page-25",
+      "sectionTitle": "Economic Incentives & Financial Integration",
+      "category": "Economic Incentives & Financial Integration",
+      "visibilityRule": {}
+    },
+    {
+      "n": 78,
+      "stableKey": "CTP25-078",
+      "prompt": "Private sector companies have a large role to play in the transition to a net zero economy, but they alone cannot bring about this transformation – for their business and the wider economy. That is why companies must advocate for robust public policies, regulations, and investments that are necessary to support corporate action and drive economy-wide decarbonization. Does your company have a formal plan to actively engaging with policy makers to influence legislation that incentivizes decarbonization? If your plan includes formally supporting STICA’s policy work, you can answer yes to this question.",
+      "type": "single_choice",
+      "options": [
+        "No",
+        "Yes (please describe what you are doing)"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267030",
+        "comment": {
+          "label": "Yes (please describe what you are doing)",
+          "option": "Yes (please describe what you are doing)"
+        }
+      },
+      "sectionKey": "ctp25-page-26",
+      "sectionTitle": "Industry Action & Policy Engagement",
+      "category": "Industry Action & Policy Engagement",
+      "visibilityRule": {}
+    },
+    {
+      "n": 79,
+      "stableKey": "CTP25-079",
+      "prompt": "What actions have you taken or are you taking to drive policy change at the industry level (check all that apply)?",
+      "type": "multiple_choice",
+      "options": [
+        "Endorsing a climate solutions campaign or sign-on letter",
+        "Corresponding directly with politicians",
+        "Participating in government meetings",
+        "Providing customers an opportunity to advocate for climate action",
+        "Supporting advocacy groups through donations or membership",
+        "Providing feedback on STICA related position papers",
+        "Other (please specify)",
+        "We have not taken any industry advocacy actions"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267031",
+        "comment": {
+          "label": "Other (please specify)",
+          "option": "Other (please specify)"
+        }
+      },
+      "sectionKey": "ctp25-page-26",
+      "sectionTitle": "Industry Action & Policy Engagement",
+      "category": "Industry Action & Policy Engagement",
+      "visibilityRule": {}
+    },
+    {
+      "n": 80,
+      "stableKey": "CTP25-080",
+      "prompt": "Regarding public policy, companies should identify what actions they are taking now and in the near term to ensure they are not lobbying against (directly or indirectly through trade associations) proposed policies that will contribute to emission reductions and a just transition. Companies should analyze whether their trade associations’ actions are supportive or contrary to the company’s 1.5°C-aligned goals. If you are engaging policy makers, how are you ensuring that your policy engagement and advocacy is aligned with the targets you have committed to?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267032"
+      },
+      "sectionKey": "ctp25-page-26",
+      "sectionTitle": "Industry Action & Policy Engagement",
+      "category": "Industry Action & Policy Engagement",
+      "visibilityRule": {}
+    },
+    {
+      "n": 81,
+      "stableKey": "CTP25-081",
+      "prompt": "A transition plan must ensure the delivery of a net zero and climate‑resilient economy in a way that delivers fairness and tackles inequality and injustice. This means considering and addressing the broader social consequences and impacts of mitigation actions. For instance, should your company decide to change suppliers due to their lack of commitment to climate action, this may affect the supplier’s workforce. Does your company currently have a plan for ensuring a Just Transition as part of your climate action transition plan?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267033",
+        "comment": {
+          "label": "Feel free to expand on your answer here:"
+        }
+      },
+      "sectionKey": "ctp25-page-27",
+      "sectionTitle": "Just Transition",
+      "category": "Just Transition",
+      "visibilityRule": {}
+    },
+    {
+      "n": 82,
+      "stableKey": "CTP25-082",
+      "prompt": "Below are questions experts and NGOs are asking apparel companies regarding your action related to a JUST Transition. We are aware that for many of you these are new questions. Have a look and please select all that apply.",
+      "type": "multiple_choice",
+      "options": [
+        "Our company publicly commits to a JUST Transition strategy that 1) assesses and identifies any adverse social impacts of our brand's climate goals and 2) seeks to cease, prevent or mitigate these impacts for workers, communities, and other stakeholders",
+        "Our company discloses the investments we make for supporting climate adaptation measures, such as installing air conditioning or other cooling systems to mitigate heat stress in supply chain facilities and flood defences",
+        "Our company discloses how we consult suppliers in setting climate goals (emission reductions, net zero goals) that affect the supply chain",
+        "Our company discloses how we engage our suppliers to co-create locally tailored solutions for climate adaptation, sensitive to regional contexts",
+        "Our company discloses our efforts to financially compensate workers affected by the climate crisis and/or our climate action strategy",
+        "Our company discloses how we support the retention, re-skilling and/or up-skilling of workers in the supply chain whose jobs are at risk due to the impacts of the climate crisis and/or our climate action strategy",
+        "Our company discloses real time heat and humidity levels in production facilities within our supply chain to assess and track heat stress (e.g. wet bulb globe temperatures exceeding 30.5C for moderate heat stress)",
+        "Our company discloses the number or percentage of supplier facilities covered by collective bargaining agreements",
+        "Our company discloses the number or percentage of supplier facilities that have independent, democratically elected trade unions",
+        "Our company discloses our company's approach to achieving the payment of living wages to workers in the supply chain",
+        "Our company discloses the percentage of workers in the supply chain being paid a living wage rate",
+        "Our company discloses our exit strategy when we decide to terminate a relationship with a supplier",
+        "None of the above"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267063",
+        "comment": {
+          "label": "Feel free to expand on your answers here, noting how your company sees this work and what challenges you may have:"
+        }
+      },
+      "sectionKey": "ctp25-page-28",
+      "sectionTitle": "Just Transition (cont.)",
+      "category": "Just Transition",
+      "visibilityRule": {}
+    },
+    {
+      "n": 83,
+      "stableKey": "CTP25-083",
+      "prompt": "Do members of your company currently participate in one or more of the STICA working groups?",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267034"
+      },
+      "sectionKey": "ctp25-page-29",
+      "sectionTitle": "Working Groups",
+      "category": "Working Groups",
+      "visibilityRule": {}
+    },
+    {
+      "n": 84,
+      "stableKey": "CTP25-084",
+      "prompt": "Which working groups are you currently participating in (check all that apply)?",
+      "type": "multiple_choice",
+      "options": [
+        "WG1: Data Collection & Reporting",
+        "WG2: Energy Efficiency & Renewable Energy: China",
+        "WG2: Energy Efficiency & Renewable Energy: India",
+        "WG2: Energy Efficiency & Renewable Energy: Turkey",
+        "WG2: Energy Efficiency & Renewable Energy: Vietnam/Taiwan",
+        "WG2: Energy Efficiency & Renewable Energy: Bangladesh",
+        "WG3: Materials",
+        "WG4: The User Phase & Circular Business Models",
+        "WG6: Retail Group",
+        "WG7: Retail Scope 2 Emissions",
+        "WG8: Norway Working Group"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267035"
+      },
+      "sectionKey": "ctp25-page-30",
+      "sectionTitle": "Working Groups (cont.)",
+      "category": "Working Groups",
+      "visibilityRule": {}
+    },
+    {
+      "n": 85,
+      "stableKey": "CTP25-085",
+      "prompt": "How often will your company review your transition plan and make updates to key pieces of the plan if necessary?",
+      "type": "single_choice",
+      "options": [
+        "Quarterly (every quarter)",
+        "Bi-annually (twice a year)",
+        "Annually (once a year)",
+        "Every second year",
+        "Every third year",
+        "Other (please specify)"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267036",
+        "comment": {
+          "label": "Other (please specify)",
+          "option": "Other (please specify)"
+        }
+      },
+      "sectionKey": "ctp25-page-31",
+      "sectionTitle": "Transition Plan Updates & Further Support",
+      "category": "Transition Plan Updates & Further Support",
+      "visibilityRule": {}
+    },
+    {
+      "n": 86,
+      "stableKey": "CTP25-086",
+      "prompt": "What additional support do you need to help you further develop and implement your transition plan moving forward?",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267037"
+      },
+      "sectionKey": "ctp25-page-31",
+      "sectionTitle": "Transition Plan Updates & Further Support",
+      "category": "Transition Plan Updates & Further Support",
+      "visibilityRule": {}
+    },
+    {
+      "n": 87,
+      "stableKey": "CTP25-087",
+      "prompt": "Are you willing to share your transition plan with SFA and the STICA Secretariat, if kept confidential?If you answer yes, we will get in contact with you.",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No",
+        "Maybe"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267039"
+      },
+      "sectionKey": "ctp25-page-31",
+      "sectionTitle": "Transition Plan Updates & Further Support",
+      "category": "Transition Plan Updates & Further Support",
+      "visibilityRule": {}
+    },
+    {
+      "n": 88,
+      "stableKey": "CTP25-088",
+      "prompt": "Are you willing to share your transition plan with other STICA members?If you answer yes, we will get in contact with you.",
+      "type": "single_choice",
+      "options": [
+        "Yes",
+        "No",
+        "Maybe"
+      ],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267038"
+      },
+      "sectionKey": "ctp25-page-31",
+      "sectionTitle": "Transition Plan Updates & Further Support",
+      "category": "Transition Plan Updates & Further Support",
+      "visibilityRule": {}
+    },
+    {
+      "n": 89,
+      "stableKey": "CTP25-089",
+      "prompt": "Is there anything else we should know about your climate transition plan that you have not included in your answers above?",
+      "type": "textarea",
+      "options": [],
+      "required": false,
+      "validation": {
+        "sourceQuestionId": "300267040"
+      },
+      "sectionKey": "ctp25-page-31",
+      "sectionTitle": "Transition Plan Updates & Further Support",
+      "category": "Transition Plan Updates & Further Support",
+      "visibilityRule": {}
+    },
+    {
+      "n": 90,
+      "stableKey": "CTP25-090",
+      "prompt": "What are the biggest challenges for meeting your GHG reduction targets? Please be as honest and specific as possible. Feel free to consult with your CEOs, CFOs and other relevant colleagues before answering this question. You can list both internal organizational challenges (such as expectations on profit margins by owners, lack of knowledge, etc.) and external changes (such as lack of legislation, lack of financial incentives for supplier partners, etc.).",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267041"
+      },
+      "sectionKey": "ctp25-page-32",
+      "sectionTitle": "Additional Challenges",
+      "category": "Additional Challenges",
+      "visibilityRule": {}
+    },
+    {
+      "n": 91,
+      "stableKey": "CTP25-091",
+      "prompt": "What do you think needs to happen to be able to overcome these challenges? Please be as honest, radical and specific as possible. Feel free to consult with your CEOs and CFOs before answering this question. You can list both internal organizational changes (such as reduced expectations on profit margins by owners, etc.) and external changes (such as specific legislation - VAT reduction, taxes on virgin materials, penalties for not reaching GHG targets, government investments in production country renewable energy infrastructure, etc.).",
+      "type": "textarea",
+      "options": [],
+      "required": true,
+      "validation": {
+        "sourceQuestionId": "300267042"
+      },
+      "sectionKey": "ctp25-page-32",
+      "sectionTitle": "Additional Challenges",
+      "category": "Additional Challenges",
+      "visibilityRule": {}
+    },
+    {
+      "n": 92,
+      "stableKey": "CTP25-092",
+      "prompt": "Is there anything else you want to comment on, further explain, ask or highlight for SFA / STICA that was not covered in the previous questions? Please do so here.",
+      "type": "textarea",
+      "options": [],
+      "required": false,
+      "validation": {
+        "sourceQuestionId": "300267062"
+      },
+      "sectionKey": "ctp25-page-32",
+      "sectionTitle": "Additional Challenges",
+      "category": "Additional Challenges",
+      "visibilityRule": {}
+    }
+  ]
+}

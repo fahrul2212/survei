@@ -1,18 +1,19 @@
 import { supabase } from "../../lib/supabase";
-import type { AiModelsResponse, AiSettingsResponse, AiSettingsUpdate, AiUsageResponse, SurveyAiResult } from "./types";
+import { portalFetch, requestSessionRecovery } from "../../lib/session-recovery";
+import type { AiModelsResponse, AiSettingsResponse, AiSettingsUpdate, AiUsageResponse, SurveyAiResult, ComparisonChart } from "./types";
 
 type ApiErrorBody = { error?: string };
 
 async function token(): Promise<string> {
   if (!supabase) throw new Error("Supabase is not configured");
   const { data, error } = await supabase.auth.getSession();
-  if (error || !data.session?.access_token) throw new Error("Your session has expired. Please sign in again.");
+  if (error || !data.session?.access_token) { requestSessionRecovery(); throw new Error("Your session has expired. Please sign in again."); }
   return data.session.access_token;
 }
 
-async function api<T>(path: string, init?: RequestInit): Promise<T> {
+export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const accessToken = await token();
-  const response = await fetch(path, {
+  const response = await portalFetch(path, {
     ...init,
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -75,4 +76,8 @@ export function exploreSurveyData(input: {
   categories?: string[];
 }): Promise<SurveyAiResult> {
   return api("/api/ai/explore", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function compareSurveyData(input: { years?: number[]; organizationIds?: number[]; questionKeys?: string[] }) {
+  return api<{ charts: ComparisonChart[]; threshold: number }>("/api/analysis", { method: "POST", body: JSON.stringify(input) });
 }

@@ -4,6 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "test": "node --import ./scripts/test-typescript.mjs --test tests/*.test.mjs",
+    "test:analysis-db": "node scripts/test-analysis-database.mjs",
     "dev": "vite",
     "build": "npm run cf:types && tsc -b && vite build",
     "preview": "vite preview",

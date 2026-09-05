@@ -1,4 +1,5 @@
-export type JsonAnswer = string | number | boolean | string[] | null;
+import { hasAnswer, answerText, primaryAnswer, type JsonAnswer } from "../../shared/survey-answer";
+export type { JsonAnswer } from "../../shared/survey-answer";
 
 export type QuestionType =
   | "text"
@@ -73,6 +74,8 @@ export type AnswerRecord = {
   value: JsonAnswer;
   provenance: "manual" | "prefilled" | "historical_import";
   updated_at: string;
+  edit_version: number;
+  reviewed_at: string | null;
 };
 
 export type ProgressRow = {
@@ -290,18 +293,8 @@ export function slugify(value: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export function isAnswered(value: JsonAnswer | undefined): boolean {
-  if (value === undefined || value === null || value === "") return false;
-  if (Array.isArray(value)) return value.length > 0;
-  return true;
-}
-
-export function valueAsText(value: JsonAnswer | undefined): string {
-  if (value === undefined || value === null) return "";
-  if (Array.isArray(value)) return value.join(", ");
-  if (typeof value === "boolean") return value ? "Yes" : "No";
-  return String(value);
-}
+export const isAnswered = hasAnswer;
+export const valueAsText = answerText;
 
 export function evaluateVisibility(
   question: SurveyQuestion,
@@ -312,7 +305,7 @@ export function evaluateVisibility(
   if (!rule?.questionKey) return true;
   const dependency = questions.find((candidate) => candidate.stableKey === rule.questionKey);
   if (!dependency) return false;
-  const actual = answers[dependency.id];
+  const actual = primaryAnswer(answers[dependency.id]);
 
   if (rule.operator === "is_answered") return isAnswered(actual);
   if (rule.operator === "not_equals") return JSON.stringify(actual) !== JSON.stringify(rule.value);
@@ -384,10 +377,11 @@ function parseImportAnswer(value: unknown): JsonAnswer {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value === "number" || typeof value === "boolean") return value;
   const text = String(value).trim();
-  if (text.startsWith("[") && text.endsWith("]")) {
+  if ((text.startsWith("[") && text.endsWith("]")) || (text.startsWith("{") && text.endsWith("}"))) {
     try {
       const parsed = JSON.parse(text);
       if (Array.isArray(parsed) && parsed.every((item) => typeof item === "string")) return parsed;
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && Object.values(parsed).every(item => item === null || ["string", "number", "boolean"].includes(typeof item) || (Array.isArray(item) && item.every(value => typeof value === "string")))) return parsed;
     } catch {
       return text;
     }

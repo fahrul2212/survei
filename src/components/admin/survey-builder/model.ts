@@ -1,4 +1,5 @@
 import { valueAsText, type QuestionType, type SurveyQuestion, type SurveyVersion } from "../../../lib/portal";
+import { answerFields } from "../../../../shared/survey-answer";
 
 export type SurveyBuilderView = "overview" | "create-year" | "workspace" | "question";
 export type SurveySection = readonly [key: string, title: string];
@@ -19,6 +20,7 @@ export type QuestionForm = {
   operator: string;
   expected: string;
   presentation: "radio" | "dropdown";
+  validation: Record<string, unknown>;
 };
 
 export type SurveyYearDraft = { year: string; name: string };
@@ -39,6 +41,7 @@ export const EMPTY_QUESTION: QuestionForm = {
   operator: "equals",
   expected: "",
   presentation: "radio",
+  validation: {},
 };
 
 export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
@@ -91,6 +94,7 @@ export function editQuestionForm(question: SurveyQuestion, carryKey = ""): Quest
     operator: question.visibilityRule.operator ?? "equals",
     expected: valueAsText(question.visibilityRule.value),
     presentation: question.validation.presentation === "dropdown" ? "dropdown" : "radio",
+    validation: question.validation,
   };
 }
 
@@ -106,8 +110,21 @@ export function incrementStableKey(stableKey: string): string | null {
 export function isQuestionFormValid(form: QuestionForm): boolean {
   const isChoice = form.type === "single_choice" || form.type === "multiple_choice";
   const choiceCount = form.options.split("\n").filter((choice) => choice.trim()).length;
-  return Boolean(form.stableKey.trim() && form.sectionTitle.trim() && form.category.trim() && form.prompt.trim()
+  const fieldsValid = form.type !== "textarea" || answerFields(form.validation).every(field => field.label.trim()
+    && (field.type !== "select" || (field.options?.filter(option => option.trim()).length ?? 0) >= 2));
+  return Boolean(fieldsValid && form.stableKey.trim() && form.sectionTitle.trim() && form.category.trim() && form.prompt.trim()
     && (!isChoice || choiceCount >= 2));
+}
+
+export function questionValidation(form: QuestionForm): Record<string, unknown> {
+  const validation = { ...form.validation };
+  const fields = form.type === "textarea" ? answerFields(validation).map(field => ({ ...field,
+    options: field.options?.map(option => option.trim()).filter(Boolean) })) : [];
+  if (fields.length) validation.fields = fields;
+  else { delete validation.fields; if (validation.presentation === "matrix") delete validation.presentation; }
+  if (!["single_choice", "multiple_choice", "yes_no"].includes(form.type)) delete validation.comment;
+  if (form.type === "single_choice") validation.presentation = form.presentation;
+  return validation;
 }
 
 export function errorMessage(error: unknown, fallback: string): string {
